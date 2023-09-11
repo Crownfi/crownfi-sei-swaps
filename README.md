@@ -1,8 +1,6 @@
-# Astroport Core
+# csswap-mvp
 
-[![codecov](https://codecov.io/gh/astroport-fi/astroport-core/branch/main/graph/badge.svg?token=ROOLZTGZMM)](https://codecov.io/gh/astroport-fi/astroport-core)
-
-Multi pool type automated market-maker (AMM) protocol powered by smart contracts on the [Terra](https://terra.money) blockchain.
+MVP for Crownfi's Sei Swapper, currently a fork of `astroport-core` and `sparrowswap`
 
 ## Contracts diagram
 
@@ -14,25 +12,10 @@ Multi pool type automated market-maker (AMM) protocol powered by smart contracts
 | ---------------------------------------------------------- | -------------------------------------------- |
 | [`factory`](contracts/factory)                             | Pool creation factory                        |
 | [`pair`](contracts/pair)                                   | Pair with x*y=k curve                        |
-| [`pair_stable`](contracts/pair_stable)                     | Pair with stableswap invariant curve         |
-| [`pair_stable_bluna`](contracts/pair_stable_bluna)         | Pair with stableswap invariant curve handling bLUNA rewards for LPs |
-| [`token`](contracts/token)                                 | CW20 (ERC20 equivalent) token implementation |
+| [`token`](contracts/token)                                 | CW20 token implementation |
 | [`router`](contracts/router)                               | Multi-hop trade router                       |
 | [`oracle`](contracts/periphery/oracle)                     | TWAP oracles for x*y=k pool types            |
 | [`whitelist`](contracts/whitelist)                         | CW1 whitelist contract                       |
-
-## Tokenomics Contracts
-
-Tokenomics related smart contracts are hosted on ../contracts/tokenomics.
-
-| Name                                                       | Description                                      |
-| ---------------------------------------------------------- | ------------------------------------------------ |
-| [`generator`](contracts/tokenomics/generator)                                   | Rewards generator for liquidity providers        |
-| [`generator_proxy_to_mirror`](contracts/tokenomics/generator_proxy_to_mirror)   | Rewards generator proxy for liquidity providers  |
-| [`maker`](contracts/tokenomics/maker)                                           | Fee collector and swapper                        |
-| [`staking`](contracts/tokenomics/staking)                                       | xASTRO staking contract                          |
-| [`vesting`](contracts/tokenomics/vesting)                                       | ASTRO distributor for generator rewards          |
-| [`xastro_token`](contracts/tokenomics/xastro_token)                             | xASTRO token contract                            |
 
 ## Building Contracts
 
@@ -66,12 +49,8 @@ The optimized contracts are generated in the artifacts/ directory.
 
 ## Deployment
 
-You can find versions and commits for actually deployed contracts [here](https://github.com/astroport-fi/astroport-changelog).
+WIP
 
 ## Docs
 
 Docs can be generated using `cargo doc --no-deps`
-
-## Bug Bounty
-
-The contracts in this repo are included in a [bug bounty program](https://www.immunefi.com/bounty/astroport).

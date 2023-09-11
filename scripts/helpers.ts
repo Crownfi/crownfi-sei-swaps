@@ -1,335 +1,265 @@
 import 'dotenv/config'
-import {
-    Coin,
-    Coins,
-    isTxError,
-    LCDClient,
-    LocalTerra,
-    MnemonicKey,
-    Msg,
-    MsgExecuteContract,
-    MsgInstantiateContract,
-    MsgMigrateContract,
-    MsgStoreCode,
-    MsgUpdateContractAdmin, Tx,
-    Wallet
-} from '@terra-money/terra.js';
-import {
-    readFileSync,
-    writeFileSync,
-} from 'fs'
-import path from 'path'
-import { CustomError } from 'ts-custom-error'
 
-import { APIParams } from "@terra-money/terra.js/dist/client/lcd/APIRequester";
+// Modifications to build / helper scripts based on sparrowswap
+
+import {
+	AccountData,
+	Coin,
+	coin,
+	EncodeObject
+} from '@cosmjs/proto-signing'
+import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate"
+import { getSigningCosmWasmClient, generateWallet, restoreWallet } from "@sei-js/core"
+import {calculateFee, GasPrice, isDeliverTxFailure} from "@cosmjs/stargate"
+
+import path from "path"
 import fs from "fs";
 import https from "https";
 
 export const ARTIFACTS_PATH = '../artifacts'
+export const GAS_LIMIT = 4000000;
 
 export function getRemoteFile(file: any, url: any) {
-    let localFile = fs.createWriteStream(path.join(ARTIFACTS_PATH, `${file}.json`));
+	let localFile = fs.createWriteStream(path.join(ARTIFACTS_PATH, `${file}.json`));
 
-    https.get(url, (res) => {
-        res.pipe(localFile);
-        res.on("finish", () => {
-            file.close();
-        })
-    }).on('error', (e) => {
-        console.error(e);
-    });
+	https.get(url, (res) => {
+		res.pipe(localFile);
+		res.on("finish", () => {
+			file.close();
+		})
+	}).on('error', (e) => {
+		console.error(e);
+	});
 }
 
-export function readArtifact(name: string = 'artifact', from: string = ARTIFACTS_PATH) {
-    try {
-        const data = readFileSync(path.join(from, `${name}.json`), 'utf8')
-        return JSON.parse(data)
-    } catch (e) {
-        return {}
-    }
+interface ClientEnvConstruct {
+	account: AccountData
+	chainId: string
+	client: SigningCosmWasmClient
+	gasPrice: GasPrice
+}
+export class ClientEnv {
+	account: AccountData
+	chainId: string
+	client: SigningCosmWasmClient
+	gasPrice: GasPrice
+	private constructor(data: ClientEnvConstruct) {
+		this.account = data.account;
+		this.chainId = data.chainId;
+		this.client = data.client;
+		this.gasPrice = data.gasPrice;
+	}
+
+	async signAndSend(msg: EncodeObject) {
+		const result = await this.client.signAndBroadcast(this.account.address, [msg], calculateFee(GAS_LIMIT, this.gasPrice))
+		if (isDeliverTxFailure(result)) {
+			throw new TransactionError(result.code, result.transactionHash, result.rawLog + "")
+		}
+		return result
+	}
+	
+	async uploadContract(filepath: string) {
+		const contract = fs.readFileSync(filepath)
+		const result = await this.client.upload(this.account.address, contract, calculateFee(GAS_LIMIT, this.gasPrice))
+		return result.codeId
+	}
+	async instantiateContract(admin_address: string | undefined, codeId: number, msg: object, label: string) {
+		const result = await this.client.instantiate(this.account.address, codeId, msg, label, calculateFee(GAS_LIMIT, this.gasPrice), {
+			admin: admin_address
+		})
+		return result.logs[0].events.filter(el => el.type == "instantiate").map(x => x.attributes.filter(element => element.key == '_contract_address').map(x => x.value));
+	}
+	async deployContract(adminAddress: string, filepath: string, initMsg: object, label: string) {
+		const codeId = await this.uploadContract(filepath);
+		return await this.instantiateContract(adminAddress, codeId, initMsg, label);
+	}
+	async executeContract(contractAddress: string, msg: object, funds?: Coin[]) {
+		return await this.client.execute(this.account.address, contractAddress, msg, calculateFee(GAS_LIMIT, this.gasPrice), undefined, funds)
+	}
+	async queryContract(contractAddress: string, query: object): Promise<any> {
+		return await this.client.queryContractSmart(contractAddress, query)
+	}
+	static async newFromEnvVars(): Promise<ClientEnv> {
+		if (!process.env.MNEMONIC) {
+			throw new Error("MNEMONIC env var not set")
+		}
+		if (!process.env.GAS_PRICE) {
+			throw new Error("GAS_PRICE env var not set")
+		}
+		if (!process.env.RPC_URL) {
+			throw new Error("RPC_URL not set")
+		}
+
+		const signer = await restoreWallet(process.env.MNEMONIC)
+
+		const accounts = await signer.getAccounts()
+		if (accounts.length == 1) {
+			throw new Error("Expected wallet from mnemonic to result in exactly 1 account but got " + accounts.length + "accounts");
+		}
+
+		const account = accounts[0]
+		const gasPrice = GasPrice.fromString(process.env.GAS_PRICE)
+
+		const client = await getSigningCosmWasmClient(process.env.RPC_URL, signer, {
+			gasPrice: gasPrice
+		})
+		const chainId = await client.getChainId()
+
+		if (chainId !== process.env.CHAIN_ID) {
+			throw new Error(`Chain ID mismatch. Expected ${process.env.CHAIN_ID}, got ${chainId}`)
+		}
+		return new ClientEnv({ account, chainId, client, gasPrice });
+	}
 }
 
-export interface Client {
-    wallet: Wallet
-    terra: LCDClient | LocalTerra
+export function readArtifact(name: string = 'artifact', dir: string = ARTIFACTS_PATH) {
+	try {
+		const data = fs.readFileSync(path.join(dir, `${name}.json`), 'utf8')
+		return JSON.parse(data)
+	} catch (e) {
+		return {}
+	}
 }
-
-export function newClient(): Client {
-    const client = <Client>{}
-    if (process.env.WALLET) {
-        client.terra = new LCDClient({
-            URL: String(process.env.LCD_CLIENT_URL),
-            chainID: String(process.env.CHAIN_ID)
-        })
-        client.wallet = recover(client.terra, process.env.WALLET)
-    } else {
-        client.terra = new LocalTerra()
-        client.wallet = (client.terra as LocalTerra).wallets.test1
-    }
-    return client
-}
-
-export function writeArtifact(data: object, name: string = 'artifact', to: string = ARTIFACTS_PATH) {
-    writeFileSync(path.join(to, `${name}.json`), JSON.stringify(data, null, 2))
-}
-
-// Tequila lcd is load balanced, so txs can't be sent too fast, otherwise account sequence queries
-// may resolve an older state depending on which lcd you end up with. Generally 1000 ms is enough
-// for all nodes to sync up.
-let TIMEOUT = 1000
-
-export function setTimeoutDuration(t: number) {
-    TIMEOUT = t
-}
-
-export function getTimeoutDuration() {
-    return TIMEOUT
+export function writeArtifact(data: object, name: string = 'artifact', dir: string = ARTIFACTS_PATH) {
+	fs.writeFileSync(path.join(dir, `${name}.json`), JSON.stringify(data, null, 2))
 }
 
 export async function sleep(timeout: number) {
-    await new Promise(resolve => setTimeout(resolve, timeout))
+	await new Promise(resolve => setTimeout(resolve, timeout))
 }
 
-export class TransactionError extends CustomError {
-    public constructor(
-        public code: string | number,
-        public txhash: string | undefined,
-        public rawLog: string,
-    ) {
-        super("transaction failed")
-    }
+export class TransactionError extends Error {
+	name!: "TransactionError"
+	public constructor(
+		public code: string | number,
+		public txhash: string | undefined,
+		public rawLog: string,
+	) {
+		super("transaction failed")
+	}
 }
-
-export async function createTransaction(wallet: Wallet, msg: Msg) {
-    return await wallet.createAndSignTx({ msgs: [msg] })
-}
-
-export async function broadcastTransaction(terra: LCDClient, signedTx: Tx) {
-    const result = await terra.tx.broadcast(signedTx)
-    await sleep(TIMEOUT)
-    return result
-}
-
-export async function performTransaction(terra: LCDClient, wallet: Wallet, msg: Msg) {
-    const signedTx = await createTransaction(wallet, msg)
-    const result = await broadcastTransaction(terra, signedTx)
-    if (isTxError(result)) {
-        throw new TransactionError(result.code, result.codespace, result.raw_log)
-    }
-    return result
-}
-
-export async function uploadContract(terra: LCDClient, wallet: Wallet, filepath: string) {
-    const contract = readFileSync(filepath, 'base64');
-    const uploadMsg = new MsgStoreCode(wallet.key.accAddress, contract);
-    let result = await performTransaction(terra, wallet, uploadMsg);
-    return Number(result.logs[0].eventsByType.store_code.code_id[0]) // code_id
-}
-
-export async function instantiateContract(terra: LCDClient, wallet: Wallet, admin_address: string | undefined, codeId: number, msg: object, label: string) {
-    const instantiateMsg = new MsgInstantiateContract(wallet.key.accAddress, admin_address, codeId, msg, undefined, label);
-    let result = await performTransaction(terra, wallet, instantiateMsg)
-    return result.logs[0].events.filter(el => el.type == 'instantiate').map(x => x.attributes.filter(element => element.key == '_contract_address').map(x => x.value));
-}
-
-export async function executeContract(terra: LCDClient, wallet: Wallet, contractAddress: string, msg: object, coins?: Coins.Input) {
-    const executeMsg = new MsgExecuteContract(wallet.key.accAddress, contractAddress, msg, coins);
-    return await performTransaction(terra, wallet, executeMsg);
-}
-
-export async function queryContract(terra: LCDClient, contractAddress: string, query: object): Promise<any> {
-    return await terra.wasm.contractQuery(contractAddress, query)
-}
-
-export async function queryContractInfo(terra: LCDClient, contractAddress: string): Promise<any> {
-    return await terra.wasm.contractInfo(contractAddress)
-}
-
-export async function queryCodeInfo(terra: LCDClient, codeID: number): Promise<any> {
-    return await terra.wasm.codeInfo(codeID)
-}
-
-export async function queryContractRaw(terra: LCDClient, end_point: string, params?: APIParams): Promise<any> {
-    return await terra.apiRequester.getRaw(end_point, params)
-}
-
-export async function deployContract(terra: LCDClient, wallet: Wallet, admin_address: string, filepath: string, initMsg: object, label: string) {
-    const codeId = await uploadContract(terra, wallet, filepath);
-    return await instantiateContract(terra, wallet, admin_address, codeId, initMsg, label);
-}
-
-export async function migrate(terra: LCDClient, wallet: Wallet, contractAddress: string, newCodeId: number, msg: object) {
-    const migrateMsg = new MsgMigrateContract(wallet.key.accAddress, contractAddress, newCodeId, msg);
-    return await performTransaction(terra, wallet, migrateMsg);
-}
-
-export function recover(terra: LCDClient, mnemonic: string) {
-    const mk = new MnemonicKey({ mnemonic: mnemonic });
-    return terra.wallet(mk);
-}
-
-export async function update_contract_admin(
-    terra: LCDClient,
-    wallet: Wallet,
-    contract_address: string,
-    admin_address: string
-) {
-    let msg = new MsgUpdateContractAdmin(
-        wallet.key.accAddress,
-        admin_address,
-        contract_address
-    );
-
-    return await performTransaction(terra, wallet, msg);
-}
-
-export function initialize(terra: LCDClient) {
-    const mk = new MnemonicKey();
-
-    console.log(`Account Address: ${mk.accAddress}`);
-    console.log(`MnemonicKey: ${mk.mnemonic}`);
-
-    return terra.wallet(mk);
-}
+TransactionError.prototype.name == "TransactionError";
 
 export function toEncodedBinary(object: any) {
-    return Buffer.from(JSON.stringify(object)).toString('base64');
+	return Buffer.from(JSON.stringify(object)).toString('base64');
 }
 
 export function strToEncodedBinary(data: string) {
-    return Buffer.from(data).toString('base64');
+	return Buffer.from(data).toString('base64');
 }
 
 export function toDecodedBinary(data: string) {
-    return Buffer.from(data, 'base64')
+	return Buffer.from(data, 'base64')
 }
 
 export class NativeAsset {
-    denom: string;
-    amount?: string
+	denom: string;
+	amount?: string
 
-    constructor(denom: string, amount?: string) {
-        this.denom = denom
-        this.amount = amount
-    }
+	constructor(denom: string, amount?: string) {
+		this.denom = denom
+		this.amount = amount
+	}
 
-    getInfo() {
-        return {
-            "native_token": {
-                "denom": this.denom,
-            }
-        }
-    }
+	getInfo() {
+		return {
+			"native_token": {
+				"denom": this.denom,
+			}
+		}
+	}
 
-    withAmount() {
-        return {
-            "info": this.getInfo(),
-            "amount": this.amount
-        }
-    }
+	withAmount() {
+		return {
+			"info": this.getInfo(),
+			"amount": this.amount
+		}
+	}
 
-    getDenom() {
-        return this.denom
-    }
+	getDenom() {
+		return this.denom
+	}
 
-    toCoin() {
-        return new Coin(this.denom, this.amount || "0")
-    }
+	toCoin() {
+		return coin(this.amount || "0", this.denom)
+	}
 }
 
 export class TokenAsset {
-    addr: string;
-    amount?: string
+	addr: string;
+	amount?: string
 
-    constructor(addr: string, amount?: string) {
-        this.addr = addr
-        this.amount = amount
-    }
+	constructor(addr: string, amount?: string) {
+		this.addr = addr
+		this.amount = amount
+	}
 
-    getInfo() {
-        return {
-            "token": {
-                "contract_addr": this.addr
-            }
-        }
-    }
+	getInfo() {
+		return {
+			"token": {
+				"contract_addr": this.addr
+			}
+		}
+	}
 
-    withAmount() {
-        return {
-            "info": this.getInfo(),
-            "amount": this.amount
-        }
-    }
+	withAmount() {
+		return {
+			"info": this.getInfo(),
+			"amount": this.amount
+		}
+	}
 
-    toCoin() {
-        return null
-    }
+	toCoin() {
+		return null
+	}
 
-    getDenom() {
-        return this.addr
-    }
+	getDenom() {
+		return this.addr
+	}
 }
 
 export class NativeSwap {
-    offer_denom: string;
-    ask_denom: string;
+	offer_denom: string;
+	ask_denom: string;
 
-    constructor(offer_denom: string, ask_denom: string) {
-        this.offer_denom = offer_denom
-        this.ask_denom = ask_denom
-    }
+	constructor(offer_denom: string, ask_denom: string) {
+		this.offer_denom = offer_denom
+		this.ask_denom = ask_denom
+	}
 
-    getInfo() {
-        return {
-            "native_swap": {
-                "offer_denom": this.offer_denom,
-                "ask_denom": this.ask_denom
-            }
-        }
-    }
+	getInfo() {
+		return {
+			"native_swap": {
+				"offer_denom": this.offer_denom,
+				"ask_denom": this.ask_denom
+			}
+		}
+	}
 }
 
 export class AstroSwap {
-    offer_asset_info: TokenAsset | NativeAsset;
-    ask_asset_info: TokenAsset | NativeAsset;
+	offer_asset_info: TokenAsset | NativeAsset;
+	ask_asset_info: TokenAsset | NativeAsset;
 
-    constructor(offer_asset_info: TokenAsset | NativeAsset, ask_asset_info: TokenAsset | NativeAsset) {
-        this.offer_asset_info = offer_asset_info
-        this.ask_asset_info = ask_asset_info
-    }
+	constructor(offer_asset_info: TokenAsset | NativeAsset, ask_asset_info: TokenAsset | NativeAsset) {
+		this.offer_asset_info = offer_asset_info
+		this.ask_asset_info = ask_asset_info
+	}
 
-    getInfo() {
-        return {
-            "astro_swap": {
-                "offer_asset_info": this.offer_asset_info.getInfo(),
-                "ask_asset_info": this.ask_asset_info.getInfo(),
-            }
-        }
-    }
+	getInfo() {
+		return {
+			"astro_swap": {
+				"offer_asset_info": this.offer_asset_info.getInfo(),
+				"ask_asset_info": this.ask_asset_info.getInfo(),
+			}
+		}
+	}
 }
 
 export function checkParams(network: any, required_params: any) {
-    for (const k in required_params) {
-        if (!network[required_params[k]]) {
-            throw "Set required param: " + required_params[k]
-        }
-    }
-}
-
-export async function getLPTokenName(terra: LCDClient | LocalTerra, pool: any) {
-    let minter = await queryContract(terra, pool[0], { minter: {} }).then(res => res.minter);
-    let assetInfos = await queryContract(terra, minter, { pair: {} }).then(res => res.asset_infos);
-    let lpTokenName: string[] = [];
-
-    for (const asset of assetInfos) {
-        if (asset.hasOwnProperty("token")) {
-            lpTokenName.push(await queryContract(terra, asset.token.contract_addr, { token_info: {} }).then(res => res.symbol));
-        } else if (asset.hasOwnProperty("native_token")) {
-            lpTokenName.push(asset.native_token.denom.substring(0, 8));
-        } else {
-            throw "Incompatible type of Asset!"
-        }
-    }
-
-    return lpTokenName.join("-").substring(0, 17);
+	for (const k in required_params) {
+		if (!network[required_params[k]]) {
+			throw "Set required param: " + required_params[k]
+		}
+	}
 }
