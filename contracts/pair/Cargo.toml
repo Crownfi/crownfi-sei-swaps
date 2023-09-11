@@ -40,4 +40,4 @@ astroport-token = { path = "../token" }
 astroport-factory = { path = "../factory" }
 proptest = "1.0"
 prost = "0.11.5"
-astroport-mocks = { path = "../../packages/astroport_mocks/" }
+cw-multi-test = "0.15"
