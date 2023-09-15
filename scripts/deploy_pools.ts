@@ -1,14 +1,19 @@
+#!/usr/bin/env ts-node
+console.log("-- starting...");
 import 'dotenv/config'
+import * as wtfnode from "wtfnode";
 import {
 	writeArtifact,
 	readArtifact,
 	toEncodedBinary,
 	ARTIFACTS_PATH,
 	ClientEnv,
-} from './helpers.js'
+} from './helpers'
 import { join } from 'path'
-import { chainConfigs } from "./types.d/chain_configs.js";
-import { Pair } from './types.d/astroport_deploy_interfaces.js';
+import { chainConfigs } from "./types.d/chain_configs";
+import { Pair } from './types.d/astroport_deploy_interfaces';
+import { CosmWasmClient } from '@cosmjs/cosmwasm-stargate';
+const activeClients: CosmWasmClient[] = [];
 
 async function uploadAndInitOracle(clientEnv: ClientEnv, pair: Pair, network: any, pool_pair_key: string) {
 	let pool_oracle_key = "oracle" + pair.identifier
@@ -76,40 +81,17 @@ async function createPools(clientEnv: ClientEnv) {
 		// Deploy oracle
 		await uploadAndInitOracle(clientEnv, pair, network, pool_pair_key)
 	}
-
-	await setupPools(clientEnv, pools)
-}
-
-async function setupPools(clientEnv: ClientEnv, pools: string[][]) {
-	const network = readArtifact(clientEnv.chainId)
-
-	if (!network.generatorAddress) {
-		throw new Error("Please deploy the generator contract")
-	}
-
-	if (pools.length > 0) {
-		let active_pool_length = await clientEnv.queryContract(network.generatorAddress, { active_pool_length: {} })
-		if (active_pool_length == 0) {
-			console.log("Setup pools for the generator...")
-			await clientEnv.executeContract(network.generatorAddress, {
-				setup_pools: {
-					pools: pools
-				}
-			})
-		} else {
-			console.log("You are cannot setup new pools because the generator has %s active pools already.", active_pool_length)
-		}
-	}
 }
 
 async function main() {
 	const clientEnv = await ClientEnv.newFromEnvVars();
+	activeClients.push(clientEnv.client);
 	console.log(`chainID: ${clientEnv.chainId} wallet: ${clientEnv.account}`)
 	const network = readArtifact(clientEnv.chainId)
 	console.log('network:', network)
 
 	if (!network.tokenAddress) {
-		throw new Error("Token address is not set, create ASTRO token first")
+		throw new Error("Token address is not set, create CRWN token first")
 	}
 
 	if (!network.factoryAddress) {
@@ -127,4 +109,15 @@ async function main() {
 		console.error(ex);
 		process.exitCode = 1;
 	}
+	activeClients.forEach(v => v.disconnect());
+	activeClients.length = 0;
 })();
+let breaks = 5;
+process.on("SIGINT", () => {
+	wtfnode.dump();
+	breaks -= 1;
+	console.log(breaks, "break(s) left");
+	if (breaks == 0) {
+		process.exit(130);
+	}
+});

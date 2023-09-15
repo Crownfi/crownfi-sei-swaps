@@ -426,7 +426,7 @@ impl AssetInfo {
     where
         C: CustomQuery,
     {
-        panic!("No clue");
+        Ok(6) // We're just going to assume everything is micro
     }
 
     /// Returns **true** if the calling token is the same as the token specified in the input parameters.

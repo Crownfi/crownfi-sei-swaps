@@ -203,6 +203,7 @@ async function uploadAndInitRouter(clientEnv: ClientEnv) {
 		process.exitCode = 1;
 	}
 	activeClients.forEach(v => v.disconnect());
+	activeClients.length = 0;
 })();
 let breaks = 5;
 process.on("SIGINT", () => {
