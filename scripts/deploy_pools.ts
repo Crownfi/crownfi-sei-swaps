@@ -8,12 +8,13 @@ import {
 } from './helpers.js'
 import { join } from 'path'
 import { chainConfigs } from "./types.d/chain_configs.js";
+import { Pair } from './types.d/astroport_deploy_interfaces.js';
 
 async function uploadAndInitOracle(clientEnv: ClientEnv, pair: Pair, network: any, pool_pair_key: string) {
 	let pool_oracle_key = "oracle" + pair.identifier
 
 	if (pair.initOracle && network[pool_pair_key] && !network[pool_oracle_key]) {
-		chainConfigs.oracle.admin ||= chainConfigs.generalInfo.multisig
+		chainConfigs.oracle.admin ||= chainConfigs.generalInfo.defaultAdmin
 		chainConfigs.oracle.initMsg.factory_contract ||= network.factoryAddress
 		chainConfigs.oracle.initMsg.asset_infos ||= pair.assetInfos
 
@@ -119,4 +120,11 @@ async function main() {
 	console.log('FINISH')
 }
 
-await main()
+(async () => {
+	try {
+		await main();
+	}catch(ex: any) {
+		console.error(ex);
+		process.exitCode = 1;
+	}
+})();

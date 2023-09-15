@@ -15,7 +15,7 @@ async function main() {
 	const clientEnv = await ClientEnv.newFromEnvVars();
 	console.log(`chainID: ${clientEnv.chainId} wallet: ${clientEnv.account.address}`)
 
-	if (!chainConfigs.generalInfo.multisig) {
+	if (!chainConfigs.generalInfo.defaultAdmin) {
 		throw new Error("Set the proper owner multisig for the contracts")
 	}
 
@@ -28,19 +28,19 @@ async function main() {
 	}
 
 	let msg = {
-		admin: chainConfigs.generalInfo.multisig,
+		admin: chainConfigs.generalInfo.defaultAdmin,
 		initMsg: {
 			name: "Test 1",
 			symbol: "TEST-T",
 			decimals: 6,
 			initial_balances: [
 				{
-					address: chainConfigs.generalInfo.multisig,
+					address: chainConfigs.generalInfo.defaultAdmin,
 					amount: "1000000000000000"
 				}
 			],
 			mint: {
-				minter: chainConfigs.generalInfo.multisig
+				minter: chainConfigs.generalInfo.defaultAdmin
 			}
 		},
 		label: "Test token"
@@ -69,4 +69,11 @@ async function main() {
 	console.log('FINISH')
 }
 
-await main()
+(async () => {
+	try {
+		await main();
+	}catch(ex: any) {
+		console.error(ex);
+		process.exitCode = 1;
+	}
+})();

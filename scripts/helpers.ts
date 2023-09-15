@@ -1,7 +1,6 @@
-import 'dotenv/config'
-
 // Modifications to build / helper scripts based on sparrowswap
-
+import 'dotenv/config'
+import {spawn} from "promisify-child-process";
 import {
 	AccountData,
 	Coin,
@@ -9,14 +8,15 @@ import {
 	EncodeObject
 } from '@cosmjs/proto-signing'
 import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate"
-import { getSigningCosmWasmClient, generateWallet, restoreWallet } from "@sei-js/core"
+import { getSigningCosmWasmClient, restoreWallet, getCosmWasmClient } from "@sei-js/core"
 import {calculateFee, GasPrice, isDeliverTxFailure} from "@cosmjs/stargate"
 
 import path from "path"
 import fs from "fs";
 import https from "https";
+import { seidKeysListEntry } from './types.d/seid_keys_output';
 
-export const ARTIFACTS_PATH = '../artifacts'
+export const ARTIFACTS_PATH = path.resolve(__dirname, "..", "artifacts");
 export const GAS_LIMIT = 4000000;
 
 export function getRemoteFile(file: any, url: any) {
@@ -80,21 +80,28 @@ export class ClientEnv {
 		return await this.client.queryContractSmart(contractAddress, query)
 	}
 	static async newFromEnvVars(): Promise<ClientEnv> {
-		if (!process.env.MNEMONIC) {
-			throw new Error("MNEMONIC env var not set")
+		if (!process.env.RPC_URL) {
+			process.env.RPC_URL = "tcp://localhost:26657"
+			console.warn("RPC_URL env var not set - defaulting to \"" + process.env.RPC_URL + "\"");
 		}
 		if (!process.env.GAS_PRICE) {
-			throw new Error("GAS_PRICE env var not set")
+			process.env.GAS_PRICE = "1usei";
+			console.warn("GAS_PRICE env var not set - defaulting to \"" + process.env.GAS_PRICE + "\"");
 		}
-		if (!process.env.RPC_URL) {
-			throw new Error("RPC_URL not set")
+		if (!process.env.MNEMONIC) {
+			process.env.MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+			console.error("MNEMONIC env var not set = defaulting to " + "\"" + process.env.MNEMONIC + "\"");
+		}
+		if (!process.env.CHAIN_ID) {
+			process.env.CHAIN_ID = "localsei";
+			console.warn("CHAIN_ID env var not set - defaulting to \"" + process.env.CHAIN_ID + "\"");
 		}
 
 		const signer = await restoreWallet(process.env.MNEMONIC)
 
 		const accounts = await signer.getAccounts()
-		if (accounts.length == 1) {
-			throw new Error("Expected wallet from mnemonic to result in exactly 1 account but got " + accounts.length + "accounts");
+		if (accounts.length !== 1) {
+			throw new Error("Expected wallet from mnemonic to result in exactly 1 account but got " + accounts.length + " accounts");
 		}
 
 		const account = accounts[0]
@@ -108,20 +115,32 @@ export class ClientEnv {
 		if (chainId !== process.env.CHAIN_ID) {
 			throw new Error(`Chain ID mismatch. Expected ${process.env.CHAIN_ID}, got ${chainId}`)
 		}
+
+		const accountBalance = await client.getBalance(account.address, "usei");
+		// Literally the only time when equality type coercion is useful. Though I wonder why bigints aren't used.
+		// @ts-ignore
+		if (accountBalance.amount == 0 && process.env.CHAIN_ID) {
+			console.log("Deploying account isn't funded and this appears to be an ephemeral chian, time for funding!");
+			await fundFromLocalAdmin(account.address, "1000000000usei");
+		}
+
 		return new ClientEnv({ account, chainId, client, gasPrice });
 	}
 }
 
 export function readArtifact(name: string = 'artifact', dir: string = ARTIFACTS_PATH) {
 	try {
-		const data = fs.readFileSync(path.join(dir, `${name}.json`), 'utf8')
+		const data = fs.readFileSync(path.resolve(__dirname, dir, `${name}.json`), 'utf8')
 		return JSON.parse(data)
 	} catch (e) {
 		return {}
 	}
 }
 export function writeArtifact(data: object, name: string = 'artifact', dir: string = ARTIFACTS_PATH) {
-	fs.writeFileSync(path.join(dir, `${name}.json`), JSON.stringify(data, null, 2))
+	console.log(process.getuid!());
+	console.log(process.geteuid!());
+	
+	fs.writeFileSync(path.resolve(__dirname, dir, `${name}.json`), JSON.stringify(data, null, 2))
 }
 
 export async function sleep(timeout: number) {
@@ -150,6 +169,20 @@ export function strToEncodedBinary(data: string) {
 
 export function toDecodedBinary(data: string) {
 	return Buffer.from(data, 'base64')
+}
+
+export async function fundFromLocalAdmin(toAddress: string, amount: Coin | string) {
+	const {stdout} = await spawn("seid", ["keys", "list", "--output", "json"], {encoding: "utf8"});
+	const parsedOutput = JSON.parse(stdout?.toString() + "") as seidKeysListEntry[];
+	const adminAddress = parsedOutput.find(v => v.name == "admin" && v.type == "local")?.address;
+	if (adminAddress == undefined) {
+		throw new Error("Couldn't find local keyed address named \"admin\"");
+	}
+	const amountAsString = typeof amount == "string" ? amount : (amount.amount + amount.denom);
+	console.log("Admin address:", adminAddress);
+	console.log("txing", amountAsString, "from", adminAddress, toAddress);
+	await spawn("seid", ["tx", "bank", "send", adminAddress, toAddress, amountAsString, "--yes", "--gas-prices", "1usei"], {encoding: "utf8"});
+	await sleep(10000); // TODO: Properly confirm tx
 }
 
 export class NativeAsset {

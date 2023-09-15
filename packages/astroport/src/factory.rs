@@ -17,11 +17,7 @@ pub struct Config {
     /// Generator contract address
     pub generator_address: Option<Addr>,
     /// Contract address to send governance fees to (the Maker contract)
-    pub fee_address: Option<Addr>,
-    /// CW1 whitelist contract code id used to store 3rd party generator staking rewards
-    pub whitelist_code_id: u64,
-    /// The address of the contract that contains the coins with their precision
-    pub coin_registry_address: Addr,
+    pub fee_address: Option<Addr>
 }
 
 /// This enum describes available pair types.
@@ -91,11 +87,7 @@ pub struct InstantiateMsg {
     /// Address of contract that is used to auto_stake LP tokens once someone provides liquidity in a pool
     pub generator_address: Option<String>,
     /// Address of owner that is allowed to change factory contract parameters
-    pub owner: String,
-    /// CW1 whitelist contract code id used to store 3rd party rewards for staking Astroport LP tokens
-    pub whitelist_code_id: u64,
-    /// The address of the contract that contains the coins and their accuracy
-    pub coin_registry_address: String,
+    pub owner: String
 }
 
 /// This structure describes the execute messages of the contract.
@@ -108,11 +100,7 @@ pub enum ExecuteMsg {
         /// Contract address to send governance fees to (the Maker)
         fee_address: Option<String>,
         /// Contract address where Lp tokens can be auto_staked after someone provides liquidity in an incentivized Astroport pool
-        generator_address: Option<String>,
-        /// CW1 whitelist contract code id used to store 3rd party rewards for staking Astroport LP tokens
-        whitelist_code_id: Option<u64>,
-        /// The address of the contract that contains the coins and their accuracy
-        coin_registry_address: Option<String>,
+        generator_address: Option<String>
     },
     /// UpdatePairConfig updates the config for a pair type.
     UpdatePairConfig {
@@ -191,11 +179,7 @@ pub struct ConfigResponse {
     /// Address of contract to send governance fees to (the Maker)
     pub fee_address: Option<Addr>,
     /// Address of contract used to auto_stake LP tokens for Astroport pairs that are incentivized
-    pub generator_address: Option<Addr>,
-    /// CW1 whitelist contract code id used to store 3rd party rewards for staking Astroport LP tokens
-    pub whitelist_code_id: u64,
-    /// The address of the contract that contains the coins and their accuracy
-    pub coin_registry_address: Addr,
+    pub generator_address: Option<Addr>
 }
 
 /// This structure stores the parameters used in a migration message.

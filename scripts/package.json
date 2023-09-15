@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
-  "type": "module",
   "scripts": {
-    "start": "npm run build-env && npm run build-app",
-    "build-app": "bash build_app.sh",
-    "build-env": "bash build_env.sh",
-    "build-artifacts": "bash build_release.sh",
+    "start": "echo TODO && exit 1",
+    "build": "bash build.sh",
+    "deploy:core": "ts-node deploy_core.ts",
+    "deploy:pools": "ts-node deploy_pools.ts",
+    "deploy:token": "ts-node deploy_token.ts",
     "migrate": "bash migrate.sh"
   },
   "dependencies": {
@@ -16,8 +16,11 @@
     "@cosmjs/proto-signing": "0.29.5",
     "@cosmjs/stargate": "0.29.5",
     "@sei-js/core": "^3.0.2",
+    "@types/wtfnode": "^0.7.0",
     "dotenv": "^8.2.0",
-    "isomorphic-fetch": "^3.0.0"
+    "isomorphic-fetch": "^3.0.0",
+    "promisify-child-process": "^4.1.2",
+    "wtfnode": "^0.9.1"
   },
   "devDependencies": {
     "eslint": "^8.48.0",

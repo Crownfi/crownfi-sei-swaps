@@ -1,13 +1,13 @@
-interface GeneralInfo {
-    multisig: string
+export interface GeneralInfo {
+    defaultAdmin: string
 }
 
-type InitialBalance = {
+export type InitialBalance = {
     address: string,
     amount: string
 }
 
-type Marketing = {
+export type Marketing = {
     project: string,
     description: string,
     marketing: string,
@@ -16,8 +16,8 @@ type Marketing = {
     }
 }
 
-interface Token {
-    admin: string,
+export interface Token {
+    admin: string | null,
     initMsg: {
         name: string,
         symbol: string,
@@ -28,8 +28,8 @@ interface Token {
     label: string
 }
 
-interface Treasury {
-    admin: string,
+export interface Treasury {
+    admin: string | null,
     initMsg: {
         admins: string[],
         mutable: boolean
@@ -37,8 +37,8 @@ interface Treasury {
     label: string
 }
 
-interface Staking {
-    admin: string,
+export interface Staking {
+    admin: string | null,
     initMsg: {
         owner: string,
         token_code_id: number,
@@ -48,7 +48,7 @@ interface Staking {
     label: string
 }
 
-interface PairConfig {
+export interface PairConfig {
     code_id: number,
     pair_type: { xyk: {} } | { stable: {} },
     total_fee_bps: number,
@@ -57,8 +57,8 @@ interface PairConfig {
     is_generator_disabled: boolean
 }
 
-interface Factory {
-    admin: string,
+export interface Factory {
+    admin: string | null,
     initMsg: {
         owner: string,
         pair_configs: PairConfig[],
@@ -75,16 +75,16 @@ interface Factory {
     }
 }
 
-interface Router {
-    admin: string,
+export interface Router {
+    admin: string | null,
     initMsg: {
         astroport_factory: string
     },
     label: string
 }
 
-interface Maker {
-    admin: string,
+export interface Maker {
+    admin: string | null,
     initMsg: {
         owner: string,
         factory_contract: string,
@@ -97,7 +97,7 @@ interface Maker {
     label: string
 }
 
-type VestingAccountSchedule = {
+export type VestingAccountSchedule = {
     start_point: {
         time: string,
         amount: string
@@ -108,13 +108,13 @@ type VestingAccountSchedule = {
     }
 }
 
-interface VestingAccount {
+export interface VestingAccount {
     address: string
     schedules: VestingAccountSchedule[]
 }
 
-interface Vesting {
-    admin: string,
+export interface Vesting {
+    admin: string | null,
     initMsg: {
         owner: string,
         vesting_token: NativeAsset | TokenAsset,
@@ -130,8 +130,8 @@ interface Vesting {
     }
 }
 
-interface Generator {
-    admin: string,
+export interface Generator {
+    admin: string | null,
     initMsg: {
         owner: string,
         astro_token: NativeAsset | TokenAsset,
@@ -150,8 +150,8 @@ interface Generator {
     new_incentives_pools?: []
 }
 
-interface GeneratorProxy {
-    admin: string,
+export interface GeneratorProxy {
+    admin: string | null,
     initMsg: {
         generator_contract_addr: string,
         pair_addr: string,
@@ -162,19 +162,19 @@ interface GeneratorProxy {
     label: string
 }
 
-type NativeAsset = {
+export type NativeAsset = {
     native_token: {
         denom: string,
     }
 }
 
-type TokenAsset = {
+export type TokenAsset = {
     token: {
         contract_addr: string
     }
 }
 
-interface Pair {
+export interface Pair {
     identifier: string,
     assetInfos: (NativeAsset | TokenAsset)[],
     pairType: { xyk: {} } | { stable: {} },
@@ -185,12 +185,12 @@ interface Pair {
     }
 }
 
-interface CreatePairs {
+export interface CreatePairs {
     pairs: Pair[]
 }
 
-interface Oracle {
-    admin: string,
+export interface Oracle {
+    admin: string | null,
     initMsg: {
         factory_contract: string,
         asset_infos: (NativeAsset | TokenAsset)[]
@@ -198,7 +198,7 @@ interface Oracle {
     label: string
 }
 
-interface Config {
+export interface Config {
     token: Token,
     treasury: Treasury,
     staking: Staking,

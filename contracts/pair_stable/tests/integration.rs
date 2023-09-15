@@ -67,83 +67,10 @@ fn store_factory_code(app: &mut App) -> u64 {
     app.store_code(factory_contract)
 }
 
-fn store_coin_registry_code(app: &mut App) -> u64 {
-    let coin_registry_contract = Box::new(ContractWrapper::new_with_empty(
-        astroport_native_coin_registry::contract::execute,
-        astroport_native_coin_registry::contract::instantiate,
-        astroport_native_coin_registry::contract::query,
-    ));
-
-    app.store_code(coin_registry_contract)
-}
-
-fn instantiate_coin_registry(mut app: &mut App, coins: Option<Vec<(String, u8)>>) -> Addr {
-    let coin_registry_id = store_coin_registry_code(&mut app);
-    let coin_registry_address = app
-        .instantiate_contract(
-            coin_registry_id,
-            Addr::unchecked(OWNER),
-            &astroport::native_coin_registry::InstantiateMsg {
-                owner: OWNER.to_string(),
-            },
-            &[],
-            "Coin registry",
-            None,
-        )
-        .unwrap();
-
-    if let Some(coins) = coins {
-        app.execute_contract(
-            Addr::unchecked(OWNER),
-            coin_registry_address.clone(),
-            &astroport::native_coin_registry::ExecuteMsg::Add {
-                native_coins: coins,
-            },
-            &[],
-        )
-        .unwrap();
-    }
-
-    coin_registry_address
-}
-
 fn instantiate_pair(mut router: &mut App, owner: &Addr) -> Addr {
-    let coin_registry_address = instantiate_coin_registry(
-        &mut router,
-        Some(vec![("uusd".to_string(), 6), ("uluna".to_string(), 6)]),
-    );
-
     let token_contract_code_id = store_token_code(&mut router);
     let pair_contract_code_id = store_pair_code(&mut router);
     let factory_code_id = store_factory_code(&mut router);
-
-    let factory_init_msg = FactoryInstantiateMsg {
-        fee_address: None,
-        pair_configs: vec![PairConfig {
-            code_id: pair_contract_code_id,
-            maker_fee_bps: 5000,
-            total_fee_bps: 5u16,
-            pair_type: PairType::Stable {},
-            is_disabled: false,
-            is_generator_disabled: false,
-        }],
-        token_code_id: token_contract_code_id,
-        generator_address: None,
-        owner: owner.to_string(),
-        whitelist_code_id: 234u64,
-        coin_registry_address: coin_registry_address.to_string(),
-    };
-
-    let factory_addr = router
-        .instantiate_contract(
-            factory_code_id,
-            owner.clone(),
-            &factory_init_msg,
-            &[],
-            "FACTORY",
-            None,
-        )
-        .unwrap();
 
     let msg = InstantiateMsg {
         asset_infos: vec![
@@ -155,7 +82,7 @@ fn instantiate_pair(mut router: &mut App, owner: &Addr) -> Addr {
             },
         ],
         token_code_id: token_contract_code_id,
-        factory_addr: factory_addr.to_string(),
+        factory_addr: "".to_string(),
         init_params: None,
     };
 
@@ -184,7 +111,7 @@ fn instantiate_pair(mut router: &mut App, owner: &Addr) -> Addr {
             },
         ],
         token_code_id: token_contract_code_id,
-        factory_addr: factory_addr.to_string(),
+        factory_addr: "".to_string(),
         init_params: Some(
             to_binary(&StablePoolParams {
                 amp: 100,
@@ -493,8 +420,6 @@ fn provide_lp_for_single_token() {
         token_code_id,
         generator_address: Some(String::from("generator")),
         owner: String::from("owner0000"),
-        whitelist_code_id: 234u64,
-        coin_registry_address: "coin_registry".to_string(),
     };
 
     let factory_instance = app
@@ -827,8 +752,6 @@ fn test_compatibility_of_tokens_with_different_precision() {
         token_code_id,
         generator_address: Some(String::from("generator")),
         owner: String::from("owner0000"),
-        whitelist_code_id: 234u64,
-        coin_registry_address: "coin_registry".to_string(),
     };
 
     let factory_instance = app
@@ -1032,11 +955,6 @@ fn update_pair_config() {
         ],
     );
 
-    let coin_registry_address = instantiate_coin_registry(
-        &mut router,
-        Some(vec![("uusd".to_string(), 6), ("uluna".to_string(), 6)]),
-    );
-
     let token_contract_code_id = store_token_code(&mut router);
     let pair_contract_code_id = store_pair_code(&mut router);
 
@@ -1048,8 +966,6 @@ fn update_pair_config() {
         token_code_id: token_contract_code_id,
         generator_address: Some(String::from("generator")),
         owner: owner.to_string(),
-        whitelist_code_id: 234u64,
-        coin_registry_address: coin_registry_address.to_string(),
     };
 
     let factory_instance = router

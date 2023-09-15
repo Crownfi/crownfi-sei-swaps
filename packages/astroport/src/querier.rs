@@ -98,43 +98,6 @@ where
     Ok(res.total_supply)
 }
 
-/// Returns the number of decimals that a token has.
-///
-/// * **asset_info** is an object of type [`AssetInfo`] and contains the asset details for a specific token.
-pub fn query_token_precision<C>(
-    querier: &QuerierWrapper<C>,
-    asset_info: &AssetInfo,
-    factory_addr: &Addr,
-) -> StdResult<u8>
-where
-    C: CustomQuery,
-{
-    Ok(match asset_info {
-        AssetInfo::NativeToken { denom } => {
-            let res = query_factory_config(querier, factory_addr)?;
-            let result = crate::native_coin_registry::COINS_INFO.query(
-                querier,
-                res.coin_registry_address,
-                denom.to_string(),
-            )?;
-
-            if let Some(decimals) = result {
-                decimals
-            } else {
-                return Err(StdError::generic_err(format!(
-                    "The {denom} precision was not found"
-                )));
-            }
-        }
-        AssetInfo::Token { contract_addr } => {
-            let res: TokenInfoResponse =
-                querier.query_wasm_smart(contract_addr, &Cw20QueryMsg::TokenInfo {})?;
-
-            res.decimals
-        }
-    })
-}
-
 /// Returns the configuration for the factory contract.
 pub fn query_factory_config<C>(
     querier: &QuerierWrapper<C>,

@@ -16,7 +16,7 @@ use itertools::Itertools;
 use crate::factory::PairType;
 use crate::pair::QueryMsg as PairQueryMsg;
 use crate::querier::{
-    query_balance, query_token_balance, query_token_precision, query_token_symbol,
+    query_balance, query_token_balance, query_token_symbol,
 };
 
 /// UST token denomination
@@ -422,11 +422,11 @@ impl AssetInfo {
     }
 
     /// Returns the number of decimals that a token has.
-    pub fn decimals<C>(&self, querier: &QuerierWrapper<C>, factory_addr: &Addr) -> StdResult<u8>
+    pub fn decimals<C>(&self, _querier: &QuerierWrapper<C>, _factory_addr: &Addr) -> StdResult<u8>
     where
         C: CustomQuery,
     {
-        query_token_precision(querier, self, factory_addr)
+        panic!("No clue");
     }
 
     /// Returns **true** if the calling token is the same as the token specified in the input parameters.

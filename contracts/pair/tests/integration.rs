@@ -82,8 +82,6 @@ fn instantiate_pair(mut router: &mut App, owner: &Addr) -> Addr {
         token_code_id: token_contract_code_id,
         generator_address: Some(String::from("generator")),
         owner: owner.to_string(),
-        whitelist_code_id: 234u64,
-        coin_registry_address: "coin_registry".to_string(),
     };
 
     let factory_instance = router
@@ -485,8 +483,6 @@ fn test_compatibility_of_tokens_with_different_precision() {
         token_code_id,
         generator_address: Some(String::from("generator")),
         owner: owner.to_string(),
-        whitelist_code_id: 234u64,
-        coin_registry_address: "coin_registry".to_string(),
     };
 
     let factory_instance = app
@@ -875,8 +871,6 @@ fn asset_balances_tracking_works_correctly() {
         token_code_id,
         generator_address: Some(String::from("generator")),
         owner: owner.to_string(),
-        whitelist_code_id: 234u64,
-        coin_registry_address: "coin_registry".to_string(),
     };
 
     let factory_instance = app
@@ -1401,8 +1395,6 @@ fn update_pair_config() {
         token_code_id: token_contract_code_id,
         generator_address: Some(String::from("generator")),
         owner: owner.to_string(),
-        whitelist_code_id: 234u64,
-        coin_registry_address: "coin_registry".to_string(),
     };
 
     let factory_instance = router

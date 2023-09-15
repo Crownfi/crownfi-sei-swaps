@@ -82,8 +82,6 @@ impl FactoryHelper {
             fee_address: None,
             generator_address: None,
             owner: owner.to_string(),
-            whitelist_code_id: 0,
-            coin_registry_address: "coin_registry".to_string(),
         };
 
         let factory = router
@@ -112,15 +110,12 @@ impl FactoryHelper {
         token_code_id: Option<u64>,
         fee_address: Option<String>,
         generator_address: Option<String>,
-        whitelist_code_id: Option<u64>,
         coin_registry_address: Option<String>,
     ) -> AnyResult<AppResponse> {
         let msg = astroport::factory::ExecuteMsg::UpdateConfig {
             token_code_id,
             fee_address,
             generator_address,
-            whitelist_code_id,
-            coin_registry_address,
         };
 
         router.execute_contract(sender.clone(), self.factory.clone(), &msg, &[])

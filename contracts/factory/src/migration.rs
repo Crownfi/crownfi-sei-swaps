@@ -7,8 +7,6 @@ use cw_storage_plus::{Item, Map};
 /// This structure describes a contract migration message.
 #[cw_serde]
 pub struct MigrationMsg {
-    /// CW1 whitelist contract code ID used to store 3rd party staking rewards
-    pub whitelist_code_id: u64,
     /// The address of the contract that contains native coins with their precisions
     pub coin_registry_address: String,
 }
@@ -24,8 +22,6 @@ pub struct ConfigV120 {
     pub generator_address: Option<Addr>,
     /// Contract address to send governance fees to (the Maker contract)
     pub fee_address: Option<Addr>,
-    /// CW1 whitelist contract code id used to store 3rd party generator staking rewards
-    pub whitelist_code_id: u64,
 }
 
 pub const CONFIG_V120: Item<ConfigV120> = Item::new("config");
@@ -39,8 +35,6 @@ pub fn migrate_configs(deps: &mut DepsMut, msg: &MigrationMsg) -> StdResult<()> 
         token_code_id: old_cfg.token_code_id,
         generator_address: old_cfg.generator_address,
         fee_address: old_cfg.fee_address,
-        whitelist_code_id: old_cfg.whitelist_code_id,
-        coin_registry_address: deps.api.addr_validate(msg.coin_registry_address.as_str())?,
     };
 
     CONFIG.save(deps.storage, &new_config)

@@ -1,7 +1,6 @@
 use astroport::observation::OBSERVATIONS_SIZE;
 use astroport::{
     asset::{AssetInfo, PairInfo},
-    querier::query_token_precision,
 };
 use astroport_circular_buffer::BufferManager;
 use cosmwasm_schema::cw_serde;
@@ -38,15 +37,11 @@ pub const CONFIG_V100: Item<ConfigV100> = Item::new("config");
 /// Validates array of assets. If asset is native coin then this function checks whether
 /// it has been registered in registry or not.
 pub(crate) fn is_native_registered(
-    querier: &QuerierWrapper,
-    asset_infos: &[AssetInfo],
-    factory_addr: &Addr,
+    _querier: &QuerierWrapper,
+    _asset_infos: &[AssetInfo],
+    _factory_addr: &Addr,
 ) -> StdResult<()> {
-    for asset_info in asset_infos {
-        query_token_precision(querier, asset_info, factory_addr)?;
-    }
-
-    Ok(())
+    Err(cosmwasm_std::StdError::NotFound { kind: "impossible".into() })
 }
 
 pub fn migrate_config_to_v210(mut deps: DepsMut) -> StdResult<Config> {

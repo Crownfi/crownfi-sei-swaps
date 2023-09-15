@@ -92,8 +92,6 @@ impl FactoryHelper {
             fee_address: None,
             generator_address: None,
             owner: owner.to_string(),
-            whitelist_code_id: 0,
-            coin_registry_address: "coin_registry".to_string(),
         };
 
         let factory = router

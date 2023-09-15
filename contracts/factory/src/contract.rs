@@ -51,9 +51,7 @@ pub fn instantiate(
         owner: deps.api.addr_validate(&msg.owner)?,
         token_code_id: msg.token_code_id,
         fee_address: None,
-        generator_address: None,
-        whitelist_code_id: msg.whitelist_code_id,
-        coin_registry_address: deps.api.addr_validate(&msg.coin_registry_address)?,
+        generator_address: None
     };
 
     config.generator_address = addr_opt_validate(deps.api, &msg.generator_address)?;
@@ -90,9 +88,6 @@ pub struct UpdateConfig {
     fee_address: Option<String>,
     /// Generator contract address
     generator_address: Option<String>,
-    /// CW1 whitelist contract code id used to store 3rd party staking rewards
-    whitelist_code_id: Option<u64>,
-    coin_registry_address: Option<String>,
 }
 
 /// Exposes all the execute functions available in the contract.
@@ -133,18 +128,14 @@ pub fn execute(
         ExecuteMsg::UpdateConfig {
             token_code_id,
             fee_address,
-            generator_address,
-            whitelist_code_id,
-            coin_registry_address,
+            generator_address
         } => execute_update_config(
             deps,
             info,
             UpdateConfig {
                 token_code_id,
                 fee_address,
-                generator_address,
-                whitelist_code_id,
-                coin_registry_address,
+                generator_address
             },
         ),
         ExecuteMsg::UpdatePairConfig { config } => execute_update_pair_config(deps, info, config),
@@ -218,14 +209,6 @@ pub fn execute_update_config(
 
     if let Some(token_code_id) = param.token_code_id {
         config.token_code_id = token_code_id;
-    }
-
-    if let Some(code_id) = param.whitelist_code_id {
-        config.whitelist_code_id = code_id;
-    }
-
-    if let Some(coin_registry_address) = param.coin_registry_address {
-        config.coin_registry_address = deps.api.addr_validate(&coin_registry_address)?;
     }
 
     CONFIG.save(deps.storage, &config)?;
@@ -455,9 +438,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
             .map(|item| Ok(item?.1))
             .collect::<StdResult<Vec<_>>>()?,
         fee_address: config.fee_address,
-        generator_address: config.generator_address,
-        whitelist_code_id: config.whitelist_code_id,
-        coin_registry_address: config.coin_registry_address,
+        generator_address: config.generator_address
     };
 
     Ok(resp)
