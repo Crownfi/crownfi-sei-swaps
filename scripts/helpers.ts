@@ -8,7 +8,7 @@ import {
 	EncodeObject
 } from '@cosmjs/proto-signing'
 import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate"
-import { getSigningCosmWasmClient, restoreWallet, getCosmWasmClient } from "@sei-js/core"
+import { getSigningCosmWasmClient, restoreWallet, getCosmWasmClient } from "@crownfi/sei-js-core"
 import {calculateFee, GasPrice, isDeliverTxFailure} from "@cosmjs/stargate"
 
 import path from "path"
