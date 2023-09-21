@@ -6,6 +6,10 @@
 
 # Build results
 target/
+dist/
+ts-build/
+/artifacts/*.wasm
+/artifacts/localsei.json
 
 # IDEs
 .vscode/
@@ -15,7 +19,5 @@ target/
 # Auto-gen
 .cargo-ok
 /scripts/.env
-/scripts/node_modules/
-#/scripts/package-lock.json
-/artifacts/
+node_modules/
 /contracts/**/schema/

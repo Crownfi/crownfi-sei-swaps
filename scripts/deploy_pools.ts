@@ -15,10 +15,10 @@ import { Pair } from './types.d/astroport_deploy_interfaces';
 import { CosmWasmClient } from '@cosmjs/cosmwasm-stargate';
 const activeClients: CosmWasmClient[] = [];
 
-async function uploadAndInitOracle(clientEnv: ClientEnv, pair: Pair, network: any, pool_pair_key: string) {
-	let pool_oracle_key = "oracle" + pair.identifier
+async function uploadAndInitOracle(clientEnv: ClientEnv, pair: Pair, network: any) {
+	//let pool_oracle_key = "oracle" + pair.identifier
 
-	if (pair.initOracle && network[pool_pair_key] && !network[pool_oracle_key]) {
+	if (pair.initOracle && !network[network.pairs[pair.identifier].oracle]) {
 		chainConfigs.oracle.admin ||= chainConfigs.generalInfo.defaultAdmin
 		chainConfigs.oracle.initMsg.factory_contract ||= network.factoryAddress
 		chainConfigs.oracle.initMsg.asset_infos ||= pair.assetInfos
@@ -30,9 +30,8 @@ async function uploadAndInitOracle(clientEnv: ClientEnv, pair: Pair, network: an
 			chainConfigs.oracle.initMsg,
 			chainConfigs.oracle.label)
 
-		// @ts-ignore
-		network[pool_oracle_key] = resp.shift().shift();
-		console.log(`Address of ${pair.identifier} oracle contract: ${network[pool_oracle_key]}`)
+		network.pairs[pair.identifier].oracle = resp.shift()!.shift()!;
+		console.log(`Address of ${pair.identifier} oracle contract: ${network.pairs[pair.identifier].oracle}`)
 		writeArtifact(network, clientEnv.chainId)
 	}
 }
@@ -42,13 +41,17 @@ async function createPools(clientEnv: ClientEnv) {
 	let pairs = chainConfigs.createPairs.pairs;
 	let pools: string[][] = [];
 
+	if (network.pairs == null) {
+		network.pairs = {};
+	}
+
 	for (let i = 0; i < pairs.length; i++) {
 		let pair = pairs[i]
-		let pool_pair_key = "pool" + pair.identifier
-		let pool_lp_token_key = "lpToken" + pair.identifier
+		// let pool_pair_key = "pool" + pair.identifier
+		// let pool_lp_token_key = "lpToken" + pair.identifier
 
 		// Create pool
-		if (!network[pool_pair_key]) {
+		if (!network.pairs[pair.identifier]) {
 			console.log(`Creating pool ${pair.identifier}...`)
 			let initParams = pair.initParams;
 			if (initParams) {
@@ -62,15 +65,15 @@ async function createPools(clientEnv: ClientEnv) {
 					init_params: initParams
 				}
 			})
-
-			network[pool_pair_key] = res.logs[0].events.filter(el => el.type == 'wasm').map(x => x.attributes.filter(el => el.key === "pair_contract_addr").map(x => x.value))[0][0]
-			let pool_info = await clientEnv.queryContract(network[pool_pair_key], {
+			network.pairs[pair.identifier] = {};
+			network.pairs[pair.identifier].pool = res.logs[0].events.filter(el => el.type == 'wasm').map(x => x.attributes.filter(el => el.key === "pair_contract_addr").map(x => x.value))[0][0]
+			let pool_info = await clientEnv.queryContract(network.pairs[pair.identifier].pool, {
 				pair: {}
 			})
 
 			// write liquidity token
-			network[pool_lp_token_key] = pool_info.liquidity_token
-			console.log(`Pair successfully created! Address: ${network[pool_pair_key]}`)
+			network.pairs[pair.identifier].lpToken = pool_info.liquidity_token
+			console.log(`Pair successfully created! Address: ${network.pairs[pair.identifier].pool}`)
 			writeArtifact(network, clientEnv.chainId)
 
 			if (pair.initGenerator) {
@@ -79,7 +82,7 @@ async function createPools(clientEnv: ClientEnv) {
 		}
 
 		// Deploy oracle
-		await uploadAndInitOracle(clientEnv, pair, network, pool_pair_key)
+		await uploadAndInitOracle(clientEnv, pair, network)
 	}
 }
 
