@@ -1,5 +1,7 @@
 export interface GeneralInfo {
-    defaultAdmin: string
+    defaultAdmin: string,
+    rpcUrl: string,
+    restUrl: string
 }
 
 export type InitialBalance = {

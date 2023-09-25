@@ -30,23 +30,7 @@ async function main() {
 		`});
 		await fsp.writeFile(path.resolve(outputDir, outputFileName), autogenCode);
 	}
-	/*
-	await Promise.all(
-		schemaFiles.map(async (schemaFile) => {
-			
-		})
-	);
-	*/
-	/*
-	for (let i = 0; i < schemaFiles.length; i += 1) {
-		const schemaFile = path.resolve(__dirname, schemaFiles[i]);
-		console.log("Process", schemaFile);
-		const schemaBaseName = path.basename(schemaFile, ".json");
-		const autogenCode = await compileFromFile(schemaFile);
-		await fsp.writeFile(path.resolve(__dirname, "../frontend/src/ts/contract_schema/" + schemaBaseName + ".ts"), autogenCode)
-	}
-	console.log("Contract Schemas typescriptified.")
-	*/
+	console.log("Contract Schemas typescriptified.");
 }
 (async () => {
 	try {

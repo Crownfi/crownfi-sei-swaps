@@ -18,19 +18,21 @@ const SECONDS_IN_DAY: number = 60 * 60 * 24 // min, hour, day
 const activeClients: CosmWasmClient[] = [];
 
 async function main() {
-	const wallet = await ClientEnv.newFromEnvVars();
-	activeClients.push(wallet.client);
-	console.log(`chainID: ${wallet.chainId} wallet: ${wallet.account.address}`)
-	console.log({chainConfigs});
+	const clientEnv = await ClientEnv.newFromEnvVars();
+	activeClients.push(clientEnv.client);
+	console.log(`chainID: ${clientEnv.chainId} wallet: ${clientEnv.account.address}`);
 	if (!chainConfigs.generalInfo.defaultAdmin) {
-		// What does this do?
 		throw new Error("Set the proper defaultAdmin for the contracts")
 	}
+	const networkData = readArtifact(clientEnv.chainId);
+	networkData.rpcUrl = chainConfigs.generalInfo.rpcUrl;
+	networkData.restUrl = chainConfigs.generalInfo.restUrl;
+	writeArtifact(networkData, clientEnv.chainId);
 
-	await uploadAndInitToken(wallet);
-	await uploadPairContracts(wallet);
-	await uploadAndInitFactory(wallet);
-	await uploadAndInitRouter(wallet);
+	await uploadAndInitToken(clientEnv);
+	await uploadPairContracts(clientEnv);
+	await uploadAndInitFactory(clientEnv);
+	await uploadAndInitRouter(clientEnv);
 	console.log("Done!");
 }
 

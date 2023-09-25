@@ -50,8 +50,8 @@ export class ClientEnv {
 		this.gasPrice = data.gasPrice;
 	}
 
-	async signAndSend(msg: EncodeObject) {
-		const result = await this.client.signAndBroadcast(this.account.address, [msg], calculateFee(GAS_LIMIT, this.gasPrice))
+	async signAndSend(msgs: EncodeObject[]) {
+		const result = await this.client.signAndBroadcast(this.account.address, msgs, calculateFee(GAS_LIMIT, this.gasPrice))
 		if (isDeliverTxFailure(result)) {
 			throw new TransactionError(result.code, result.transactionHash, result.rawLog + "")
 		}
@@ -80,12 +80,8 @@ export class ClientEnv {
 		return await this.client.queryContractSmart(contractAddress, query)
 	}
 	static async newFromEnvVars(): Promise<ClientEnv> {
-		if (!process.env.RPC_URL) {
-			process.env.RPC_URL = "tcp://localhost:26657"
-			console.warn("RPC_URL env var not set - defaulting to \"" + process.env.RPC_URL + "\"");
-		}
 		if (!process.env.GAS_PRICE) {
-			process.env.GAS_PRICE = "1usei";
+			process.env.GAS_PRICE = "0.1usei";
 			console.warn("GAS_PRICE env var not set - defaulting to \"" + process.env.GAS_PRICE + "\"");
 		}
 		if (!process.env.MNEMONIC) {
@@ -97,7 +93,7 @@ export class ClientEnv {
 			console.warn("CHAIN_ID env var not set - defaulting to \"" + process.env.CHAIN_ID + "\"");
 		}
 
-		const signer = await restoreWallet(process.env.MNEMONIC)
+		const signer = await restoreWallet(process.env.MNEMONIC, parseInt(process.env.MNEMONIC_INDEX + "") || 0);
 
 		const accounts = await signer.getAccounts()
 		if (accounts.length !== 1) {
@@ -106,8 +102,9 @@ export class ClientEnv {
 
 		const account = accounts[0]
 		const gasPrice = GasPrice.fromString(process.env.GAS_PRICE)
-
-		const client = await getSigningCosmWasmClient(process.env.RPC_URL, signer, {
+		// Can't import chainConfigs cuz that would lead to circular imports!!
+		const chainConfigs = readArtifact(`${process.env.CHAIN_ID || "localsei"}`, 'chain_configs');
+		const client = await getSigningCosmWasmClient(chainConfigs.generalInfo.rpcUrl, signer, {
 			gasPrice: gasPrice
 		})
 		const chainId = await client.getChainId()
@@ -119,7 +116,7 @@ export class ClientEnv {
 		const accountBalance = await client.getBalance(account.address, "usei");
 		// Literally the only time when equality type coercion is useful. Though I wonder why bigints aren't used.
 		// @ts-ignore
-		if (accountBalance.amount == 0 && process.env.CHAIN_ID) {
+		if (accountBalance.amount == 0 && process.env.CHAIN_ID == "localsei") {
 			console.log("Deploying account isn't funded and this appears to be an ephemeral chian, time for funding!");
 			await fundFromLocalAdmin(account.address, "1000000000usei");
 		}
@@ -136,6 +133,7 @@ export function readArtifact(name: string = 'artifact', dir: string = ARTIFACTS_
 		return {}
 	}
 }
+;
 export function writeArtifact(data: object, name: string = 'artifact', dir: string = ARTIFACTS_PATH) {
 	console.log(process.getuid!());
 	console.log(process.geteuid!());

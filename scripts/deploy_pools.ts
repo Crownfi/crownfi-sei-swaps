@@ -66,6 +66,22 @@ async function createPools(clientEnv: ClientEnv) {
 				}
 			})
 			network.pairs[pair.identifier] = {};
+			network.pairs[pair.identifier].token0 = (() => {
+				const assetInfo = pair.assetInfos[0];
+				if ("native_token" in assetInfo) {
+					return assetInfo.native_token.denom;
+				}else{
+					return "cw20/" + assetInfo.token.contract_addr;
+				}
+			})();
+			network.pairs[pair.identifier].token1 = (() => {
+				const assetInfo = pair.assetInfos[1];
+				if ("native_token" in assetInfo) {
+					return assetInfo.native_token.denom;
+				}else{
+					return "cw20/" + assetInfo.token.contract_addr;
+				}
+			})();
 			network.pairs[pair.identifier].pool = res.logs[0].events.filter(el => el.type == 'wasm').map(x => x.attributes.filter(el => el.key === "pair_contract_addr").map(x => x.value))[0][0]
 			let pool_info = await clientEnv.queryContract(network.pairs[pair.identifier].pool, {
 				pair: {}
