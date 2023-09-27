@@ -1,5 +1,6 @@
-use astroport::pair::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
-use cosmwasm_schema::write_api;
+use std::path::Path;
+use astroport::pair::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, Cw20HookMsg};
+use cosmwasm_schema::{write_api, schema_for, export_schema};
 
 fn main() {
     write_api! {
@@ -8,4 +9,6 @@ fn main() {
         execute: ExecuteMsg,
         migrate: MigrateMsg,
     }
+    let cw20_hook_schema = schema_for!(Cw20HookMsg);
+    export_schema(&cw20_hook_schema, &Path::new("schema/raw"));
 }
