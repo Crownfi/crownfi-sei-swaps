@@ -28,12 +28,13 @@ module.exports = {
 		extensions: [".tsx", ".ts", ".js"],
 		fallback: {
             buffer: require.resolve("buffer-lite"),
+			crypto: false,
         }
 	},
 	plugins: [
 		new MiniCssExtractPlugin(),
         new webpack.ProvidePlugin({
-            Buffer: ['buffer', 'Buffer'],
+            Buffer: ["buffer-lite", "Buffer"],
         }),
     ],
 };

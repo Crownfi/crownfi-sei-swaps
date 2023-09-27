@@ -4,7 +4,7 @@
 	"main": "dist/index.js",
 	"license": "MIT",
 	"scripts": {
-		"start": "http-server -p 8080 ./dist",
+		"start": "http-server -p 8080 -c-1 ./dist",
 		"build": "rm -rf dist/* && npm run build:html && npm run build:webpack",
 		"build:html": "acetewm bundle-single -o ./dist/index.html ./src/ts",
 		"build:webpack": "webpack",
@@ -23,7 +23,7 @@
 	},
 	"devDependencies": {
 		"@types/bootstrap": "^5.2.7",
-		"buffer-lite": "^1.0.0",
+		"buffer-lite": "^2.0.1",
 		"css-loader": "^6.8.1",
 		"http-server": "^14.1.1",
 		"mini-css-extract-plugin": "^2.7.6",
