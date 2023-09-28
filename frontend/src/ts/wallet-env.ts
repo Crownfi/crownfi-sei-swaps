@@ -1,8 +1,8 @@
 import { CosmWasmClient, ExecuteInstruction, SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
-import { AccountData, Coin, EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
+import { AccountData, Coin, DirectSecp256k1HdWallet, EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
 import {KNOWN_SEI_PROVIDER_INFO, SeiWallet, getQueryClient, getSigningCosmWasmClient, getCosmWasmClient, restoreWallet, KNOWN_SEI_PROVIDERS} from "@crownfi/sei-js-core";
 import { SeiNetId, getAppChainConfig } from "./chain_config";
-import { isDeliverTxFailure } from "@cosmjs/stargate";
+import { GasPrice, isDeliverTxFailure } from "@cosmjs/stargate";
 
 // TODO: Allow the user to set their preference
 export async function connectAutodiscover(): Promise<SeiWallet> {
@@ -93,12 +93,22 @@ export class ClientEnv {
 				];
 			}
 			return [
-				await getSigningCosmWasmClient(rpcUrl, maybeSigner),
+				await getSigningCosmWasmClient(
+					rpcUrl,
+					maybeSigner,
+					maybeSigner instanceof DirectSecp256k1HdWallet ?
+						{
+							gasPrice: GasPrice.fromString("0.1usei")
+						} :
+						undefined
+				),
 				accounts[0],
 				""
 			]
 		})();
-
+		if (account != null) {
+			console.info("Found user address:", account.address);
+		}
 		return new ClientEnv({ account, chainId: selectedChain, wasmClient, queryClient, readonlyReason });
 	}
 	/**

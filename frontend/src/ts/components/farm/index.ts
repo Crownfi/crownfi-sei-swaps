@@ -15,6 +15,7 @@ import { getAppChainConfig } from "../../chain_config";
 
 export class FarmComponentElement extends FarmComponentAutogen {
 	pairInfo: ComponentPairInfo;
+	private balanceRefreshTimer: ReturnType<typeof setInterval> | null;
 	constructor(pair: ComponentPairInfo) {
 		super();
 		if (arguments.length == 0) {
@@ -38,6 +39,30 @@ export class FarmComponentElement extends FarmComponentAutogen {
 				await this.executeWithdraw();
 			});
 		}
+		this.balanceRefreshTimer = null;
+	}
+	connectedCallback() {
+		console.debug("FarmComponentElement " + this.pairInfo.name + " added to page.");
+		if (this.balanceRefreshTimer != null) {
+			clearInterval(this.balanceRefreshTimer);
+		}
+		this.refreshBalances().catch((ex) => {
+			console.error("Could not refresh balances for " + this.pairInfo.name);
+			console.error(ex);
+		});
+		this.balanceRefreshTimer = setInterval(() => {
+			this.refreshBalances().catch((ex) => {
+				console.error("Could not refresh balances for " + this.pairInfo.name);
+				console.error(ex);
+			});
+		}, 30 * 1000);
+	}
+	disconnectedCallback() {
+		console.debug("FarmComponentElement " + this.pairInfo.name + " removed from page.");
+		if (this.balanceRefreshTimer != null) {
+			clearInterval(this.balanceRefreshTimer);
+			this.balanceRefreshTimer = null;
+		}
 	}
 	async refreshBalances() {
 		this.slots.balanceLpToken.innerText = "⏳️";
@@ -45,6 +70,12 @@ export class FarmComponentElement extends FarmComponentAutogen {
 		this.slots.balanceToken1.innerText = "⏳️";
 		try{
 			const client = await ClientEnv.get();
+			if (client.account == null) {
+				this.slots.balanceLpToken.innerText = "❓️";
+				this.slots.balanceToken0.innerText = "❓️";
+				this.slots.balanceToken1.innerText = "❓️";
+				return;
+			}
 			const tokenAddrs = {
 				balanceLpToken: {
 					address: this.pairInfo.lpToken
@@ -70,7 +101,7 @@ export class FarmComponentElement extends FarmComponentAutogen {
 							amount: balance
 						}
 					} = await client.queryClient.cosmos.bank.v1beta1.balance({
-						address: client.account!.address,
+						address: client.account.address,
 						denom: token.denom!
 					});
 					this.slots[slotName].innerText = balance;
@@ -78,7 +109,7 @@ export class FarmComponentElement extends FarmComponentAutogen {
 					const {balance} = await client.queryContract(
 						token.address,
 						{
-							balance: {address: client.account!.address}
+							balance: {address: client.account.address}
 						} satisfies Cw20QueryMsg
 					) as Cw20BalanceResponse;
 					this.slots[slotName].innerText = balance;
@@ -146,7 +177,7 @@ export class FarmComponentElement extends FarmComponentAutogen {
 					}
 				} satisfies PairContractExecuteMsg,
 				funds
-			})
+			});
 			const {transactionHash} = await client.executeContractMulti(ixs);
 			console.info("Transaction hash:", transactionHash);
 		} finally {
@@ -165,11 +196,14 @@ export class FarmComponentElement extends FarmComponentAutogen {
 					send: {
 						amount: amount + "",
 						contract: this.pairInfo.pool,
-						msg: JSON.stringify(
-							{
-								withdraw_liquidity: {}
-							} satisfies PairContractCw20HookMsg
-						)
+						// this is pretty fugly
+						msg: Buffer.from(
+								JSON.stringify(
+								{
+									withdraw_liquidity: {}
+								} satisfies PairContractCw20HookMsg
+							)
+						).toString("base64")
 					}
 				} satisfies CW20ExecuteMsg
 			);

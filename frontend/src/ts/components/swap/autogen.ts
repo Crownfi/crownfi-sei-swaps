@@ -28,6 +28,48 @@ export class SwapComponentRefs {
 		}
 		return this._tradeInput;
 	}
+	private _dynSelectPairs?: HTMLSelectElement;
+	get dynSelectPairs() {
+		if (this._dynSelectPairs === undefined) {
+			this._dynSelectPairs = this._element.shadowRoot!.querySelector("[ace-ref=\"dyn-select-pairs\"]")!;
+		}
+		return this._dynSelectPairs;
+	}
+	private _inputDenom?: HTMLSpanElement;
+	get inputDenom() {
+		if (this._inputDenom === undefined) {
+			this._inputDenom = this._element.shadowRoot!.querySelector("[ace-ref=\"input-denom\"]")!;
+		}
+		return this._inputDenom;
+	}
+	private _reverseBtn?: HTMLButtonElement;
+	get reverseBtn() {
+		if (this._reverseBtn === undefined) {
+			this._reverseBtn = this._element.shadowRoot!.querySelector("[ace-ref=\"reverse-btn\"]")!;
+		}
+		return this._reverseBtn;
+	}
+	private _outputAmount?: HTMLSpanElement;
+	get outputAmount() {
+		if (this._outputAmount === undefined) {
+			this._outputAmount = this._element.shadowRoot!.querySelector("[ace-ref=\"output-amount\"]")!;
+		}
+		return this._outputAmount;
+	}
+	private _outputDenom?: HTMLSpanElement;
+	get outputDenom() {
+		if (this._outputDenom === undefined) {
+			this._outputDenom = this._element.shadowRoot!.querySelector("[ace-ref=\"output-denom\"]")!;
+		}
+		return this._outputDenom;
+	}
+	private _swapBtn?: HTMLButtonElement;
+	get swapBtn() {
+		if (this._swapBtn === undefined) {
+			this._swapBtn = this._element.shadowRoot!.querySelector("[ace-ref=\"swap-btn\"]")!;
+		}
+		return this._swapBtn;
+	}
 }
 export class SwapComponentAutogen extends HTMLElement {
 	readonly slots: SwapComponentSlots;
@@ -48,11 +90,17 @@ export class SwapComponentAutogen extends HTMLElement {
 	}
 }
 export type SwapComponentFormCollection1 = HTMLFormControlsCollection & {
-	"test": HTMLInputElement;
-	namedItem(name: "test"): HTMLInputElement;
+	"pair": HTMLSelectElement;
+	namedItem(name: "pair"): HTMLSelectElement;
+	"amount": HTMLInputElement;
+	namedItem(name: "amount"): HTMLInputElement;
+	"denom": HTMLInputElement;
+	namedItem(name: "denom"): HTMLInputElement;
 };
 export type SwapComponentFormValues1 = {
-	"test": string;
+	"pair": string;
+	"amount": number;
+	"denom": string;
 };
 interface HTMLFormElementKnownControls<C extends HTMLFormControlsCollection, V> extends HTMLFormElement {
 	readonly elements: C;
