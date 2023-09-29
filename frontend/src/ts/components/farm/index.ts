@@ -217,9 +217,7 @@ FarmComponentElement.registerElement();
 
 export function appendFarmComponents(targetElement: HTMLElement) {
 	const {pairs} = getAppChainConfig(getSelectedChain());
-	// Crazy type gymnastics because `for (const k in pairs)` doesn't automatically
-	// make `k` of type `keyof typeof pairs`.
-	for (const k of Object.keys(pairs) as (keyof typeof pairs)[]) {
+	for (const k in pairs) {
 		const pair = pairs[k];
 		const farmElem = new FarmComponentElement({
 			...pair,

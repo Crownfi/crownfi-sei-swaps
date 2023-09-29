@@ -232,6 +232,7 @@ impl CoinsExt for Vec<Coin> {
         input_assets: &[Asset],
         pool_asset_infos: &[AssetInfo],
     ) -> StdResult<()> {
+        // Assets in pool, filtered by native assets (1, both, or none)
         let pool_coins = pool_asset_infos
             .iter()
             .filter_map(|asset_info| match asset_info {

@@ -14,7 +14,11 @@ export async function connectAutodiscover(): Promise<SeiWallet> {
 	return new SeiWallet(detectedWalletIds[0]);
 }
 
-let selectedChain: SeiNetId = "localsei";
+let selectedChain: SeiNetId = (
+	document.location.host.startsWith("127.0.0.1") ||
+	document.location.host.startsWith("localhost")
+) ? "localsei" : "atlantic-2";
+
 export function getSelectedChain(): SeiNetId {
 	return selectedChain;
 }
