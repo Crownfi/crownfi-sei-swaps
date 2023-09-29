@@ -100,11 +100,9 @@ export class ClientEnv {
 				await getSigningCosmWasmClient(
 					rpcUrl,
 					maybeSigner,
-					maybeSigner instanceof DirectSecp256k1HdWallet ?
-						{
-							gasPrice: GasPrice.fromString("0.1usei")
-						} :
-						undefined
+					{
+						gasPrice: GasPrice.fromString("0.1usei")
+					}
 				),
 				accounts[0],
 				""
