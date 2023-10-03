@@ -23,6 +23,15 @@ export function getSelectedChain(): SeiNetId {
 	return selectedChain;
 }
 
+function nativeDenomCompare(a: Coin, b: Coin) {
+	if (a.denom < b.denom) {
+		return -1;
+	}else if(a.denom > b.denom){
+		return 1;
+	}
+	return 0;
+}
+
 export class TransactionError extends Error {
 	name!: "TransactionError"
 	public constructor(
@@ -122,7 +131,6 @@ export class ClientEnv {
 		}
 		return this.account;
 	}
-	// Lovin' these type gymnastics
 	isSignable(): this is { wasmClient: SigningCosmWasmClient, account: AccountData } {
 		return (this.wasmClient instanceof SigningCosmWasmClient) && this.account != null;
 	}
@@ -140,11 +148,21 @@ export class ClientEnv {
 		if (!this.isSignable()) {
 			throw new Error("Cannot execute transactions - " + this.readonlyReason);
 		}
+		if (funds) {
+			// 🙄🙄🙄🙄
+			funds.sort(nativeDenomCompare);
+		}
 		return await this.wasmClient.execute(this.account.address, contractAddress, msg, "auto", undefined, funds)
 	}
-	async executeContractMulti(instructions: readonly ExecuteInstruction[]) {
+	async executeContractMulti(instructions: ExecuteInstruction[]) {
 		if (!this.isSignable()) {
 			throw new Error("Cannot execute transactions - " + this.readonlyReason);
+		}
+		for(let i = 0; i < instructions.length; i += 1){
+			if (instructions[i].funds) {
+				// 🙄🙄🙄🙄🙄🙄🙄🙄🙄🙄🙄🙄🙄🙄🙄🙄
+				instructions[i].funds = (instructions[i].funds as Coin[]).sort(nativeDenomCompare);
+			}
 		}
 		return await this.wasmClient.executeMultiple(this.account.address, instructions, "auto")
 	}
