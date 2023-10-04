@@ -1,0 +1,142 @@
+<!-- Extending div might seem weird, but these aren't isolated components -->
+<template ace-name="farm-pool-component" ace-extends="div">
+	<div class="big-chests">
+		<!-- Padding bottom 50% ? -->
+		<div>
+			CrownFi TVL:<br>
+			<span ace-ref="big-chest-tvl">-</span>
+		</div>
+		<div>
+			Total Volume Traded:<br>
+			<span ace-ref="big-chest-total-traded">-</span>
+		</div>
+		<div>
+			24H Volume:<br>
+			<span ace-ref="big-chest-24h-volume">-</span>
+		</div>
+	</div>
+	<div class="pool-search-options">
+		<button class="primary" ace-ref="all-pool-btn">All Pools</button>
+		<button class="primary" ace-ref="all-pool-btn">My Pools</button>
+		<input type="search" ace-ref="pool-search-text">
+	</div>
+	<div class="pool-list">
+		<div class="pool-list-headings">
+			<div class="pool-list-heading">
+				Pools
+			</div>
+			<div class="pool-list-heading">
+				Liquidity
+			</div>
+			<div class="pool-list-heading">
+				24H Volume
+			</div>
+			<div class="pool-list-heading">
+				APY
+			</div>
+			<div class="pool-list-heading">
+				Deposits
+			</div>
+			<div class="pool-list-heading">
+				Fee Rate
+			</div>
+			<div class="pool-list-heading">
+				Rewards
+			</div>
+		</div>
+	</div>
+</template>
+
+<template ace-name="farm-pool-stats" ace-extends="div">
+	<div class="pool-star">
+
+	</div>
+	<div class="pool-stats-title" ace-ref="title">
+		-
+	</div>
+	<div class="pool-stat" ace-ref="liquidity">
+		-
+	</div>
+	<div class="pool-stat" ace-ref="24h-volume">
+		-
+	</div>
+	<div class="pool-stat" ace-ref="apy">
+		-
+	</div>
+	<div class="pool-stat" ace-ref="deposits">
+		-
+	</div>
+	<div class="pool-stat" ace-ref="fee-rate">
+		-
+	</div>
+	<div class="pool-stat" ace-ref="rewards">
+		-
+	</div>
+	<div class="pool-expand">
+		🔽
+	</div>
+</template>
+
+<template ace-name="farm-pool-interact" ace-extends="div">
+	<div class="farm-interact-option">
+		<span class="interact-option-title">Pool shares</span>
+		<span ace-ref="deposit-txt" class="interact-option-text">-</span>
+		<button ace-ref="deposit-btn">Deposit</button>
+	</div>
+	<div class="farm-interact-option">
+		<span class="interact-option-title">Share value</span>
+		<span ace-ref="withdraw-txt" class="interact-option-text">-</span>
+		<button ace-ref="withdraw-btn">Withdraw</button>
+	</div>
+	<div class="farm-interact-option">
+		<span class="interact-option-title">Rewards</span>
+		<span ace-ref="claim-txt" class="interact-option-text">-</span>
+		<button ace-ref="claim-btn">Claim</button>
+	</div>
+</template>
+
+<template ace-name="farm-pool-deposit-dialog" ace-extends="dialog">
+	<h1>Deposit</h1>
+	<form ace-ref="form-deposit" class="trade-form">
+		<label class="trade-amount-input">
+			<input type="number" min="1" class="form-control" name="amount0">
+			<span class="trade-amount-denom" ace-ref="denom-token0"></span>
+		</label>
+		<div class="trade-amount-balance">
+			Current balance: <span ace-ref="balance-token0"></span>
+		</div>
+
+		<label class="trade-amount-input">
+			<input type="number" min="1" class="form-control" name="amount1">
+			<span class="trade-amount-denom" ace-ref="denom-token1"></span>
+		</label>
+		<div class="trade-amount-balance">
+			Current balance: <span ace-ref="balance-token1"></span>
+		</div>
+
+		<div class="trade-result">
+			You recieve: <span ace-ref="trade-result"></span>
+		</div>
+
+		<button class="primary trade-execute">Deposit</button>
+	</form>
+</template>
+
+<template ace-name="farm-pool-withdraw-dialog" ace-extends="dialog">
+	<h1>Deposit</h1>
+	<form ace-ref="form-deposit" class="trade-form">
+		<label class="trade-amount-input">
+			<input type="number" min="1" class="form-control" name="amount0">
+			<span class="trade-amount-denom" ace-ref="denom"></span>
+		</label>
+		<div class="trade-amount-balance">
+			Current shares: <span ace-ref="balance"></span>
+		</div>
+
+		<div class="trade-result">
+			You recieve: <span ace-ref="trade-result"></span>
+		</div>
+		
+		<button class="primary trade-execute">Deposit</button>
+	</form>
+</template>

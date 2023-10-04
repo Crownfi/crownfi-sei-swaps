@@ -27,6 +27,7 @@ async function main() {
 	const networkData = readArtifact(clientEnv.chainId);
 	networkData.rpcUrl = chainConfigs.generalInfo.rpcUrl;
 	networkData.restUrl = chainConfigs.generalInfo.restUrl;
+	networkData.tokenUserInfo = chainConfigs.generalInfo.tokenUserInfo;
 	writeArtifact(networkData, clientEnv.chainId);
 
 	await uploadAndInitToken(clientEnv);

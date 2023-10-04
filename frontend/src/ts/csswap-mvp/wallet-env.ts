@@ -1,6 +1,6 @@
 import { CosmWasmClient, ExecuteInstruction, SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import { AccountData, Coin, DirectSecp256k1HdWallet, EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
-import {KNOWN_SEI_PROVIDER_INFO, SeiWallet, getQueryClient, getSigningCosmWasmClient, getCosmWasmClient, restoreWallet, KNOWN_SEI_PROVIDERS} from "@crownfi/sei-js-core";
+import {KNOWN_SEI_PROVIDER_INFO, SeiWallet, getQueryClient, getSigningCosmWasmClient, getCosmWasmClient, KNOWN_SEI_PROVIDERS} from "@crownfi/sei-js-core";
 import { SeiNetId, getAppChainConfig } from "./chain_config";
 import { GasPrice, isDeliverTxFailure } from "@cosmjs/stargate";
 
@@ -73,6 +73,7 @@ export class ClientEnv {
 				"people testing their shit before deploying. So for now, you get the account derived from the NULL " +
 				"seed. I can't believe I have to do this."
 			);
+			const {restoreWallet} = await import("@crownfi/sei-js-core");
 			return await restoreWallet("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about");
 		}
 		const detectedWalletIds = SeiWallet.discoveredWalletList();

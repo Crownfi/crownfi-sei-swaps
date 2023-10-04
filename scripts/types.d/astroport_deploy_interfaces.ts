@@ -1,7 +1,13 @@
+export interface TokenUserInfo {
+    decimals: number,
+    symbol: string
+}
+
 export interface GeneralInfo {
     defaultAdmin: string,
     rpcUrl: string,
-    restUrl: string
+    restUrl: string,
+    tokenUserInfo: {[denom: string]: TokenUserInfo}
 }
 
 export type InitialBalance = {
