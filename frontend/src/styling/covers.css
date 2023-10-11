@@ -1,0 +1,27 @@
+#loading-cover {
+	z-index: 999999;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: #000000aa;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+@keyframes loading_spin {
+	0% {
+		rotate: 0deg;
+	}
+	50% {
+		rotate: 180deg;
+	}
+	100% {
+		rotate: 360deg;
+	}
+}
+#loading-cover > img {
+	height: 128px;
+	animation: loading_spin 2s cubic-bezier(.68,-0.55,.27,1.55) 0s infinite;
+}

@@ -1,4 +1,4 @@
-import { SwapComponentAutogen } from "./autogen";
+// import { SwapComponentAutogen } from "./autogen";
 import { getAppChainConfig } from "../../chain_config";
 import { ClientEnv, getSelectedChain } from "../../wallet-env";
 import { QueryMsg as PairContractQueryMsg } from "../../contract_schema/pair/query";
@@ -11,6 +11,7 @@ import { amountToAssetInfo, errorDialogIfRejected } from "../../util";
 import { Coin } from "@cosmjs/proto-signing";
 import { ExecuteInstruction } from "@cosmjs/cosmwasm-stargate";
 
+/*
 export class SwapComponentElement extends SwapComponentAutogen {
 	pairInfos: (ReturnType<typeof getAppChainConfig>)["pairs"]
 	private quoteRequested: boolean;
@@ -175,3 +176,4 @@ export function appendSwapComponents(targetElement: HTMLElement) {
 	const farmElem = new SwapComponentElement(pairs);
 	targetElement.appendChild(farmElem);
 }
+*/

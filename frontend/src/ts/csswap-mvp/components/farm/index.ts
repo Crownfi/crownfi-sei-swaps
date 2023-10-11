@@ -7,12 +7,12 @@ import { BalanceResponse as Cw20BalanceResponse } from "../../contract_schema/to
 import { ComponentPairInfo } from "../../types";
 import { amountToAssetInfo, errorDialogIfRejected } from "../../util";
 import { ClientEnv, getSelectedChain } from "../../wallet-env";
-import { FarmComponentAutogen } from "./autogen";
+// import { FarmComponentAutogen } from "./autogen";
 import { Coin } from "@cosmjs/proto-signing";
 import { getAppChainConfig } from "../../chain_config";
 
 
-
+/*
 export class FarmComponentElement extends FarmComponentAutogen {
 	pairInfo: ComponentPairInfo;
 	private balanceRefreshTimer: ReturnType<typeof setInterval> | null;
@@ -226,3 +226,4 @@ export function appendFarmComponents(targetElement: HTMLElement) {
 		targetElement.appendChild(farmElem);
 	}
 }
+*/

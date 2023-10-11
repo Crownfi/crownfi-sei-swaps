@@ -1,27 +1,8 @@
 import { CosmWasmClient, ExecuteInstruction, SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import { AccountData, Coin, DirectSecp256k1HdWallet, EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
-import {KNOWN_SEI_PROVIDER_INFO, SeiWallet, getQueryClient, getSigningCosmWasmClient, getCosmWasmClient, KNOWN_SEI_PROVIDERS} from "@crownfi/sei-js-core";
+import {KNOWN_SEI_PROVIDER_INFO, SeiWallet, getQueryClient, getSigningCosmWasmClient, getCosmWasmClient, KNOWN_SEI_PROVIDERS, KnownSeiProviders} from "@crownfi/sei-js-core";
 import { SeiNetId, getAppChainConfig } from "./chain_config";
 import { GasPrice, isDeliverTxFailure } from "@cosmjs/stargate";
-
-// TODO: Allow the user to set their preference
-export async function connectAutodiscover(): Promise<SeiWallet> {
-	const detectedWalletIds = SeiWallet.discoveredWalletList();
-	if (detectedWalletIds.length == 0) {
-		throw new Error("No wallets discovered");
-	}
-	console.log("Auto-discovered known wallet:", KNOWN_SEI_PROVIDER_INFO[detectedWalletIds[0]])
-	return new SeiWallet(detectedWalletIds[0]);
-}
-
-let selectedChain: SeiNetId = (
-	document.location.host.startsWith("127.0.0.1") ||
-	document.location.host.startsWith("localhost")
-) ? "localsei" : "atlantic-2";
-
-export function getSelectedChain(): SeiNetId {
-	return selectedChain;
-}
 
 function nativeDenomCompare(a: Coin, b: Coin) {
 	if (a.denom < b.denom) {
@@ -44,6 +25,86 @@ export class TransactionError extends Error {
 }
 TransactionError.prototype.name == "TransactionError";
 
+let selectedChain: SeiNetId = (
+	document.location.host.startsWith("127.0.0.1") ||
+	document.location.host.startsWith("localhost")
+) ? "localsei" : "atlantic-2";
+
+export function getSelectedChain(): SeiNetId {
+	return selectedChain;
+}
+
+export interface SeiChainChangedEvent extends CustomEvent<{chainId: SeiNetId}> {};
+export interface SeiWalletChangedEvent extends CustomEvent<{address: string, provider: MaybeSelectedProvider}> {};
+
+export function setSelectedChain(chainId: SeiNetId) {
+	if (chainId == selectedChain) {
+		return;
+	}
+	selectedChain = chainId;
+	window.dispatchEvent(
+		new CustomEvent("seiChainChanged", {
+			detail: {
+				chainId
+			},
+			cancelable: false
+		})
+	)
+}
+
+export type MaybeSelectedProvider = KnownSeiProviders | "seed-wallet" | null;
+
+let preferredSeiProvider: MaybeSelectedProvider = (() => {
+	let storedPreferredProvider = localStorage.getItem("preferred_sei_provider");
+	if (storedPreferredProvider == null) {
+		return null;
+	}
+	if (storedPreferredProvider == "seed-wallet") {
+		return "seed-wallet";
+	}
+	if (storedPreferredProvider in KNOWN_SEI_PROVIDER_INFO) {
+		return storedPreferredProvider as KnownSeiProviders;
+	}
+	return null;
+})();
+export async function setPreferredSeiProvider(providerId: MaybeSelectedProvider) {
+	if (providerId == null) {
+		preferredSeiProvider = providerId
+		window.dispatchEvent(
+			new CustomEvent("seiWalletChanged", {
+				detail: {
+					address: "",
+					provider: providerId
+				},
+				cancelable: false
+			})
+		);
+	}else{
+		let oldProvider = preferredSeiProvider;
+		try{
+			preferredSeiProvider = providerId;
+			const clientEnv = await ClientEnv.get();
+			window.dispatchEvent(
+				new CustomEvent("seiWalletChanged", {
+					detail: {
+						address: clientEnv.getAccount().address, // may throw
+						provider: providerId
+					},
+					cancelable: false
+				})
+			);
+		}catch(ex) {
+			preferredSeiProvider = oldProvider;
+			throw ex;
+		}
+	}
+	if (providerId == null) {
+		localStorage.removeItem("preferred_sei_provider");
+	}else{
+		localStorage.setItem("preferred_sei_provider", providerId);
+	}
+}
+
 interface ClientEnvConstruct {
 	account: AccountData | null
 	chainId: string
@@ -65,26 +126,19 @@ export class ClientEnv {
 		this.readonlyReason = readonlyReason;
 	}
 	private static async getSigner(): Promise<OfflineSigner | string> {
-		//const rpcUrl = getAppChainConfig(selectedChain).rpcUrl;
-		if (selectedChain != "atlantic-2" && selectedChain != "pacific-1") {
-			// Currently no known sei wallet apps support custom chains
-			console.warn(
-				"Not actually connecting to wallet because apparently all the sei wallet devs don't care about " +
-				"people testing their shit before deploying. So for now, you get the account derived from the NULL " +
-				"seed. I can't believe I have to do this."
-			);
+		if (preferredSeiProvider == null) {
+			return "No wallet selected";
+		}
+		if (preferredSeiProvider == "seed-wallet") {
+			// async imports allow us to load the signing stuff only if needed. (hopefully)
 			const {restoreWallet} = await import("@crownfi/sei-js-core");
-			return await restoreWallet("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about");
+			// Just support the NULL seed for now.
+			return await restoreWallet("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about")
 		}
-		const detectedWalletIds = SeiWallet.discoveredWalletList();
-		if (detectedWalletIds.length == 0) {
-			return "No known Sei wallets found. Currently we know of: " +
-				KNOWN_SEI_PROVIDERS.map(v => KNOWN_SEI_PROVIDER_INFO[v].name).join(", ") + ".";
-		}
-		console.log("Auto-discovered wallet app:", KNOWN_SEI_PROVIDER_INFO[detectedWalletIds[0]].name);
-		const signer = await (new SeiWallet(detectedWalletIds[0])).getOfflineSigner(selectedChain);
+		
+		const signer = await (new SeiWallet(preferredSeiProvider)).getOfflineSigner(selectedChain);
 		if (signer == undefined) {
-			return KNOWN_SEI_PROVIDER_INFO[detectedWalletIds[0]].name +
+			return KNOWN_SEI_PROVIDER_INFO[preferredSeiProvider].name +
 				" did not provide a signer. (Is the wallet unlocked and are we authorized?)";
 		}
 		return signer;

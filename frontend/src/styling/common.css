@@ -1,0 +1,6 @@
+@import url("./heading.css");
+@import url("./covers.css");
+@import url("./modals/index.css");
+:root {
+	font-family: sans-serif;
+}

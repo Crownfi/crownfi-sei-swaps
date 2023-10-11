@@ -1,9 +1,9 @@
 import { Asset } from "./contract_schema/pair/query";
+import { showError } from "./popups/error";
 
 export function errorDialogIfRejected(f: () => Promise<void>) {
 	f().catch(ex => {
-		console.error(ex);
-		alert(ex.name + ": " + ex.message + "\nMore details in console");
+		showError(ex);
 	});
 }
 

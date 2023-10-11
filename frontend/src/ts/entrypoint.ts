@@ -14,10 +14,9 @@ function supportsExtendingBuiltinElements() {
 
 async function entrypoint() {
 	if (typeof HTMLDialogElement === "undefined") {
-		// Not using the polyfill because of its slight behavioural differences.
+		// Not using the polyfill because of its slight behavioural and CSS differences.
 		throw new Error("Your browser is too outdated. (It doesn't support <dialog> elements)");
 	}
-
 	// This check only exists because Safari. Thank you Safari for being the new ie6.
 	if (!supportsExtendingBuiltinElements()) {
 		console.warn("Oh no, you're using safari :(");
@@ -27,8 +26,18 @@ async function entrypoint() {
 			console.error("The polyfill didn't work like I expected. Here be dragons!");
 		}
 	}
+	// Wait until the DOM fully exists, custom elements depend on templates which are only guaranteed at to exist then.
+	await new Promise<void>(resolve => {
+		if (document.readyState == "loading") {
+			document.addEventListener("DOMContentLoaded", () => {resolve()});
+		} else {
+			resolve();
+		}
+	});
+	
 	const {main} = await import("./csswap-mvp");
 	await main();
+	console.log("entrypointed!");
 }
 
 entrypoint().catch(ex => {

@@ -1,0 +1,27 @@
+.wallet-choices {
+	display: flex;
+	flex-direction: column;
+}
+.wallet-choices button[is="wallet-choice"] {
+	flex-grow: 1;
+}
+button[is="wallet-choice"] {
+	display: flex;
+	margin: 8px;
+	justify-content: left;
+	align-items: center;
+}
+button[is="wallet-choice"] img {
+	width: 32px;
+	margin: 2px;
+	margin-right: 8px;
+}
+button[is="wallet-choice"] span {
+	font-size: 12px;
+	font-style: italic;
+	text-align: left;
+}
+button[is="wallet-choice"] span::first-line {
+	font-size: 18px;
+	font-style: normal;
+}

@@ -1,6 +1,7 @@
 const path = require("path");
 const webpack = require("webpack");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 
 module.exports = (env, argv) => {
 	const config = {
@@ -37,6 +38,12 @@ module.exports = (env, argv) => {
 				Buffer: ["buffer-lite", "Buffer"],
 			}),
 		],
+		optimization: {
+			minimizer: [
+			  `...`,
+			  new CssMinimizerPlugin(),
+			],
+		  },
 	};
 	config.mode = argv.mode;
 

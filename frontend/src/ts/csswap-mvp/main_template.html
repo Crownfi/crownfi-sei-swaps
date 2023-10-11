@@ -3,25 +3,36 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<link href="/main.css" rel="stylesheet" />
-		<script async src="/main.js"></script>
+		<link href="/bundles/main.css" rel="stylesheet" />
+		<script async src="/bundles/main.js"></script>
 		<title>Frontend test</title>
 	</head>
 	<body>
-		<div class="container-md border">
-			<h1 class="text-center">CSSWap MVP</h1>
-			<div class="d-flex justify-content-around">
-				<button id="main-btn-swap" class="btn btn-primary">Swap</button>
-				<button id="main-btn-farm" class="btn btn-primary">Farm</button>
+		<div class="header">
+			<div class="header-logo">
+				<img src="/assets/placeholder.svg">
+				<span>Crown</span>
 			</div>
-			<div id="main-content">
+			<div class="header-links">
+				<a id="swap-link" href="#">
+					<img src="/assets/placeholder.svg">
+					<span>Swap</span>
+				</a>
+				<a id="farm-link" href="#">
+					<img src="/assets/placeholder.svg">
+					<span>Farm</span>
+				</a>
+			</div>
+			<div class="user-options">
+				<button is="wallet-button"></button>
+				<select is="network-selector"></select>
+			</div>
+		</div>
+		<div id="main-content">
 
-			</div>
 		</div>
 		<div id="loading-cover">
-			<span id="loading-text">spinny circle go here</span>
+			<img src="/assets/placeholder.svg">
 		</div>
-		
-		
 	</body>
 </html>

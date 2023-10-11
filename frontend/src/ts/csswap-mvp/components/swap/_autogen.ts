@@ -23,7 +23,7 @@ export class SwapComponentRefs {
 	private _tradeInput?: HTMLFormElementKnownControls<SwapComponentFormCollection1, SwapComponentFormValues1>;
 	get tradeInput() {
 		if (this._tradeInput === undefined) {
-			this._tradeInput = this._element.shadowRoot!.querySelector("[ace-ref=\"trade-input\"]")!;
+			this._tradeInput = this._element.shadowRoot!.querySelector(":not([is]) [ace-ref=\"trade-input\"]")!;
 			this._tradeInput.values = normalizeFormValues.bind(this._tradeInput, this._tradeInput);
 		}
 		return this._tradeInput;
@@ -31,42 +31,42 @@ export class SwapComponentRefs {
 	private _dynSelectPairs?: HTMLSelectElement;
 	get dynSelectPairs() {
 		if (this._dynSelectPairs === undefined) {
-			this._dynSelectPairs = this._element.shadowRoot!.querySelector("[ace-ref=\"dyn-select-pairs\"]")!;
+			this._dynSelectPairs = this._element.shadowRoot!.querySelector(":not([is]) [ace-ref=\"dyn-select-pairs\"]")!;
 		}
 		return this._dynSelectPairs;
 	}
 	private _inputDenom?: HTMLSpanElement;
 	get inputDenom() {
 		if (this._inputDenom === undefined) {
-			this._inputDenom = this._element.shadowRoot!.querySelector("[ace-ref=\"input-denom\"]")!;
+			this._inputDenom = this._element.shadowRoot!.querySelector(":not([is]) [ace-ref=\"input-denom\"]")!;
 		}
 		return this._inputDenom;
 	}
 	private _reverseBtn?: HTMLButtonElement;
 	get reverseBtn() {
 		if (this._reverseBtn === undefined) {
-			this._reverseBtn = this._element.shadowRoot!.querySelector("[ace-ref=\"reverse-btn\"]")!;
+			this._reverseBtn = this._element.shadowRoot!.querySelector(":not([is]) [ace-ref=\"reverse-btn\"]")!;
 		}
 		return this._reverseBtn;
 	}
 	private _outputAmount?: HTMLSpanElement;
 	get outputAmount() {
 		if (this._outputAmount === undefined) {
-			this._outputAmount = this._element.shadowRoot!.querySelector("[ace-ref=\"output-amount\"]")!;
+			this._outputAmount = this._element.shadowRoot!.querySelector(":not([is]) [ace-ref=\"output-amount\"]")!;
 		}
 		return this._outputAmount;
 	}
 	private _outputDenom?: HTMLSpanElement;
 	get outputDenom() {
 		if (this._outputDenom === undefined) {
-			this._outputDenom = this._element.shadowRoot!.querySelector("[ace-ref=\"output-denom\"]")!;
+			this._outputDenom = this._element.shadowRoot!.querySelector(":not([is]) [ace-ref=\"output-denom\"]")!;
 		}
 		return this._outputDenom;
 	}
 	private _swapBtn?: HTMLButtonElement;
 	get swapBtn() {
 		if (this._swapBtn === undefined) {
-			this._swapBtn = this._element.shadowRoot!.querySelector("[ace-ref=\"swap-btn\"]")!;
+			this._swapBtn = this._element.shadowRoot!.querySelector(":not([is]) [ace-ref=\"swap-btn\"]")!;
 		}
 		return this._swapBtn;
 	}

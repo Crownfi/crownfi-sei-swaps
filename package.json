@@ -1,0 +1,7 @@
+{
+	"name": "@crownfi/csswap-mvp-workspace",
+	"workspaces": [
+		"frontend",
+		"scripts"
+	]
+}

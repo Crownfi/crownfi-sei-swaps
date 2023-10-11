@@ -1,27 +1,23 @@
-import { appendFarmComponents } from "./components/farm";
-import { appendSwapComponents } from "./components/swap";
+import { alert } from "./popups";
+import { setLoading } from "./loading";
+import "./wallet_chooser";
 
 const q = document.querySelector.bind(document);
 const qa = document.querySelectorAll.bind(document);
 
 export async function main() {
-	// Wait until the DOM fully exists
-	await new Promise<void>(resolve => {
-		if (document.readyState == "loading") {
-			document.addEventListener("DOMContentLoaded", () => {resolve()});
-		} else {
-			resolve();
-		}
-	});
-	const mainSwapButton = q("#main-btn-swap") as HTMLButtonElement;
-	const mainFarmButton = q("#main-btn-farm") as HTMLButtonElement;
+	const mainSwapButton = q("#swap-link") as HTMLAnchorElement;
+	const mainFarmButton = q("#farm-link") as HTMLAnchorElement;
 	const mainContent = q("#main-content") as HTMLElement;
 	mainSwapButton.onclick = () => {
 		mainContent.innerHTML = "";
-		appendSwapComponents(mainContent);
+		alert("TODO", "This is currently unimplemented");
+		// appendSwapComponents(mainContent);
 	};
 	mainFarmButton.onclick = () => {
 		mainContent.innerHTML = "";
-		appendFarmComponents(mainContent);
+		alert("TODO", "This is currently unimplemented");
+		// appendFarmComponents(mainContent);
 	}
+	setLoading(false);
 }

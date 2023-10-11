@@ -1,0 +1,6 @@
+dialog {
+	max-width: calc(100vw - 64px);
+}
+
+@import url("./wallets.css");
+@import url("./error.css");
