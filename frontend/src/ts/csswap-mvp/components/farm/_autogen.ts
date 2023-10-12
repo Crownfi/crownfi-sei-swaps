@@ -47,6 +47,13 @@ export class FarmPoolComponentRefs {
 		}
 		return this._poolSearchText;
 	}
+	private _poolList?: HTMLDivElement;
+	get poolList() {
+		if (this._poolList === undefined) {
+			this._poolList = this._element.querySelector("[ace-ref=\"pool-list\"]:not(:not(:scope)[is] *)")!;
+		}
+		return this._poolList;
+	}
 }
 export class FarmPoolComponentAutogen extends HTMLDivElement {
 	readonly refs: FarmPoolComponentRefs;
@@ -66,17 +73,38 @@ export class FarmPoolComponentAutogen extends HTMLDivElement {
 		customElements.define("farm-pool-component", this, { extends: "div"});
 	}
 }
-export class FarmPoolStatsRefs {
+export class FarmPoolItemRefs {
 	private _element: HTMLElement;
 	constructor(element: HTMLElement) {
 		this._element = element;
 	}
-	private _title?: HTMLDivElement;
-	get title() {
-		if (this._title === undefined) {
-			this._title = this._element.querySelector("[ace-ref=\"title\"]:not(:not(:scope)[is] *)")!;
+	private _btnStar?: HTMLButtonElement;
+	get btnStar() {
+		if (this._btnStar === undefined) {
+			this._btnStar = this._element.querySelector("[ace-ref=\"btn-star\"]:not(:not(:scope)[is] *)")!;
 		}
-		return this._title;
+		return this._btnStar;
+	}
+	private _iconToken0?: HTMLImageElement;
+	get iconToken0() {
+		if (this._iconToken0 === undefined) {
+			this._iconToken0 = this._element.querySelector("[ace-ref=\"icon-token0\"]:not(:not(:scope)[is] *)")!;
+		}
+		return this._iconToken0;
+	}
+	private _iconToken1?: HTMLImageElement;
+	get iconToken1() {
+		if (this._iconToken1 === undefined) {
+			this._iconToken1 = this._element.querySelector("[ace-ref=\"icon-token1\"]:not(:not(:scope)[is] *)")!;
+		}
+		return this._iconToken1;
+	}
+	private _poolName?: HTMLDivElement;
+	get poolName() {
+		if (this._poolName === undefined) {
+			this._poolName = this._element.querySelector("[ace-ref=\"pool-name\"]:not(:not(:scope)[is] *)")!;
+		}
+		return this._poolName;
 	}
 	private _liquidity?: HTMLDivElement;
 	get liquidity() {
@@ -120,26 +148,33 @@ export class FarmPoolStatsRefs {
 		}
 		return this._rewards;
 	}
+	private _btnExpand?: HTMLButtonElement;
+	get btnExpand() {
+		if (this._btnExpand === undefined) {
+			this._btnExpand = this._element.querySelector("[ace-ref=\"btn-expand\"]:not(:not(:scope)[is] *)")!;
+		}
+		return this._btnExpand;
+	}
 }
-export class FarmPoolStatsAutogen extends HTMLDivElement {
-	readonly refs: FarmPoolStatsRefs;
+export class FarmPoolItemAutogen extends HTMLDivElement {
+	readonly refs: FarmPoolItemRefs;
 	constructor() {
 		super();
 		if (this.childElementCount == 0) {
 			this.appendChild(
-				(document.getElementById("ace-template-farm-pool-stats") as HTMLTemplateElement)
+				(document.getElementById("ace-template-farm-pool-item") as HTMLTemplateElement)
 					.content
 					.cloneNode(true)
 			);
 		}
-		this.setAttribute("is", "farm-pool-stats"); // allow for easy query selecting
-		this.refs = new FarmPoolStatsRefs(this);
+		this.setAttribute("is", "farm-pool-item"); // allow for easy query selecting
+		this.refs = new FarmPoolItemRefs(this);
 	}
 	public static registerElement() {
-		customElements.define("farm-pool-stats", this, { extends: "div"});
+		customElements.define("farm-pool-item", this, { extends: "div"});
 	}
 }
-export class FarmPoolInteractRefs {
+export class FarmPoolItemOptionsRefs {
 	private _element: HTMLElement;
 	constructor(element: HTMLElement) {
 		this._element = element;
@@ -187,22 +222,22 @@ export class FarmPoolInteractRefs {
 		return this._claimBtn;
 	}
 }
-export class FarmPoolInteractAutogen extends HTMLDivElement {
-	readonly refs: FarmPoolInteractRefs;
+export class FarmPoolItemOptionsAutogen extends HTMLDivElement {
+	readonly refs: FarmPoolItemOptionsRefs;
 	constructor() {
 		super();
 		if (this.childElementCount == 0) {
 			this.appendChild(
-				(document.getElementById("ace-template-farm-pool-interact") as HTMLTemplateElement)
+				(document.getElementById("ace-template-farm-pool-item-options") as HTMLTemplateElement)
 					.content
 					.cloneNode(true)
 			);
 		}
-		this.setAttribute("is", "farm-pool-interact"); // allow for easy query selecting
-		this.refs = new FarmPoolInteractRefs(this);
+		this.setAttribute("is", "farm-pool-item-options"); // allow for easy query selecting
+		this.refs = new FarmPoolItemOptionsRefs(this);
 	}
 	public static registerElement() {
-		customElements.define("farm-pool-interact", this, { extends: "div"});
+		customElements.define("farm-pool-item-options", this, { extends: "div"});
 	}
 }
 export class FarmPoolDepositDialogRefs {
@@ -336,11 +371,11 @@ export type FarmPoolDepositDialogFormValues1 = {
 	"amount1": number;
 };
 export type FarmPoolWithdrawDialogFormCollection2 = HTMLFormControlsCollection & {
-	"amount0": HTMLInputElement;
-	namedItem(name: "amount0"): HTMLInputElement;
+	"amount": HTMLInputElement;
+	namedItem(name: "amount"): HTMLInputElement;
 };
 export type FarmPoolWithdrawDialogFormValues2 = {
-	"amount0": number;
+	"amount": number;
 };
 interface HTMLFormElementKnownControls<C extends HTMLFormControlsCollection, V> extends HTMLFormElement {
 	readonly elements: C;

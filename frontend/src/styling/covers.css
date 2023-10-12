@@ -25,3 +25,7 @@
 	height: 128px;
 	animation: loading_spin 2s cubic-bezier(.68,-0.55,.27,1.55) 0s infinite;
 }
+#loading-cover > .emoji-as-icon {
+	font-size: 128px;
+	animation: loading_spin 2s cubic-bezier(.68,-0.55,.27,1.55) 0s infinite;
+}

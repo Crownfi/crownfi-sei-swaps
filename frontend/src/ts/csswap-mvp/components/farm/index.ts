@@ -1,3 +1,51 @@
+import { FarmPoolComponentAutogen, FarmPoolItemAutogen, FarmPoolItemOptionsAutogen } from "./_autogen";
+
+export class FarmPoolComponentElement extends FarmPoolComponentAutogen {
+	constructor() {
+		super();
+		this.rebuildPoolList();
+	}
+	rebuildPoolList() {
+		// Can't just blank out the pool list cuz we need to keep the headings.
+		while (this.refs.poolList.lastElementChild instanceof FarmPoolItemElement) {
+			this.refs.poolList.lastElementChild.remove();
+		}
+		// Blank tests for now
+		for (let i = 0; i < 5; i += 1) {
+			this.refs.poolList.appendChild(
+				new FarmPoolItemElement()
+			);
+		}
+	}
+}
+FarmPoolComponentElement.registerElement();
+
+export class FarmPoolItemElement extends FarmPoolItemAutogen {
+	constructor() {
+		super();
+		// TODO
+		this.refs.btnExpand.addEventListener("click", (ev) => {
+			if (this.classList.contains("expanded")) {
+				if (this.nextElementSibling instanceof FarmPoolItemOptionsElement) {
+					this.nextElementSibling.remove();
+				}
+				this.classList.remove("expanded");
+			}else{
+				this.after(new FarmPoolItemOptionsElement());
+				this.classList.add("expanded");
+			}
+		});
+	}
+}
+FarmPoolItemElement.registerElement();
+
+export class FarmPoolItemOptionsElement extends FarmPoolItemOptionsAutogen {
+	constructor(){
+		super();
+	}
+}
+FarmPoolItemOptionsElement.registerElement();
+/*
 import { ExecuteInstruction } from "@cosmjs/cosmwasm-stargate";
 import { ExecuteMsg as PairContractExecuteMsg } from "../../contract_schema/pair/execute";
 import { Cw20HookMsg as PairContractCw20HookMsg } from "../../contract_schema/pair/cw20_hook_msg";
@@ -10,7 +58,7 @@ import { ClientEnv, getSelectedChain } from "../../wallet-env";
 // import { FarmComponentAutogen } from "./autogen";
 import { Coin } from "@cosmjs/proto-signing";
 import { getAppChainConfig } from "../../chain_config";
-
+*/
 
 /*
 export class FarmComponentElement extends FarmComponentAutogen {

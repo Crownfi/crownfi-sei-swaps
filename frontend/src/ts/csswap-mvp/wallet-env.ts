@@ -3,6 +3,7 @@ import { AccountData, Coin, DirectSecp256k1HdWallet, EncodeObject, OfflineSigner
 import {KNOWN_SEI_PROVIDER_INFO, SeiWallet, getQueryClient, getSigningCosmWasmClient, getCosmWasmClient, KNOWN_SEI_PROVIDERS, KnownSeiProviders} from "@crownfi/sei-js-core";
 import { SeiNetId, getAppChainConfig } from "./chain_config";
 import { GasPrice, isDeliverTxFailure } from "@cosmjs/stargate";
+import { setLoading } from "./loading";
 
 function nativeDenomCompare(a: Coin, b: Coin) {
 	if (a.denom < b.denom) {
@@ -82,6 +83,7 @@ export async function setPreferredSeiProvider(providerId: MaybeSelectedProvider)
 	}else{
 		let oldProvider = preferredSeiProvider;
 		try{
+			setLoading(true);
 			preferredSeiProvider = providerId;
 			const clientEnv = await ClientEnv.get();
 			window.dispatchEvent(
@@ -96,6 +98,8 @@ export async function setPreferredSeiProvider(providerId: MaybeSelectedProvider)
 		}catch(ex) {
 			preferredSeiProvider = oldProvider;
 			throw ex;
+		}finally{
+			setLoading(false);
 		}
 	}
 	if (providerId == null) {

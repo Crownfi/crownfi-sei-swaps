@@ -127,21 +127,7 @@ export class ErrorModalRefs {
 export class ErrorModalAutogen extends HTMLDialogElement {
 	readonly refs: ErrorModalRefs;
 	static get observedAttributes() {
-		return ["heading", "details", "message"];
-	}
-	private _attributeHeadingValue: string | null = null;
-	get heading(): string | null {
-		return this._attributeHeadingValue;
-	}
-	set heading(v: string | null) {
-		if (v == null) {
-			this.removeAttribute("heading");
-		}else{
-			this.setAttribute("heading", v);
-		}
-	}
-	protected onHeadingChanged(oldValue: string | null, newValue: string | null) {
-		// To be overridden by child class
+		return ["details", "message", "heading"];
 	}
 	private _attributeDetailsValue: string | null = null;
 	get details(): string | null {
@@ -171,12 +157,22 @@ export class ErrorModalAutogen extends HTMLDialogElement {
 	protected onMessageChanged(oldValue: string | null, newValue: string | null) {
 		// To be overridden by child class
 	}
+	private _attributeHeadingValue: string | null = null;
+	get heading(): string | null {
+		return this._attributeHeadingValue;
+	}
+	set heading(v: string | null) {
+		if (v == null) {
+			this.removeAttribute("heading");
+		}else{
+			this.setAttribute("heading", v);
+		}
+	}
+	protected onHeadingChanged(oldValue: string | null, newValue: string | null) {
+		// To be overridden by child class
+	}
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
 		switch(name) {
-			case "heading":
-				this._attributeHeadingValue = newValue;
-				this.onHeadingChanged(oldValue, newValue);
-				break;
 			case "details":
 				this._attributeDetailsValue = newValue;
 				this.onDetailsChanged(oldValue, newValue);
@@ -184,6 +180,10 @@ export class ErrorModalAutogen extends HTMLDialogElement {
 			case "message":
 				this._attributeMessageValue = newValue;
 				this.onMessageChanged(oldValue, newValue);
+				break;
+			case "heading":
+				this._attributeHeadingValue = newValue;
+				this.onHeadingChanged(oldValue, newValue);
 				break;
 			default:
 				// Shouldn't happen

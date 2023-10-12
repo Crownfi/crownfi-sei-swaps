@@ -98,21 +98,7 @@ export class WalletChoiceRefs {
 export class WalletChoiceAutogen extends HTMLButtonElement {
 	readonly refs: WalletChoiceRefs;
 	static get observedAttributes() {
-		return ["icon", "text"];
-	}
-	private _attributeIconValue: string | null = null;
-	get icon(): string | null {
-		return this._attributeIconValue;
-	}
-	set icon(v: string | null) {
-		if (v == null) {
-			this.removeAttribute("icon");
-		}else{
-			this.setAttribute("icon", v);
-		}
-	}
-	protected onIconChanged(oldValue: string | null, newValue: string | null) {
-		// To be overridden by child class
+		return ["text", "icon"];
 	}
 	private _attributeTextValue: string | null = null;
 	get text(): string | null {
@@ -128,15 +114,29 @@ export class WalletChoiceAutogen extends HTMLButtonElement {
 	protected onTextChanged(oldValue: string | null, newValue: string | null) {
 		// To be overridden by child class
 	}
+	private _attributeIconValue: string | null = null;
+	get icon(): string | null {
+		return this._attributeIconValue;
+	}
+	set icon(v: string | null) {
+		if (v == null) {
+			this.removeAttribute("icon");
+		}else{
+			this.setAttribute("icon", v);
+		}
+	}
+	protected onIconChanged(oldValue: string | null, newValue: string | null) {
+		// To be overridden by child class
+	}
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
 		switch(name) {
-			case "icon":
-				this._attributeIconValue = newValue;
-				this.onIconChanged(oldValue, newValue);
-				break;
 			case "text":
 				this._attributeTextValue = newValue;
 				this.onTextChanged(oldValue, newValue);
+				break;
+			case "icon":
+				this._attributeIconValue = newValue;
+				this.onIconChanged(oldValue, newValue);
 				break;
 			default:
 				// Shouldn't happen

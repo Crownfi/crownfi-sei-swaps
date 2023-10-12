@@ -20,8 +20,14 @@
 		<button class="primary" ace-ref="my-pool-btn">My Pools</button>
 		<input type="search" ace-ref="pool-search-text">
 	</div>
-	<div class="pool-list">
+	<div ace-ref="pool-list" class="pool-list">
 		<div class="pool-list-headings">
+			<div class="pool-list-heading">
+				<!-- Quick hack to appease the grid gods -->
+			</div>
+			<div class="pool-list-heading">
+				<!-- Quick hack to appease the grid gods -->
+			</div>
 			<div class="pool-list-heading">
 				Pools
 			</div>
@@ -43,15 +49,20 @@
 			<div class="pool-list-heading">
 				Rewards
 			</div>
+			<div class="pool-list-heading">
+				<!-- Quick hack to appease the grid gods -->
+			</div>
 		</div>
 	</div>
 </template>
 
-<template ace-name="farm-pool-stats" ace-extends="div">
-	<div class="pool-star">
-
+<template ace-name="farm-pool-item" ace-extends="div">
+	<button class="pool-star" ace-ref="btn-star">⭐️</button>
+	<div class="pool-stats-icons">
+		<img ace-ref="icon-token0" src="/assets/placeholder.svg">
+		<img ace-ref="icon-token1" src="/assets/placeholder.svg">
 	</div>
-	<div class="pool-stats-title" ace-ref="title">
+	<div class="pool-stats-name" ace-ref="pool-name">
 		-
 	</div>
 	<div class="pool-stat" ace-ref="liquidity">
@@ -72,25 +83,29 @@
 	<div class="pool-stat" ace-ref="rewards">
 		-
 	</div>
-	<div class="pool-expand">
-		🔽
-	</div>
+	<button class="pool-expand" ace-ref="btn-expand">🔽</button>
 </template>
 
-<template ace-name="farm-pool-interact" ace-extends="div">
+<template ace-name="farm-pool-item-options" ace-extends="div">
 	<div class="farm-interact-option">
-		<span class="interact-option-title">Pool shares</span>
-		<span ace-ref="deposit-txt" class="interact-option-text">-</span>
+		<div>
+			<span class="interact-option-title">Pool shares</span>
+			<span ace-ref="deposit-txt" class="interact-option-text">-</span>
+		</div>
 		<button ace-ref="deposit-btn">Deposit</button>
 	</div>
 	<div class="farm-interact-option">
-		<span class="interact-option-title">Share value</span>
-		<span ace-ref="withdraw-txt" class="interact-option-text">-</span>
+		<div>
+			<span class="interact-option-title">Share value</span>
+			<span ace-ref="withdraw-txt" class="interact-option-text">-</span>
+		</div>
 		<button ace-ref="withdraw-btn">Withdraw</button>
 	</div>
 	<div class="farm-interact-option">
-		<span class="interact-option-title">Rewards</span>
-		<span ace-ref="claim-txt" class="interact-option-text">-</span>
+		<div>
+			<span class="interact-option-title">Rewards</span>
+			<span ace-ref="claim-txt" class="interact-option-text">-</span>
+		</div>
 		<button ace-ref="claim-btn">Claim</button>
 	</div>
 </template>
@@ -123,10 +138,10 @@
 </template>
 
 <template ace-name="farm-pool-withdraw-dialog" ace-extends="dialog">
-	<h1>Deposit</h1>
+	<h1>Withdraw</h1>
 	<form ace-ref="form-deposit" class="trade-form">
 		<label class="trade-amount-input">
-			<input type="number" min="1" class="form-control" name="amount0">
+			<input type="number" min="1" class="form-control" name="amount">
 			<span class="trade-amount-denom" ace-ref="denom"></span>
 		</label>
 		<div class="trade-amount-balance">
@@ -137,6 +152,6 @@
 			You recieve: <span ace-ref="trade-result"></span>
 		</div>
 		
-		<button class="primary trade-execute">Deposit</button>
+		<button class="primary trade-execute">Withdraw</button>
 	</form>
 </template>

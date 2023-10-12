@@ -1,0 +1,96 @@
+.big-chests {
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	height: min-content;
+}
+.big-chests > * {
+	width: 200px;
+	height: 60px;
+	background-color: #FFFF00;
+	padding-top: 20px;
+	padding-bottom: 60px;
+	text-align: center;
+	border: 4px dashed #000000;
+	margin: 8px;
+}
+
+div[is="farm-pool-component"] .pool-list {
+	text-align: center;
+	display: grid;
+	grid-template-columns: min-content 72px auto auto auto auto auto auto auto min-content;
+}
+div[is="farm-pool-component"] .pool-list-headings {
+	display: contents; 
+}
+div[is="farm-pool-item"] {
+	border-radius: 20px;
+	border: 1px solid #000000;
+	/*
+		an alternative method that would work on versions of Chromium older than September 2023 would involve
+		display:contents and setting the top and bottom border of farm-pool-item's children, with the side borders
+		and radius only being defined on :first-child and :last-child. But that's fugly and this project doesn't call
+		for >90% compatibility on caniuse.com
+	*/
+	display: grid;
+	grid-template-columns: subgrid;
+	grid-column: 1 / 11;
+	margin: 8px;
+}
+div[is="farm-pool-item"].expanded {
+	border-bottom-left-radius: 0px;
+	border-bottom-right-radius: 0px;
+	margin-bottom: 0px;
+}
+div[is="farm-pool-item"].expanded .pool-expand {
+	transform: rotate(180deg);
+}
+.pool-stats-name, .pool-stat {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+div[is="farm-pool-item"] .pool-star, div[is="farm-pool-item"] .pool-expand {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
+	font-size: 24px;
+	margin: 8px;
+}
+div[is="farm-pool-item"] .pool-star {
+	filter: grayscale(100%);
+}
+.pool-stats-icons {
+	display: flex;
+	align-items: center;
+	justify-content: space-around;
+}
+.pool-stats-icons img {
+	width: 32px;
+}
+
+div[is="farm-pool-item-options"] {
+	grid-column: 1 / 11;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	border: 1px solid #000000;
+	border-bottom-left-radius: 20px;
+	border-bottom-right-radius: 20px;
+	margin: 8px;
+	margin-top: 0px;
+}
+.farm-interact-option {
+	margin: 8px;
+	display: flex;
+}
+.farm-interact-option > div {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+}
+.farm-interact-option > button {
+	margin: 8px;
+}
