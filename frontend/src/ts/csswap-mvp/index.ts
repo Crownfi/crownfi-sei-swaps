@@ -2,6 +2,7 @@ import { alert } from "./popups";
 import { setLoading } from "./loading";
 import "./wallet_chooser";
 import { FarmPoolComponentElement } from "./components/farm";
+import { SwapComponentElement } from "./components/swap";
 
 const q = document.querySelector.bind(document);
 const qa = document.querySelectorAll.bind(document);
@@ -13,8 +14,9 @@ export async function main() {
 	mainSwapButton.onclick = (ev) => {
 		ev.preventDefault();
 		mainContent.innerHTML = "";
-		alert("TODO", "This is currently unimplemented");
-		// appendSwapComponents(mainContent);
+		mainContent.appendChild(
+			new SwapComponentElement()
+		);
 	};
 	mainFarmButton.onclick = (ev) => {
 		ev.preventDefault();
@@ -22,7 +24,6 @@ export async function main() {
 		mainContent.appendChild(
 			new FarmPoolComponentElement()
 		);
-		// appendFarmComponents(mainContent);
 	}
 	setLoading(false);
 }

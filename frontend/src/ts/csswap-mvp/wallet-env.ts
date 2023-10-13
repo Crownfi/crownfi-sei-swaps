@@ -83,7 +83,7 @@ export async function setPreferredSeiProvider(providerId: MaybeSelectedProvider)
 	}else{
 		let oldProvider = preferredSeiProvider;
 		try{
-			setLoading(true);
+			setLoading(true, "Connecting to wallet...");
 			preferredSeiProvider = providerId;
 			const clientEnv = await ClientEnv.get();
 			window.dispatchEvent(

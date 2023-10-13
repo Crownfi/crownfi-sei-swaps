@@ -30,21 +30,7 @@ export class PopupModalRefs {
 export class PopupModalAutogen extends HTMLDialogElement {
 	readonly refs: PopupModalRefs;
 	static get observedAttributes() {
-		return ["heading", "message"];
-	}
-	private _attributeHeadingValue: string | null = null;
-	get heading(): string | null {
-		return this._attributeHeadingValue;
-	}
-	set heading(v: string | null) {
-		if (v == null) {
-			this.removeAttribute("heading");
-		}else{
-			this.setAttribute("heading", v);
-		}
-	}
-	protected onHeadingChanged(oldValue: string | null, newValue: string | null) {
-		// To be overridden by child class
+		return ["message", "heading"];
 	}
 	private _attributeMessageValue: string | null = null;
 	get message(): string | null {
@@ -60,15 +46,29 @@ export class PopupModalAutogen extends HTMLDialogElement {
 	protected onMessageChanged(oldValue: string | null, newValue: string | null) {
 		// To be overridden by child class
 	}
+	private _attributeHeadingValue: string | null = null;
+	get heading(): string | null {
+		return this._attributeHeadingValue;
+	}
+	set heading(v: string | null) {
+		if (v == null) {
+			this.removeAttribute("heading");
+		}else{
+			this.setAttribute("heading", v);
+		}
+	}
+	protected onHeadingChanged(oldValue: string | null, newValue: string | null) {
+		// To be overridden by child class
+	}
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
 		switch(name) {
-			case "heading":
-				this._attributeHeadingValue = newValue;
-				this.onHeadingChanged(oldValue, newValue);
-				break;
 			case "message":
 				this._attributeMessageValue = newValue;
 				this.onMessageChanged(oldValue, newValue);
+				break;
+			case "heading":
+				this._attributeHeadingValue = newValue;
+				this.onHeadingChanged(oldValue, newValue);
 				break;
 			default:
 				// Shouldn't happen
@@ -127,20 +127,20 @@ export class ErrorModalRefs {
 export class ErrorModalAutogen extends HTMLDialogElement {
 	readonly refs: ErrorModalRefs;
 	static get observedAttributes() {
-		return ["details", "message", "heading"];
+		return ["heading", "message", "details"];
 	}
-	private _attributeDetailsValue: string | null = null;
-	get details(): string | null {
-		return this._attributeDetailsValue;
+	private _attributeHeadingValue: string | null = null;
+	get heading(): string | null {
+		return this._attributeHeadingValue;
 	}
-	set details(v: string | null) {
+	set heading(v: string | null) {
 		if (v == null) {
-			this.removeAttribute("details");
+			this.removeAttribute("heading");
 		}else{
-			this.setAttribute("details", v);
+			this.setAttribute("heading", v);
 		}
 	}
-	protected onDetailsChanged(oldValue: string | null, newValue: string | null) {
+	protected onHeadingChanged(oldValue: string | null, newValue: string | null) {
 		// To be overridden by child class
 	}
 	private _attributeMessageValue: string | null = null;
@@ -157,33 +157,33 @@ export class ErrorModalAutogen extends HTMLDialogElement {
 	protected onMessageChanged(oldValue: string | null, newValue: string | null) {
 		// To be overridden by child class
 	}
-	private _attributeHeadingValue: string | null = null;
-	get heading(): string | null {
-		return this._attributeHeadingValue;
+	private _attributeDetailsValue: string | null = null;
+	get details(): string | null {
+		return this._attributeDetailsValue;
 	}
-	set heading(v: string | null) {
+	set details(v: string | null) {
 		if (v == null) {
-			this.removeAttribute("heading");
+			this.removeAttribute("details");
 		}else{
-			this.setAttribute("heading", v);
+			this.setAttribute("details", v);
 		}
 	}
-	protected onHeadingChanged(oldValue: string | null, newValue: string | null) {
+	protected onDetailsChanged(oldValue: string | null, newValue: string | null) {
 		// To be overridden by child class
 	}
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
 		switch(name) {
-			case "details":
-				this._attributeDetailsValue = newValue;
-				this.onDetailsChanged(oldValue, newValue);
+			case "heading":
+				this._attributeHeadingValue = newValue;
+				this.onHeadingChanged(oldValue, newValue);
 				break;
 			case "message":
 				this._attributeMessageValue = newValue;
 				this.onMessageChanged(oldValue, newValue);
 				break;
-			case "heading":
-				this._attributeHeadingValue = newValue;
-				this.onHeadingChanged(oldValue, newValue);
+			case "details":
+				this._attributeDetailsValue = newValue;
+				this.onDetailsChanged(oldValue, newValue);
 				break;
 			default:
 				// Shouldn't happen

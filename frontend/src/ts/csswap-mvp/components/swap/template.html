@@ -1,18 +1,34 @@
-<template ace-name="swap-component">
-	<link href="/main.css" rel="stylesheet" />
-	<div class="border">
-		<slot name="title"></slot>
-		<form ace-ref="trade-input">
-			<select ace-ref="dyn-select-pairs" name="pair", class="form-select"></select>
-			<div class="input-group mb-3">
-				<input type="number" min="1" class="form-control" name="amount">
-				<input type="hidden" class="form-control" name="denom">
-				<span ace-ref="input-denom" class="input-group-text">?</span>
-				<button ace-ref="reverse-btn" class="btn btn-outline-secondary" type="button">↔️</button>
-				<span ace-ref="output-amount" class="input-group-text">?</span>
-				<span ace-ref="output-denom" class="input-group-text">?</span>
+<template ace-name="swap-component" ace-extends="div">
+	Hail, noble traders and crypto enthusiasts! We bid thee welcome to the grand realm of Crownfi Swaps, where the art
+	of swapping digital treasures is elevated to a level befitting kings and queens.
+	<form class="swap-inner" ace-ref="form">
+		<div class="swap-coin">
+			<div class="left-right-text">
+				<span>From</span>
+				<span>Balance: <span ace-ref="in-balance">❓️</span></span>
 			</div>
-			<button ace-ref="swap-btn" class="btn btn-primary" type="button">Swap</button>
-		</form>
-	</div>
+			<div class="swap-coin-inputs">
+				<img class="swap-coin-icon" ace-ref="in-icon" src="/assets/placeholder.svg">
+				<!-- Defined at runtime -->
+				<select name="in-token"></select>
+				<button ace-ref="btn-in-max">Max</button>
+				<button ace-ref="btn-in-half">Half</button>
+				<input name="in-amount" type="number">
+			</div>
+		</div>
+		<img src="/assets/placeholder.svg">
+		<div class="swap-coin">
+			<div class="left-right-text">
+				<span>To</span>
+				<span>Balance: <span ace-ref="out-balance">❓️</span></span>
+			</div>
+			<div class="swap-coin-inputs">
+				<img class="swap-coin-icon" ace-ref="out-icon" src="/assets/placeholder.svg">
+				<!-- Defined at runtime -->
+				<select name="out-token"></select>
+				<input name="out-amount" type="number" readonly>
+			</div>
+		</div>
+		<button class="primary">Swap</button>
+	</form>
 </template>

@@ -9,6 +9,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	flex-direction: column;
 }
 @keyframes loading_spin {
 	0% {
@@ -23,9 +24,22 @@
 }
 #loading-cover > img {
 	height: 128px;
-	animation: loading_spin 2s cubic-bezier(.68,-0.55,.27,1.55) 0s infinite;
+	/* animation: loading_spin 2s cubic-bezier(.68,-0.55,.27,1.55) 0s infinite;*/
+	filter: drop-shadow(0px 0px 4px #ffffff);
 }
 #loading-cover > .emoji-as-icon {
 	font-size: 128px;
 	animation: loading_spin 2s cubic-bezier(.68,-0.55,.27,1.55) 0s infinite;
+}
+#loading-text {
+	font-size: 32px;
+	font-weight: bolder;
+	/* Facinating that everyone supports this with the same prefix */
+	-webkit-text-fill-color: black;
+	-webkit-text-stroke-width: 1px;
+	-webkit-text-stroke-color: white;
+	filter: drop-shadow(0px 0px 2px #ffffff);
+}
+#loading-text:empty {
+	display: none;
 }

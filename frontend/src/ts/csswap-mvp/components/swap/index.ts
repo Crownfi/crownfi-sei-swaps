@@ -1,4 +1,14 @@
-// import { SwapComponentAutogen } from "./autogen";
+import { SwapComponentAutogen } from "./_autogen";
+
+export class SwapComponentElement extends SwapComponentAutogen {
+	constructor() {
+		super();
+		// TODO
+	}
+}
+SwapComponentElement.registerElement();
+
+/*
 import { getAppChainConfig } from "../../chain_config";
 import { ClientEnv, getSelectedChain } from "../../wallet-env";
 import { QueryMsg as PairContractQueryMsg } from "../../contract_schema/pair/query";
@@ -10,6 +20,7 @@ import { BalanceResponse as Cw20BalanceResponse } from "../../contract_schema/to
 import { amountToAssetInfo, errorDialogIfRejected } from "../../util";
 import { Coin } from "@cosmjs/proto-signing";
 import { ExecuteInstruction } from "@cosmjs/cosmwasm-stargate";
+*/
 
 /*
 export class SwapComponentElement extends SwapComponentAutogen {

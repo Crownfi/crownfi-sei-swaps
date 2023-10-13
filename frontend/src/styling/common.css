@@ -5,3 +5,16 @@
 :root {
 	font-family: sans-serif;
 }
+.left-right-text {
+	display: flex;
+	justify-content: space-between;
+}
+.left-right-text > * {
+	text-align: center;
+}
+.left-right-text > *:first-child {
+	text-align: left;
+}
+.left-right-text > *:last-child {
+	text-align: right;
+}
