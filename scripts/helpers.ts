@@ -118,7 +118,9 @@ export class ClientEnv {
 		// @ts-ignore
 		if (accountBalance.amount == 0 && process.env.CHAIN_ID == "localsei") {
 			console.log("Deploying account isn't funded and this appears to be an ephemeral chian, time for funding!");
-			await fundFromLocalAdmin(account.address, "1000000000usei");
+			await fundFromLocalAdmin(account.address, "100000000000usei");
+			await fundFromLocalAdmin(account.address, "100000000000uusdc");
+			await fundFromLocalAdmin(account.address, "100000000000uatom");
 		}
 
 		return new ClientEnv({ account, chainId, client, gasPrice });

@@ -51,30 +51,6 @@ export class WalletButtonAutogen extends HTMLButtonElement {
 		customElements.define("wallet-button", this, { extends: "button"});
 	}
 }
-export class NetworkSelectorRefs {
-	private _element: HTMLElement;
-	constructor(element: HTMLElement) {
-		this._element = element;
-	}
-}
-export class NetworkSelectorAutogen extends HTMLSelectElement {
-	readonly refs: NetworkSelectorRefs;
-	constructor() {
-		super();
-		if (this.childElementCount == 0) {
-			this.appendChild(
-				(document.getElementById("ace-template-network-selector") as HTMLTemplateElement)
-					.content
-					.cloneNode(true)
-			);
-		}
-		this.setAttribute("is", "network-selector"); // allow for easy query selecting
-		this.refs = new NetworkSelectorRefs(this);
-	}
-	public static registerElement() {
-		customElements.define("network-selector", this, { extends: "select"});
-	}
-}
 export class WalletChoiceRefs {
 	private _element: HTMLElement;
 	constructor(element: HTMLElement) {
@@ -169,6 +145,13 @@ export class WalletModalRefs {
 			this._heading = this._element.querySelector("[ace-ref=\"heading\"]:not(:not(:scope)[is] *)")!;
 		}
 		return this._heading;
+	}
+	private _selectedNetwork?: HTMLSelectElement;
+	get selectedNetwork() {
+		if (this._selectedNetwork === undefined) {
+			this._selectedNetwork = this._element.querySelector("[ace-ref=\"selected-network\"]:not(:not(:scope)[is] *)")!;
+		}
+		return this._selectedNetwork;
 	}
 	private _choices?: HTMLDivElement;
 	get choices() {

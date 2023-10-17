@@ -1,5 +1,6 @@
 dialog[is="error-modal"] textarea {
 	font-family: monospace;
 	min-height: 38px; /* Makes some text half-visible to show that the details are scrollable */
-	min-width: min(270px, 80vw);
+	/*min-width: min(270px, 80vw);*/
+	width: calc(100% - 8px);
 }

@@ -5,6 +5,11 @@ export type SeiNetId = "localsei" | "sei-chain" | "atlantic-2" | "pacific-1"
 export type chainConfig = {
 	"rpcUrl": string,
 	"restUrl": string,
+	"tokenUserInfo": {[denom: string]: {
+		"symbol": string,
+		"decimals": number,
+		"icon": string
+	}},
 	"tokenCodeID": number,
 	"tokenAddress": string,
 	"pairCodeID": number,

@@ -30,21 +30,7 @@ export class PopupModalRefs {
 export class PopupModalAutogen extends HTMLDialogElement {
 	readonly refs: PopupModalRefs;
 	static get observedAttributes() {
-		return ["message", "heading"];
-	}
-	private _attributeMessageValue: string | null = null;
-	get message(): string | null {
-		return this._attributeMessageValue;
-	}
-	set message(v: string | null) {
-		if (v == null) {
-			this.removeAttribute("message");
-		}else{
-			this.setAttribute("message", v);
-		}
-	}
-	protected onMessageChanged(oldValue: string | null, newValue: string | null) {
-		// To be overridden by child class
+		return ["heading", "message"];
 	}
 	private _attributeHeadingValue: string | null = null;
 	get heading(): string | null {
@@ -60,15 +46,29 @@ export class PopupModalAutogen extends HTMLDialogElement {
 	protected onHeadingChanged(oldValue: string | null, newValue: string | null) {
 		// To be overridden by child class
 	}
+	private _attributeMessageValue: string | null = null;
+	get message(): string | null {
+		return this._attributeMessageValue;
+	}
+	set message(v: string | null) {
+		if (v == null) {
+			this.removeAttribute("message");
+		}else{
+			this.setAttribute("message", v);
+		}
+	}
+	protected onMessageChanged(oldValue: string | null, newValue: string | null) {
+		// To be overridden by child class
+	}
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
 		switch(name) {
-			case "message":
-				this._attributeMessageValue = newValue;
-				this.onMessageChanged(oldValue, newValue);
-				break;
 			case "heading":
 				this._attributeHeadingValue = newValue;
 				this.onHeadingChanged(oldValue, newValue);
+				break;
+			case "message":
+				this._attributeMessageValue = newValue;
+				this.onMessageChanged(oldValue, newValue);
 				break;
 			default:
 				// Shouldn't happen

@@ -1,4 +1,4 @@
-const q = document.querySelector.bind(document);
+import { q } from "./util";
 
 export function setLoading(isLoading: boolean, text: string = ""){
 	const loadCover = q("#loading-cover") as HTMLElement;

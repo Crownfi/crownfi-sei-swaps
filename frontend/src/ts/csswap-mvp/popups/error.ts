@@ -33,6 +33,11 @@ class PopupModalElement extends ErrorModalAutogen {
 	connectedCallback() {
 		this.showModal();
 		this.refs.errorDetails.scrollTo({top: 0, behavior: "instant"});
+		// No idea why I need this.
+		setTimeout(() => {
+			this.refs.errorDetails.scrollTo({top: 0, behavior: "instant"});
+		}, 1);
+		
 	}
 	disconnectedCallback() {
 		this.untilCloseCallback();
@@ -46,10 +51,25 @@ PopupModalElement.registerElement();
 export async function showError(error: any) {
 	const newModal = (() => {
 		if (error.name && error.message) {
+			if ((error.message as string).match(/\.go\:\d+$/m)) {
+				const lines = (error.message as string).split("\n")
+				return new PopupModalElement({
+					heading: "RPC Error",
+					message: lines[0] + " " + lines[lines.length - 1],
+					details: "--error details--\n" +
+						"name: " + error.name + "\n" +
+						"message: " + error.message + "\n" +
+						"stack: " + error.stack + "\n" +
+						"\n\n--properties--\n" + JSON.stringify(error, undefined, "    ")
+				});
+			}
 			return new PopupModalElement({
 				heading: error.name,
 				message: error.message,
-				details: "--error details--\n" + error.stack +
+				details: "--error details--\n" +
+					"name: " + error.name + "\n" +
+					"message: " + error.name + "\n" +
+					"stack: " + error.stack + "\n" +
 					"\n\n--properties--\n" + JSON.stringify(error, undefined, "    ")
 			});
 		}else{

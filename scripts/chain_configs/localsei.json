@@ -2,7 +2,19 @@
 	"generalInfo": {
 		"defaultAdmin": "sei19rl4cm2hmr8afy4kldpxz3fka4jguq0a3vute5",
 		"rpcUrl": "http://127.0.0.1:26657",
-		"restUrl": "http://127.0.0.1:1317"
+		"restUrl": "http://127.0.0.1:1317",
+		"tokenUserInfo": {
+			"usei": {
+				"symbol": "SEI",
+				"decimals": 6,
+				"icon": "/assets/coins/sei.svg"
+			},
+			"uusdc": {
+				"symbol": "USDC",
+				"decimals": 6,
+				"icon": "/assets/coins/usdc.svg"
+			}
+		}
 	},
 	"token": {
 		"admin": null,
@@ -80,7 +92,7 @@
 	"createPairs": {
 		"pairs": [
 			{
-				"identifier": "SEIUSDC",
+				"identifier": "SEI-USDC",
 				"assetInfos": [
 					{
 						"native_token": {

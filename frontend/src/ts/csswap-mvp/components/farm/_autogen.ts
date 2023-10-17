@@ -158,6 +158,33 @@ export class FarmPoolItemRefs {
 }
 export class FarmPoolItemAutogen extends HTMLDivElement {
 	readonly refs: FarmPoolItemRefs;
+	static get observedAttributes() {
+		return ["pool"];
+	}
+	private _attributePoolValue: string | null = null;
+	get pool(): string | null {
+		return this._attributePoolValue;
+	}
+	set pool(v: string | null) {
+		if (v == null) {
+			this.removeAttribute("pool");
+		}else{
+			this.setAttribute("pool", v);
+		}
+	}
+	protected onPoolChanged(oldValue: string | null, newValue: string | null) {
+		// To be overridden by child class
+	}
+	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
+		switch(name) {
+			case "pool":
+				this._attributePoolValue = newValue;
+				this.onPoolChanged(oldValue, newValue);
+				break;
+			default:
+				// Shouldn't happen
+		}
+	}
 	constructor() {
 		super();
 		if (this.childElementCount == 0) {
@@ -207,23 +234,36 @@ export class FarmPoolItemOptionsRefs {
 		}
 		return this._withdrawBtn;
 	}
-	private _claimTxt?: HTMLSpanElement;
-	get claimTxt() {
-		if (this._claimTxt === undefined) {
-			this._claimTxt = this._element.querySelector("[ace-ref=\"claim-txt\"]:not(:not(:scope)[is] *)")!;
-		}
-		return this._claimTxt;
-	}
-	private _claimBtn?: HTMLButtonElement;
-	get claimBtn() {
-		if (this._claimBtn === undefined) {
-			this._claimBtn = this._element.querySelector("[ace-ref=\"claim-btn\"]:not(:not(:scope)[is] *)")!;
-		}
-		return this._claimBtn;
-	}
 }
 export class FarmPoolItemOptionsAutogen extends HTMLDivElement {
 	readonly refs: FarmPoolItemOptionsRefs;
+	static get observedAttributes() {
+		return ["pool"];
+	}
+	private _attributePoolValue: string | null = null;
+	get pool(): string | null {
+		return this._attributePoolValue;
+	}
+	set pool(v: string | null) {
+		if (v == null) {
+			this.removeAttribute("pool");
+		}else{
+			this.setAttribute("pool", v);
+		}
+	}
+	protected onPoolChanged(oldValue: string | null, newValue: string | null) {
+		// To be overridden by child class
+	}
+	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
+		switch(name) {
+			case "pool":
+				this._attributePoolValue = newValue;
+				this.onPoolChanged(oldValue, newValue);
+				break;
+			default:
+				// Shouldn't happen
+		}
+	}
 	constructor() {
 		super();
 		if (this.childElementCount == 0) {
@@ -245,13 +285,13 @@ export class FarmPoolDepositDialogRefs {
 	constructor(element: HTMLElement) {
 		this._element = element;
 	}
-	private _formDeposit?: HTMLFormElementKnownControls<FarmPoolDepositDialogFormCollection1, FarmPoolDepositDialogFormValues1>;
-	get formDeposit() {
-		if (this._formDeposit === undefined) {
-			this._formDeposit = this._element.querySelector("[ace-ref=\"form-deposit\"]:not(:not(:scope)[is] *)")!;
-			this._formDeposit.values = normalizeFormValues.bind(this._formDeposit, this._formDeposit);
+	private _form?: HTMLFormElementKnownControls<FarmPoolDepositDialogFormCollection1, FarmPoolDepositDialogFormValues1>;
+	get form() {
+		if (this._form === undefined) {
+			this._form = this._element.querySelector("[ace-ref=\"form\"]:not(:not(:scope)[is] *)")!;
+			this._form.values = normalizeFormValues.bind(this._form, this._form);
 		}
-		return this._formDeposit;
+		return this._form;
 	}
 	private _denomToken0?: HTMLSpanElement;
 	get denomToken0() {
@@ -281,12 +321,26 @@ export class FarmPoolDepositDialogRefs {
 		}
 		return this._balanceToken1;
 	}
-	private _tradeResult?: HTMLSpanElement;
-	get tradeResult() {
-		if (this._tradeResult === undefined) {
-			this._tradeResult = this._element.querySelector("[ace-ref=\"trade-result\"]:not(:not(:scope)[is] *)")!;
+	private _denomResult?: HTMLSpanElement;
+	get denomResult() {
+		if (this._denomResult === undefined) {
+			this._denomResult = this._element.querySelector("[ace-ref=\"denom-result\"]:not(:not(:scope)[is] *)")!;
 		}
-		return this._tradeResult;
+		return this._denomResult;
+	}
+	private _balanceResult?: HTMLSpanElement;
+	get balanceResult() {
+		if (this._balanceResult === undefined) {
+			this._balanceResult = this._element.querySelector("[ace-ref=\"balance-result\"]:not(:not(:scope)[is] *)")!;
+		}
+		return this._balanceResult;
+	}
+	private _btnCancel?: HTMLButtonElement;
+	get btnCancel() {
+		if (this._btnCancel === undefined) {
+			this._btnCancel = this._element.querySelector("[ace-ref=\"btn-cancel\"]:not(:not(:scope)[is] *)")!;
+		}
+		return this._btnCancel;
 	}
 }
 export class FarmPoolDepositDialogAutogen extends HTMLDialogElement {
@@ -312,13 +366,13 @@ export class FarmPoolWithdrawDialogRefs {
 	constructor(element: HTMLElement) {
 		this._element = element;
 	}
-	private _formDeposit?: HTMLFormElementKnownControls<FarmPoolWithdrawDialogFormCollection2, FarmPoolWithdrawDialogFormValues2>;
-	get formDeposit() {
-		if (this._formDeposit === undefined) {
-			this._formDeposit = this._element.querySelector("[ace-ref=\"form-deposit\"]:not(:not(:scope)[is] *)")!;
-			this._formDeposit.values = normalizeFormValues.bind(this._formDeposit, this._formDeposit);
+	private _form?: HTMLFormElementKnownControls<FarmPoolWithdrawDialogFormCollection2, FarmPoolWithdrawDialogFormValues2>;
+	get form() {
+		if (this._form === undefined) {
+			this._form = this._element.querySelector("[ace-ref=\"form\"]:not(:not(:scope)[is] *)")!;
+			this._form.values = normalizeFormValues.bind(this._form, this._form);
 		}
-		return this._formDeposit;
+		return this._form;
 	}
 	private _denom?: HTMLSpanElement;
 	get denom() {
@@ -340,6 +394,13 @@ export class FarmPoolWithdrawDialogRefs {
 			this._tradeResult = this._element.querySelector("[ace-ref=\"trade-result\"]:not(:not(:scope)[is] *)")!;
 		}
 		return this._tradeResult;
+	}
+	private _btnCancel?: HTMLButtonElement;
+	get btnCancel() {
+		if (this._btnCancel === undefined) {
+			this._btnCancel = this._element.querySelector("[ace-ref=\"btn-cancel\"]:not(:not(:scope)[is] *)")!;
+		}
+		return this._btnCancel;
 	}
 }
 export class FarmPoolWithdrawDialogAutogen extends HTMLDialogElement {
@@ -365,17 +426,26 @@ export type FarmPoolDepositDialogFormCollection1 = HTMLFormControlsCollection & 
 	namedItem(name: "amount0"): HTMLInputElement;
 	"amount1": HTMLInputElement;
 	namedItem(name: "amount1"): HTMLInputElement;
+	"result": HTMLInputElement;
+	namedItem(name: "result"): HTMLInputElement;
+	"pool": HTMLInputElement;
+	namedItem(name: "pool"): HTMLInputElement;
 };
 export type FarmPoolDepositDialogFormValues1 = {
 	"amount0": number;
 	"amount1": number;
+	"result": number;
+	"pool": string;
 };
 export type FarmPoolWithdrawDialogFormCollection2 = HTMLFormControlsCollection & {
 	"amount": HTMLInputElement;
 	namedItem(name: "amount"): HTMLInputElement;
+	"pool": HTMLInputElement;
+	namedItem(name: "pool"): HTMLInputElement;
 };
 export type FarmPoolWithdrawDialogFormValues2 = {
 	"amount": number;
+	"pool": string;
 };
 interface HTMLFormElementKnownControls<C extends HTMLFormControlsCollection, V> extends HTMLFormElement {
 	readonly elements: C;

@@ -1,7 +1,7 @@
 import { askUserForWallet } from "./wallet_modal";
 import { WalletButtonAutogen } from "./_autogen";
 import { errorDialogIfRejected } from "../util";
-import { SeiWalletChangedEvent, setPreferredSeiProvider } from "../wallet-env";
+import { SeiWalletChangedEvent, getSelectedChain, setPreferredSeiProvider } from "../wallet-env";
 const qa = document.querySelectorAll.bind(document);
 
 export class WalletButtonElement extends WalletButtonAutogen {
@@ -11,7 +11,7 @@ export class WalletButtonElement extends WalletButtonAutogen {
 		this.addEventListener("click", (ev) => {
 			if (this.walletAddress) {
 				errorDialogIfRejected(async () => {
-					await setPreferredSeiProvider(null);
+					await setPreferredSeiProvider(getSelectedChain(), null);
 				})
 			}else{
 				errorDialogIfRejected(askUserForWallet)
@@ -21,9 +21,9 @@ export class WalletButtonElement extends WalletButtonAutogen {
 	}
 	protected onWalletAddressChanged(_: any, value: string | null): void {
 		if (value) {
-			this.innerText = value.substring(0, 4) + "…" + value.substring(value.length - 4);
+			this.innerText = value.substring(0, 4) + "…" + value.substring(value.length - 4) + " (" + getSelectedChain() + ")";
 		}else{
-			this.innerText = "Connect wallet"
+			this.innerText = "Connect wallet" + " (" + getSelectedChain() + ")"
 		}
 	}
 }

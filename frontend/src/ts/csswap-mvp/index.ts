@@ -3,9 +3,9 @@ import { setLoading } from "./loading";
 import "./wallet_chooser";
 import { FarmPoolComponentElement } from "./components/farm";
 import { SwapComponentElement } from "./components/swap";
-
-const q = document.querySelector.bind(document);
-const qa = document.querySelectorAll.bind(document);
+import { q } from "./util";
+import { MaybeSelectedProvider, getSelectedChain, setPreferredSeiProvider } from "./wallet-env";
+import { KNOWN_SEI_PROVIDER_INFO } from "@crownfi/sei-js-core";
 
 export async function main() {
 	const mainSwapButton = q("#swap-link") as HTMLAnchorElement;
@@ -24,6 +24,13 @@ export async function main() {
 		mainContent.appendChild(
 			new FarmPoolComponentElement()
 		);
+	}
+	let storedPreferredProvider = localStorage.getItem("preferred_sei_provider");
+	if (
+		storedPreferredProvider == "seed-wallet" ||
+		(storedPreferredProvider != null && storedPreferredProvider in KNOWN_SEI_PROVIDER_INFO)
+	) {
+		await setPreferredSeiProvider(getSelectedChain(), storedPreferredProvider as MaybeSelectedProvider);
 	}
 	setLoading(false);
 }

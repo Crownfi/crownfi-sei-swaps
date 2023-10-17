@@ -1,11 +1,6 @@
 <template ace-name="wallet-button" ace-extends="button" ace-attributes="wallet-address">
 	Connect wallet
 </template>
-<template ace-name="network-selector" ace-extends="select">
-	<option value="pacific-1">Mainnet</option>
-	<option value="atlantic-2">Testnet</option>
-	<option value="localsei">Localnet</option>
-</template>
 
 <template ace-name="wallet-choice" ace-extends="button" ace-attributes="text, icon">
 	<img src="/assets/lazy-load.svg" ace-ref="img">
@@ -14,6 +9,11 @@
 
 <template ace-name="wallet-modal" ace-extends="dialog">
 	<h1 ace-ref="heading">Choose wallet</h1>
+	<select ace-ref="selected-network">
+		<option value="pacific-1">Mainnet (pacific-1)</option>
+		<option value="atlantic-2">Testnet (atlantic-2)</option>
+		<option value="localsei">Localnet (localsei)</option>
+	</select>
 	<div ace-ref="choices" class="wallet-choices">
 
 	</div>

@@ -1,6 +1,7 @@
 import {SeiWallet, KNOWN_SEI_PROVIDER_INFO, KNOWN_SEI_PROVIDERS} from "@crownfi/sei-js-core";
 import { WalletModalAutogen, WalletChoiceAutogen } from "./_autogen";
-import { MaybeSelectedProvider, setPreferredSeiProvider } from "../wallet-env";
+import { MaybeSelectedProvider, getSelectedChain, setPreferredSeiProvider } from "../wallet-env";
+import { SeiNetId } from "../chain_config";
 
 export class WalletChoiceElement extends WalletChoiceAutogen {
 	constructor(content?: {text: string, icon: string, value: string}){
@@ -74,6 +75,8 @@ export class WalletModalElement extends WalletModalAutogen {
 		this.userWalletChoice = new Promise(resolve => {
 			this.userWalletChoiceCallback = resolve;
 		});
+
+		this.refs.selectedNetwork.value = getSelectedChain();
 	}
 	connectedCallback() {
 		this.showModal();
@@ -88,6 +91,5 @@ export async function askUserForWallet() {
 	const walletModal = new WalletModalElement();
 	document.body.appendChild(walletModal);
 	const userChoice = await walletModal.userWalletChoice;
-	console.log("GOT THE CHOICE!!", userChoice);
-	await setPreferredSeiProvider(await walletModal.userWalletChoice);
+	await setPreferredSeiProvider(walletModal.refs.selectedNetwork.value as SeiNetId, userChoice);
 }

@@ -2,6 +2,23 @@ export const CHAIN_CONFIG =
 {
   "rpcUrl": "https://rpc.atlantic-2.seinetwork.io/",
   "restUrl": "https://rest.atlantic-2.seinetwork.io/",
+  "tokenUserInfo": {
+    "usei": {
+      "symbol": "SEI",
+      "decimals": 6,
+      "icon": "/assets/coins/sei.svg"
+    },
+    "factory/sei1ug2zf426lyucgwr7nuneqr0cymc0fxx2qjkhd8/test-ln4z7ryp": {
+      "symbol": "TESTN1",
+      "decimals": 6,
+      "icon": "/assets/placeholder.svg"
+    },
+    "sei17k6s089jcg3d02ny2h3a3z675307a9j8dvrslsrku6rkawe5q73q9sygav": {
+      "symbol": "TESTC1",
+      "decimals": 6,
+      "icon": "/assets/placeholder.svg"
+    }
+  },
   "tokenCodeID": 2946,
   "tokenAddress": "sei18tp60dd293fjjz4hd8hsfldf06sx0cpamhf75fd6m9u2tuz0zt5szzqy5q",
   "pairCodeID": 2948,
@@ -23,4 +40,5 @@ export const CHAIN_CONFIG =
       "oracle": "sei1hpr32jj2vncuf0e2l4j9kelx78k2emsh695gnv8xgkdwzk4k024s35xnsz"
     }
   }
-};
+}
+;

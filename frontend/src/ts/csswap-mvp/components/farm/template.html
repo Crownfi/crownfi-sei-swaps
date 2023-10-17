@@ -16,9 +16,9 @@
 		</div>
 	</div>
 	<div class="pool-search-options">
-		<button class="primary" ace-ref="all-pool-btn">All Pools</button>
-		<button class="primary" ace-ref="my-pool-btn">My Pools</button>
-		<input type="search" ace-ref="pool-search-text">
+		<button class="primary" ace-ref="all-pool-btn" disabled>All Pools</button>
+		<button class="primary" ace-ref="my-pool-btn" disabled>My Pools</button>
+		<input type="search" ace-ref="pool-search-text" disabled>
 	</div>
 	<div ace-ref="pool-list" class="pool-list">
 		<div class="pool-list-headings">
@@ -56,11 +56,11 @@
 	</div>
 </template>
 
-<template ace-name="farm-pool-item" ace-extends="div">
-	<button class="pool-star" ace-ref="btn-star">⭐️</button>
+<template ace-name="farm-pool-item" ace-extends="div" ace-attributes="pool">
+	<button class="pool-star" ace-ref="btn-star" disabled>⭐️</button>
 	<div class="pool-stats-icons">
-		<img ace-ref="icon-token0" src="/assets/placeholder.svg">
-		<img ace-ref="icon-token1" src="/assets/placeholder.svg">
+		<img ace-ref="icon-token0" src="/assets/lazy-load.svg">
+		<img ace-ref="icon-token1" src="/assets/lazy-load.svg">
 	</div>
 	<div class="pool-stats-name" ace-ref="pool-name">
 		-
@@ -86,7 +86,7 @@
 	<button class="pool-expand" ace-ref="btn-expand">🔽</button>
 </template>
 
-<template ace-name="farm-pool-item-options" ace-extends="div">
+<template ace-name="farm-pool-item-options" ace-extends="div" ace-attributes="pool">
 	<div class="farm-interact-option">
 		<div>
 			<span class="interact-option-title">Pool shares</span>
@@ -101,6 +101,7 @@
 		</div>
 		<button ace-ref="withdraw-btn">Withdraw</button>
 	</div>
+	<!--
 	<div class="farm-interact-option">
 		<div>
 			<span class="interact-option-title">Rewards</span>
@@ -108,50 +109,61 @@
 		</div>
 		<button ace-ref="claim-btn">Claim</button>
 	</div>
+	-->
 </template>
 
 <template ace-name="farm-pool-deposit-dialog" ace-extends="dialog">
 	<h1>Deposit</h1>
-	<form ace-ref="form-deposit" class="trade-form">
+	<form ace-ref="form" class="dialog-trade-form" method="dialog">
+		<h2>Spending:</h2>
 		<label class="trade-amount-input">
-			<input type="number" min="1" class="form-control" name="amount0">
-			<span class="trade-amount-denom" ace-ref="denom-token0"></span>
+			<input type="number" min="1" name="amount0">
+			<span class="trade-amount-denom" ace-ref="denom-token0">Token0</span>
 		</label>
 		<div class="trade-amount-balance">
 			Current balance: <span ace-ref="balance-token0"></span>
 		</div>
-
 		<label class="trade-amount-input">
-			<input type="number" min="1" class="form-control" name="amount1">
-			<span class="trade-amount-denom" ace-ref="denom-token1"></span>
+			<input type="number" min="1" name="amount1">
+			<span class="trade-amount-denom" ace-ref="denom-token1">Token1</span>
 		</label>
 		<div class="trade-amount-balance">
 			Current balance: <span ace-ref="balance-token1"></span>
 		</div>
 
-		<div class="trade-result">
-			You recieve: <span ace-ref="trade-result"></span>
+		<h2>Recieving</h2>
+		<label class="trade-amount-input">
+			<input type="number" min="1" name="result">
+			<span class="trade-amount-denom" ace-ref="denom-result">Shares</span>
+		</label>
+		<div class="trade-amount-balance">
+			Current balance: <span ace-ref="balance-result"></span>
 		</div>
+		
 
+		<input type="hidden" name="pool">
 		<button class="primary trade-execute">Deposit</button>
+		<button ace-ref="btn-cancel">Cancel</button>
 	</form>
 </template>
 
 <template ace-name="farm-pool-withdraw-dialog" ace-extends="dialog">
 	<h1>Withdraw</h1>
-	<form ace-ref="form-deposit" class="trade-form">
+	<form ace-ref="form" class="dialog-trade-form" method="dialog">
 		<label class="trade-amount-input">
 			<input type="number" min="1" class="form-control" name="amount">
-			<span class="trade-amount-denom" ace-ref="denom"></span>
+			<span class="trade-amount-denom" ace-ref="denom">Shares</span>
 		</label>
 		<div class="trade-amount-balance">
 			Current shares: <span ace-ref="balance"></span>
 		</div>
 
 		<div class="trade-result">
-			You recieve: <span ace-ref="trade-result"></span>
+			You recieve: <span ace-ref="trade-result">-</span>
 		</div>
 		
+		<input type="hidden" name="pool">
 		<button class="primary trade-execute">Withdraw</button>
+		<button ace-ref="btn-cancel">Cancel</button>
 	</form>
 </template>

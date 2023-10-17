@@ -1,0 +1,13 @@
+.dialog-trade-form {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+.trade-amount-input {
+	display: flex;
+	align-items: center;
+}
+.trade-amount-input > input {
+	flex-grow: 1;
+	margin-right: 8px;
+}

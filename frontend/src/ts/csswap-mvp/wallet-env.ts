@@ -1,9 +1,12 @@
 import { CosmWasmClient, ExecuteInstruction, SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
-import { AccountData, Coin, DirectSecp256k1HdWallet, EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
+import { AccountData, Coin, EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
 import {KNOWN_SEI_PROVIDER_INFO, SeiWallet, getQueryClient, getSigningCosmWasmClient, getCosmWasmClient, KNOWN_SEI_PROVIDERS, KnownSeiProviders} from "@crownfi/sei-js-core";
 import { SeiNetId, getAppChainConfig } from "./chain_config";
 import { GasPrice, isDeliverTxFailure } from "@cosmjs/stargate";
 import { setLoading } from "./loading";
+import { QueryMsg as Cw20QueryMsg } from "../contract_schema/token/query";
+import { BalanceResponse as Cw20BalanceResponse } from "../contract_schema/token/responses/balance";
+import { errorDialogIfRejected } from "./util";
 
 function nativeDenomCompare(a: Coin, b: Coin) {
 	if (a.denom < b.denom) {
@@ -35,45 +38,20 @@ export function getSelectedChain(): SeiNetId {
 	return selectedChain;
 }
 
-export interface SeiChainChangedEvent extends CustomEvent<{chainId: SeiNetId}> {};
-export interface SeiWalletChangedEvent extends CustomEvent<{address: string, provider: MaybeSelectedProvider}> {};
-
-export function setSelectedChain(chainId: SeiNetId) {
-	if (chainId == selectedChain) {
-		return;
-	}
-	selectedChain = chainId;
-	window.dispatchEvent(
-		new CustomEvent("seiChainChanged", {
-			detail: {
-				chainId
-			},
-			cancelable: false
-		})
-	)
-}
+//export interface SeiChainChangedEvent extends CustomEvent<{chainId: SeiNetId}> {};
+export interface SeiWalletChangedEvent extends CustomEvent<{chainId: SeiNetId, address: string, provider: MaybeSelectedProvider}> {};
 
 export type MaybeSelectedProvider = KnownSeiProviders | "seed-wallet" | null;
 
-let preferredSeiProvider: MaybeSelectedProvider = (() => {
-	let storedPreferredProvider = localStorage.getItem("preferred_sei_provider");
-	if (storedPreferredProvider == null) {
-		return null;
-	}
-	if (storedPreferredProvider == "seed-wallet") {
-		return "seed-wallet";
-	}
-	if (storedPreferredProvider in KNOWN_SEI_PROVIDER_INFO) {
-		return storedPreferredProvider as KnownSeiProviders;
-	}
-	return null;
-})();
-export async function setPreferredSeiProvider(providerId: MaybeSelectedProvider) {
+let preferredSeiProvider: MaybeSelectedProvider = null;
+export async function setPreferredSeiProvider(chainId: SeiNetId, providerId: MaybeSelectedProvider) {
 	if (providerId == null) {
 		preferredSeiProvider = providerId
+		selectedChain = chainId;
 		window.dispatchEvent(
 			new CustomEvent("seiWalletChanged", {
 				detail: {
+					chainId,
 					address: "",
 					provider: providerId
 				},
@@ -82,13 +60,16 @@ export async function setPreferredSeiProvider(providerId: MaybeSelectedProvider)
 		);
 	}else{
 		let oldProvider = preferredSeiProvider;
+		let oldChain = selectedChain;
 		try{
 			setLoading(true, "Connecting to wallet...");
 			preferredSeiProvider = providerId;
+			selectedChain = chainId;
 			const clientEnv = await ClientEnv.get();
 			window.dispatchEvent(
 				new CustomEvent("seiWalletChanged", {
 					detail: {
+						chainId,
 						address: clientEnv.getAccount().address, // may throw
 						provider: providerId
 					},
@@ -97,6 +78,7 @@ export async function setPreferredSeiProvider(providerId: MaybeSelectedProvider)
 			);
 		}catch(ex) {
 			preferredSeiProvider = oldProvider;
+			selectedChain = oldChain;
 			throw ex;
 		}finally{
 			setLoading(false);
@@ -228,7 +210,25 @@ export class ClientEnv {
 	async queryContract(contractAddress: string, query: object): Promise<any> {
 		return await this.wasmClient.queryContractSmart(contractAddress, query)
 	}
-	async query() {
-		//return await this.client.
+	async getBalance(unifiedDenom: string, accountAddress: string = this.getAccount().address): Promise<bigint> {
+		if (unifiedDenom.startsWith("cw20/")) {
+			const {balance} = await this.queryContract(
+				unifiedDenom.substring("cw20/".length),
+				{
+					balance: {address: accountAddress}
+				} satisfies Cw20QueryMsg
+			) as Cw20BalanceResponse;
+			return BigInt(balance);
+		}else{
+			const {
+				balance: {
+					amount: balance
+				}
+			} = await this.queryClient.cosmos.bank.v1beta1.balance({
+				address: accountAddress,
+				denom: unifiedDenom
+			});
+			return BigInt(balance);
+		}
 	}
 }

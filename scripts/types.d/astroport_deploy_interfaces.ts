@@ -1,6 +1,7 @@
 export interface TokenUserInfo {
     decimals: number,
-    symbol: string
+    symbol: string,
+    icon: string
 }
 
 export interface GeneralInfo {

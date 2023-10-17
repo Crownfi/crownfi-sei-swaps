@@ -9,5 +9,9 @@ $projectPath/scripts/build_schema.sh
 $projectPath/scripts/build_optimizer.sh
 $projectPath/scripts/check_artifacts_size.sh
 
+# Using a different version of the compiler may change the build output
+rustc --version > $projectPath/artifacts/rustc_version.txt
+
+
 #cd "$projectPath/scripts" && node ts-node deploy_core.ts
 #cd "$projectPath/scripts" && node ts-node deploy_pools.ts

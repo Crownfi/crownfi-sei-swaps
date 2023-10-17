@@ -3,8 +3,10 @@ div[is="swap-component"] {
 	max-width: 520px;
 	padding: 4px;
 	border: 4px dashed #000000;
+	background-color: #ffff00;
 }
 .swap-inner {
+	background-color: #ffffff;
 	margin: 2px;
 	padding: 36px 28px;
 	border-radius: 20px;
