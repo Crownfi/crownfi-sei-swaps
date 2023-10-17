@@ -1,5 +1,5 @@
 import { getAppChainConfig } from "./chain_config";
-import { Asset } from "./contract_schema/pair/query";
+import { Asset, AssetInfo } from "./contract_schema/pair/query";
 import { showError } from "./popups/error";
 import { getSelectedChain } from "./wallet-env";
 
@@ -87,16 +87,75 @@ export function contractAssetToAmountWithDenom(asset: Asset): [bigint, string] {
 export function amountWithDenomToContractAsset(amount: bigint | string | number, unifiedDenom: string): Asset {
 	return {
 		amount: amount.toString(),
-		info: (() => {
-			if (unifiedDenom.startsWith("cw20/")) {
-				return {
-					token: {contract_addr: unifiedDenom.substring("cw20/".length)}
-				}
-			}else{
-				return {
-					native_token: {denom: unifiedDenom}
-				}
-			}
-		})()
+		info: denomToContractAssetInfo(unifiedDenom)
 	}
+}
+export function denomToContractAssetInfo(unifiedDenom: string): AssetInfo {
+	if (unifiedDenom.startsWith("cw20/")) {
+		return {
+			token: {contract_addr: unifiedDenom.substring("cw20/".length)}
+		}
+	}else{
+		return {
+			native_token: {denom: unifiedDenom}
+		}
+	}
+}
+
+function getDirectPairs(): Map<string, string[]> {
+	const result: Map<string, string[]> = new Map();
+	const appConfig = getAppChainConfig(getSelectedChain());
+	for (const k in appConfig.pairs) {
+		const v = appConfig.pairs[k];
+		if (result.has(v.token0)) {
+			result.get(v.token0)?.push(v.token1);
+		}else{
+			result.set(v.token0, [v.token1])
+		}
+		if (result.has(v.token1)) {
+			result.get(v.token1)?.push(v.token0);
+		}else{
+			result.set(v.token1, [v.token0])
+		}
+	}
+	return result;
+}
+
+export function resolveRoute(
+	unifiedDenomFrom: string,
+	unifiedDenomTo: string,
+	_directPairs: Map<string, string[]> = getDirectPairs(),
+	_alreadySeenFroms: Set<string> = new Set()
+): [string, string][] | null {
+	// Ideally we'd use some sort of node pathfinding algorithm with fees + gas being used as the distance weights...
+	// But this is MVP so we're targetting lowest hops with brute force, baby!
+	_alreadySeenFroms.add(unifiedDenomFrom);
+
+	const directTos = _directPairs.get(unifiedDenomFrom);
+	if (directTos == null) {
+		return null;
+	}
+	let subResult: [string, string][] | null = null;
+	for (let i = 0; i < directTos.length; i += 1) {
+		const directTo = directTos[i];
+		if (directTo == unifiedDenomTo) {
+			// Can't get smaller than 0
+			return [[unifiedDenomFrom, unifiedDenomTo]];
+		}
+		// EXPONENTIAL TIME COMPLEXITY LET'S GOOOOOOO
+		const potentialSubResult = resolveRoute(directTo, unifiedDenomTo, _directPairs, _alreadySeenFroms);
+		if (
+			potentialSubResult != null &&
+			(subResult == null || subResult.length > potentialSubResult.length)
+		) {
+			subResult = potentialSubResult
+		}
+	}
+	if (subResult == null) {
+		return null;
+	}
+	return [
+		[unifiedDenomFrom, subResult[0][0]],
+		...subResult
+	];
 }

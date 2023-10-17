@@ -1,12 +1,286 @@
+import { SeiNetId, getAppChainConfig } from "../../chain_config";
+import { UIAmount, bigIntToStringDecimal, denomToContractAssetInfo, errorDialogIfRejected, qa, resolveRoute, stringDecimalToBigInt } from "../../util";
+import { ClientEnv, SeiWalletChangedEvent, getSelectedChain } from "../../wallet-env";
 import { SwapComponentAutogen } from "./_autogen";
 
+import { ExecuteMsg as RouterContractExecuteMsg } from "../../contract_schema/router/execute";
+import { Cw20HookMsg as RouterContractCw20HookMsg } from "../../contract_schema/router/cw20_hook_msg";
+import { QueryMsg as RouterContractQueryMsg } from "../../contract_schema/router/query";
+import { SimulateSwapOperationsResponse } from "../../contract_schema/router/responses/simulate_swap_operations";
+import { ExecuteMsg as CW20ExecuteMsg } from "../../contract_schema/token/execute";
+import { setLoading } from "../../loading";
+import { alert } from "../../popups";
+
+
 export class SwapComponentElement extends SwapComponentAutogen {
+	referencedChain: SeiNetId | null = null;
+	private currentRoute: [string, string][] = [];
 	constructor() {
 		super();
-		// TODO
+		this.refs.form.elements["in-token"].addEventListener("input", (ev) => {
+			const appConfig = getAppChainConfig(getSelectedChain());
+			const tokenDenom = this.refs.form.elements["in-token"].value;
+			this.refs.inIcon.src = "/assets/lazy-load.svg"
+			setTimeout(() => {
+				this.refs.inIcon.src = appConfig.tokenUserInfo[tokenDenom]?.icon || "/assets/placeholder.svg";
+			}, 1);
+
+			const {decimals} = appConfig.tokenUserInfo[tokenDenom] || {
+				decimals: 0
+			}
+			this.refs.form.elements["in-amount"].step = (10 ** -decimals).toString();
+			this.refs.form.elements["in-amount"].step = (10 ** -decimals).toString();
+
+			this.refreshRoute();
+			this.refreshBalances();
+		});
+		this.refs.form.elements["out-token"].addEventListener("input", (ev) => {
+			const appConfig = getAppChainConfig(getSelectedChain());
+			const tokenDenom = this.refs.form.elements["out-token"].value;
+			this.refs.outIcon.src = "/assets/lazy-load.svg"
+			setTimeout(() => {
+				this.refs.outIcon.src = appConfig.tokenUserInfo[tokenDenom]?.icon || "/assets/placeholder.svg";
+			}, 1);
+
+			const {decimals} = appConfig.tokenUserInfo[tokenDenom] || {
+				decimals: 0
+			}
+			this.refs.form.elements["out-amount"].step = (10 ** -decimals).toString();
+			this.refs.form.elements["out-amount"].step = (10 ** -decimals).toString();
+
+			this.refreshRoute();
+			this.refreshBalances();
+		});
+		this.refs.form.elements["in-amount"].addEventListener("input", (ev) => {
+			this.refreshTradeOutput();
+		});
+		this.refs.form.addEventListener("submit", (ev) => {
+			ev.preventDefault();
+			const form = this.refs.form;
+			const appConfig = getAppChainConfig(getSelectedChain());
+			const inDenom = this.refs.form.elements["in-token"].value;
+			const outDenom = this.refs.form.elements["out-token"].value;
+			if (inDenom == outDenom) {
+				alert("Nothing to do", "The \"from\" and \"to\" coins are the same.");
+				return;
+			}
+			const inAmount = stringDecimalToBigInt(
+				this.refs.form.elements["in-amount"].value,
+				appConfig.tokenUserInfo[inDenom]?.decimals || 0
+			);
+			
+			errorDialogIfRejected(async () => {
+				try{
+					setLoading(true, "Waiting for transaction confirmation...");
+					const client = await ClientEnv.get();
+					const operations = this.currentRoute.map(v => {
+						return {
+							astro_swap: {
+								offer_asset_info: denomToContractAssetInfo(v[0]),
+								ask_asset_info: denomToContractAssetInfo(v[1])
+							}
+						}
+					});
+					if (inDenom.startsWith("cw20/")) {
+						const {transactionHash} = await client.executeContract(
+							inDenom.substring("cw20/".length),
+							{
+								send: {
+									amount: inAmount + "",
+									contract: appConfig.routerAddress,
+									// this is pretty fugly
+									msg: Buffer.from(
+											JSON.stringify(
+											{
+												execute_swap_operations: {
+													operations
+												}
+											} satisfies RouterContractCw20HookMsg
+										)
+									).toString("base64")
+								}
+							} satisfies CW20ExecuteMsg
+						);
+						alert("Transaction confirmed", "Transaction ID:\n" + transactionHash);
+					}else{
+						const {transactionHash} = await client.executeContract(
+							appConfig.routerAddress,
+							{
+								execute_swap_operations: {
+									operations
+								}
+							} satisfies RouterContractExecuteMsg,
+							[
+								{
+									amount: inAmount + "",
+									denom: inDenom
+								}
+							]
+						);
+						alert("Transaction confirmed", "Transaction ID:\n" + transactionHash);
+					}
+					/*
+					const {transactionHash} = await client.executeContract(
+						appConfig.routerAddress,
+						{
+							send: {
+								amount: form.elements.amount.value + "",
+								contract: poolInfo.pool,
+								// this is pretty fugly
+								msg: Buffer.from(
+										JSON.stringify(
+										{
+											withdraw_liquidity: {}
+										} satisfies PairContractCw20HookMsg
+									)
+								).toString("base64")
+							}
+						} satisfies CW20ExecuteMsg
+					);
+					*/
+					
+					//alert("Transaction confirmed", "Transaction ID:\n" + transactionHash);
+				}finally{
+					setLoading(false);
+				}
+			});
+		});
+		this.rebuildPoolList();
+	}
+	refreshRoute() {
+		const inSelector = this.refs.form.elements["in-token"];
+		const outSelector = this.refs.form.elements["out-token"];
+		if(inSelector.value == outSelector.value) {
+			console.info("SwapComponentElement: same token selected");
+			this.currentRoute = [];
+			return;
+		}
+		const route = resolveRoute(inSelector.value, outSelector.value);
+		if (route == null) {
+			throw new Error("couldn't resolve route!");
+		}
+		console.info("SwapComponentElement: resolved route:", route);
+		this.currentRoute = route;
+	}
+	rebuildPoolList(dontIfChainUnchanged: boolean = false) {
+		const selectedChain = getSelectedChain();
+		if (dontIfChainUnchanged && this.referencedChain == selectedChain) {
+			return;
+		}
+		this.refs.form.elements["in-token"].innerHTML = "";
+		this.refs.form.elements["out-token"].innerHTML = "";
+		const appConfig = getAppChainConfig(selectedChain);
+		const uniqueTokens: Set<string> = new Set();
+		for (const k in appConfig.pairs) {
+			const v = appConfig.pairs[k];
+			uniqueTokens.add(v.token0);
+			uniqueTokens.add(v.token1);
+		}
+		for (const tokenDenom of uniqueTokens) {
+			const optionElem = document.createElement("option");
+			optionElem.innerText = appConfig.tokenUserInfo[tokenDenom]?.symbol || tokenDenom;
+			optionElem.value = tokenDenom;
+			this.refs.form.elements["in-token"].appendChild(optionElem.cloneNode(true));
+			this.refs.form.elements["out-token"].appendChild(optionElem);
+		}
+		// quick hack to load balances and icons.
+		this.refs.form.elements["in-token"].dispatchEvent(new InputEvent("input"));
+		this.refs.form.elements["out-token"].dispatchEvent(new InputEvent("input"));
+	}
+	refreshBalances() {
+		this.refs.inBalance.innerText = "⏳️";
+		this.refs.outBalance.innerText = "⏳️";
+		errorDialogIfRejected(async () => {
+			try{
+				// const appConfig = getAppChainConfig(getSelectedChain());
+				const inToken = this.refs.form.elements["in-token"].value;
+				const outToken = this.refs.form.elements["out-token"].value;
+				const client = await ClientEnv.get();
+				if (client.account == null) {
+					this.refs.inBalance.innerText = "[Not connected]";
+					this.refs.outBalance.innerText = "[Not connected]";
+					return;
+				}
+				this.refs.inBalance.innerText = UIAmount(
+					await client.getBalance(inToken),
+					inToken
+				);
+				this.refs.outBalance.innerText = UIAmount(
+					await client.getBalance(outToken),
+					outToken
+				);
+			}catch(ex: any){
+				if (this.refs.inBalance.innerText == "⏳️") {
+					this.refs.inBalance.innerText = "[Error]"
+				}
+				if (this.refs.outBalance.innerText == "⏳️") {
+					this.refs.outBalance.innerText = "[Error]"
+				}
+				throw ex;
+			}
+		});
+	}
+
+	private _shouldRefreshTradeOutput: boolean = false;
+	private _refreshingTradeOutput: boolean = false;
+	refreshTradeOutput() {
+		this._shouldRefreshTradeOutput = true;
+		if (!this._refreshingTradeOutput) {
+			this._refreshingTradeOutput = true;
+			(async () => {
+				do {
+					this._shouldRefreshTradeOutput = false;
+					await new Promise(resolve => setTimeout(resolve, 500));
+					const appConfig = getAppChainConfig(getSelectedChain());
+					const client = await ClientEnv.get();
+
+					const inDenom = this.refs.form.elements["in-token"].value;
+					const outDenom = this.refs.form.elements["out-token"].value;
+
+
+					const tokenInAmountElem = this.refs.form.elements["in-amount"];
+					const tokenOutAmountElem = this.refs.form.elements["out-amount"];
+
+					const {amount: swapResultAmount} = await client.queryContract(
+						appConfig.routerAddress,
+						{
+							simulate_swap_operations: {
+								offer_amount: stringDecimalToBigInt(
+									tokenInAmountElem.value,
+									appConfig.tokenUserInfo[inDenom]?.decimals || 0
+								) + "",
+								operations: this.currentRoute.map(v => {
+									return {
+										astro_swap: {
+											offer_asset_info: denomToContractAssetInfo(v[0]),
+											ask_asset_info: denomToContractAssetInfo(v[1])
+										}
+									}
+								})
+							}
+						} satisfies RouterContractQueryMsg
+					) as SimulateSwapOperationsResponse;
+					tokenOutAmountElem.value = bigIntToStringDecimal(
+						BigInt(swapResultAmount),
+						appConfig.tokenUserInfo[outDenom]?.decimals || 0,
+						true
+					);
+				}while(this._shouldRefreshTradeOutput);
+			})().catch(console.error).finally(() => {
+				this._refreshingTradeOutput = false;
+			});
+		}
 	}
 }
 SwapComponentElement.registerElement();
+
+window.addEventListener("seiWalletChanged", ((ev: SeiWalletChangedEvent) => {
+	console.log("seiWalletChanged event detail:", ev.detail);
+	(qa(`div[is="swap-component"]`) as NodeListOf<SwapComponentElement>).forEach(elem => {
+		elem.rebuildPoolList(true);
+	});
+}) as (ev: Event) => void);
+
 
 /*
 import { getAppChainConfig } from "../../chain_config";
