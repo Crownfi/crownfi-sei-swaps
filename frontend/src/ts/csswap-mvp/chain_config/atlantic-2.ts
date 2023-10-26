@@ -13,7 +13,7 @@ export const CHAIN_CONFIG =
       "decimals": 6,
       "icon": "/assets/placeholder.svg"
     },
-    "sei17k6s089jcg3d02ny2h3a3z675307a9j8dvrslsrku6rkawe5q73q9sygav": {
+    "cw20/sei17k6s089jcg3d02ny2h3a3z675307a9j8dvrslsrku6rkawe5q73q9sygav": {
       "symbol": "TESTC1",
       "decimals": 6,
       "icon": "/assets/placeholder.svg"
