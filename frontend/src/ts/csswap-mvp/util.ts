@@ -127,6 +127,9 @@ export function resolveRoute(
 	_directPairs: Map<string, string[]> = getDirectPairs(),
 	_alreadySeenFroms: Set<string> = new Set()
 ): [string, string][] | null {
+	if (_alreadySeenFroms.has(unifiedDenomFrom)) {
+		return null; // We've already been here.
+	}
 	// Ideally we'd use some sort of node pathfinding algorithm with fees + gas being used as the distance weights...
 	// But this is MVP so we're targetting lowest hops with brute force, baby!
 	_alreadySeenFroms.add(unifiedDenomFrom);
