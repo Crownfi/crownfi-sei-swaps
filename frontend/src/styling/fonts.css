@@ -1,0 +1,9 @@
+@font-face {
+	font-family: "Montserrat-Regular";
+	src: local("Montserrat-Regular"), url("./assets/fonts/montserrat/static/Montserrat-Regular.ttf");
+}
+
+@font-face {
+	font-family: "Carattere-Regular";
+	src: local("Carattere-Regular"), url("./assets/fonts/carattere/Carattere-Regular.ttf");
+}

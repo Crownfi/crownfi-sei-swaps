@@ -1,16 +1,16 @@
 div[is="swap-component"] {
-	margin: 4px auto;
+	margin: 24px auto;
 	max-width: 520px;
-	padding: 4px;
-	border: 4px dashed #000000;
-	background-color: #ffff00;
+	padding: 8px;
 }
 .swap-inner {
-	background-color: #ffffff;
+	border-radius: 20px;
+	border: 1px solid #8275BF;
+	background: linear-gradient(90deg, #DFAE61 0.36%, #EAC27C 33.47%, #F2CF8D 66.57%, #DFAE61 99.68%), linear-gradient(0deg, #BBA35E 0%, #BBA35E 100%);
+	box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25); 
+	
 	margin: 2px;
 	padding: 36px 28px;
-	border-radius: 20px;
-	border: 1px solid #000000;
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
@@ -24,8 +24,10 @@ div[is="swap-component"] {
 }
 .swap-coin {
 	border-radius: 12px;
-	border: 1px solid #000000;
-	/* top, right, bottom, left */
+	border: 1px solid #453884;
+	background: #FFEBB0;
+	box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+
 	padding: 12px 24px 28px 24px;
 	margin: 12px 0px;
 }
@@ -44,5 +46,35 @@ div[is="swap-component"] {
 	align-self: center;
 }
 .swap-coin-inputs > input {
+	/* For some reason the auto width is too wide and causes overflow */
+	width: 80px;
+	/* this makes the number input appropriately wide anyway */
 	flex-grow: 1;
+	text-align: right;
+}
+
+.swap-coin-inputs button {
+	padding: 4px 6px;
+	border-radius: 4px;
+	opacity: 0.4;
+	background: rgba(47, 16, 119, 0.13);
+	filter: none;
+
+	color: #2F1077;
+	font-size: 12px;
+	font-style: normal;
+	font-weight: 700;
+	border: none;
+}
+.swap-coin-inputs button:disabled {
+	opacity: 0.4;
+	filter: none
+}
+
+div[is="swap-component"] .seal {
+	width: 114px;
+	margin: 16px 0px 4px 0px;
+	position: relative;
+	left: calc(100% - 116px);
+	display: block;
 }

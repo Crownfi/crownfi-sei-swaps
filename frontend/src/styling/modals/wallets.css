@@ -1,6 +1,12 @@
+dialog[is="wallet-modal"] {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
 .wallet-choices {
 	display: flex;
 	flex-direction: column;
+	align-self: stretch;
 }
 .wallet-choices button[is="wallet-choice"] {
 	flex-grow: 1;
@@ -10,11 +16,13 @@ button[is="wallet-choice"] {
 	margin: 8px;
 	justify-content: left;
 	align-items: center;
+	padding-left: 8px;
 }
 button[is="wallet-choice"] img {
 	width: 32px;
 	margin: 2px;
 	margin-right: 8px;
+	border-radius: 8px;
 }
 button[is="wallet-choice"] span {
 	font-size: 12px;
@@ -24,4 +32,8 @@ button[is="wallet-choice"] span {
 button[is="wallet-choice"] span::first-line {
 	font-size: 18px;
 	font-style: normal;
+}
+
+dialog[is="wallet-modal"] > button[ace-ref="cancel-button"] {
+	margin-top: 12px;
 }

@@ -25,7 +25,8 @@ div[is="farm-pool-component"] .pool-list-headings {
 }
 div[is="farm-pool-item"] {
 	border-radius: 20px;
-	border: 1px solid #000000;
+	background: #FFEBB0;
+	box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25); 
 	/*
 		an alternative method that would work on versions of Chromium older than September 2023 would involve
 		display:contents and setting the top and bottom border of farm-pool-item's children, with the side borders
@@ -75,7 +76,8 @@ div[is="farm-pool-item-options"] {
 	display: flex;
 	justify-content: space-around;
 	align-items: center;
-	border: 1px solid #000000;
+	background: #FFEBB0;
+	box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25); 
 	border-bottom-left-radius: 20px;
 	border-bottom-right-radius: 20px;
 	margin: 8px;
