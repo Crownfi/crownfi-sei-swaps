@@ -35,9 +35,25 @@
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	font-family: "Carattere-Regular";
+	font-size: 26px;
+	font-weight: 500;
+	text-decoration: none;
+	color: #8A591C;
 }
-.header-links > a > img {
+.header-links > a.highlighted {
+	color: #333399;
+}
+.header-links > a > img, .header-links > a > svg {
 	height: 64px;
+}
+.header-links > a > svg path {
+	fill: #8A591C;
+	stroke: #8A591C;
+}
+.header-links > a.highlighted > svg path {
+	fill: #333399;
+	stroke: #333399;
 }
 
 .user-options {

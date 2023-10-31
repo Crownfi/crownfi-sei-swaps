@@ -12,9 +12,11 @@ input:disabled {
 	filter: contrast(0.5);
 }
 input:read-only {
-	border-left: none;
-	border-right: none;
-	border-top: none;
+	/* even if the colour is practically invisible, I still need the border defined otherwise it won't align with r/w
+	inputs. */
+	border-left: solid #45388401 1px;
+	border-right: solid #45388401 1px;
+	border-top: solid #45388401 1px;
 	background: none;
 }
 input[type="text"], input[type="number"], select, option {
