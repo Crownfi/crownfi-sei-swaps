@@ -10,7 +10,7 @@ class PopupModalElement extends ErrorModalAutogen {
 			// content will be undefined if the element was already added to the DOM before it was registered
 			this.heading = content.heading;
 			this.message = content.message;
-			this.details = content.details;
+			this.refs.errorDetails.value = content.details + "";
 		}
 		this.untilCloseCallback = () => {}; // Gotta satisfy TS until 2 lines down
 		this.untilClosed = new Promise(resolve => {
@@ -33,9 +33,11 @@ class PopupModalElement extends ErrorModalAutogen {
 	connectedCallback() {
 		this.showModal();
 		this.refs.errorDetails.scrollTo({top: 0, behavior: "instant"});
+		this.refs.errorDetails.scrollTop = 0;
 		// No idea why I need this.
 		setTimeout(() => {
 			this.refs.errorDetails.scrollTo({top: 0, behavior: "instant"});
+			this.refs.errorDetails.scrollTop = 0;
 		}, 1);
 		
 	}
@@ -58,8 +60,8 @@ export async function showError(error: any) {
 					message: lines[0] + " " + lines[lines.length - 1],
 					details: "--error details--\n" +
 						"name: " + error.name + "\n" +
-						"message: " + error.message + "\n" +
-						"stack: " + error.stack + "\n" +
+						"message: " + (error.message + "").replace(/\t/g, "    ") + "\n" +
+						"stack: " + (error.stack + "").replace(/\t/g, "    ") + "\n" +
 						"\n\n--properties--\n" + JSON.stringify(error, undefined, "    ")
 				});
 			}
@@ -68,8 +70,8 @@ export async function showError(error: any) {
 				message: error.message,
 				details: "--error details--\n" +
 					"name: " + error.name + "\n" +
-					"message: " + error.name + "\n" +
-					"stack: " + error.stack + "\n" +
+					"message: " + (error.message + "").replace(/\t/g, "    ") + "\n" +
+					"stack: " + (error.stack + "").replace(/\t/g, "    ") + "\n" +
 					"\n\n--properties--\n" + JSON.stringify(error, undefined, "    ")
 			});
 		}else{

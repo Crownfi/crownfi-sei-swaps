@@ -2,6 +2,7 @@ body {
 	margin: 0;
 	background-position: bottom left;
 	background-size: cover;
-	background-image: url("/assets/backgrounds/originals/map-background.png");
+	background-image: url("/assets/backgrounds/map-background-cropped.png");
+	background-color: #caa77f;
 	min-height: 100vh;
 }

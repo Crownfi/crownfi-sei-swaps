@@ -4,15 +4,15 @@
 		<!-- Padding bottom 50% ? -->
 		<div>
 			CrownFi TVL:<br>
-			<span ace-ref="big-chest-tvl">-</span>
+			<span ace-ref="big-chest-tvl">// TODO</span>
 		</div>
 		<div>
 			Total Volume Traded:<br>
-			<span ace-ref="big-chest-total-traded">-</span>
+			<span ace-ref="big-chest-total-traded">// TODO</span>
 		</div>
 		<div>
 			24H Volume:<br>
-			<span ace-ref="big-chest-volume-24h">-</span>
+			<span ace-ref="big-chest-volume-24h">// TODO</span>
 		</div>
 	</div>
 	<div class="pool-search-options">
@@ -32,19 +32,19 @@
 				Pools
 			</div>
 			<div class="pool-list-heading">
-				Liquidity
+				Total Value
 			</div>
 			<div class="pool-list-heading">
 				24H Volume
 			</div>
 			<div class="pool-list-heading">
+				Fee Rate
+			</div>
+			<div class="pool-list-heading">
 				APY
 			</div>
 			<div class="pool-list-heading">
-				Deposits
-			</div>
-			<div class="pool-list-heading">
-				Fee Rate
+				Deposit
 			</div>
 			<div class="pool-list-heading">
 				Rewards
@@ -57,33 +57,33 @@
 </template>
 
 <template ace-name="farm-pool-item" ace-extends="div" ace-attributes="pool">
-	<button class="pool-star" ace-ref="btn-star" disabled>⭐️</button>
+	<button class="pool-star" ace-ref="btn-star" disabled></button>
 	<div class="pool-stats-icons">
 		<img ace-ref="icon-token0" src="/assets/lazy-load.svg">
 		<img ace-ref="icon-token1" src="/assets/lazy-load.svg">
 	</div>
 	<div class="pool-stats-name" ace-ref="pool-name">
-		-
+		// TODO
 	</div>
-	<div class="pool-stat" ace-ref="liquidity">
-		-
+	<div class="pool-stat" ace-ref="total-deposits">
+		// TODO
 	</div>
 	<div class="pool-stat" ace-ref="volume-24h">
-		-
-	</div>
-	<div class="pool-stat" ace-ref="apy">
-		-
-	</div>
-	<div class="pool-stat" ace-ref="deposits">
-		-
+		// TODO
 	</div>
 	<div class="pool-stat" ace-ref="fee-rate">
-		-
+		// TODO
 	</div>
-	<div class="pool-stat" ace-ref="rewards">
-		-
+	<div class="pool-stat" ace-ref="apy">
+		// TODO
 	</div>
-	<button class="pool-expand" ace-ref="btn-expand">🔽</button>
+	<div class="pool-stat" ace-ref="user-deposits">
+		// TODO
+	</div>
+	<div class="pool-stat" ace-ref="user-net">
+		// TODO
+	</div>
+	<button class="pool-expand" ace-ref="btn-expand"></button>
 </template>
 
 <template ace-name="farm-pool-item-options" ace-extends="div" ace-attributes="pool">

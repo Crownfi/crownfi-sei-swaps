@@ -56,10 +56,8 @@ div[is="swap-component"] {
 .swap-coin-inputs button {
 	padding: 4px 6px;
 	border-radius: 4px;
-	opacity: 0.4;
 	background: rgba(47, 16, 119, 0.13);
 	filter: none;
-
 	color: #2F1077;
 	font-size: 12px;
 	font-style: normal;
@@ -69,6 +67,10 @@ div[is="swap-component"] {
 .swap-coin-inputs button:disabled {
 	opacity: 0.4;
 	filter: none
+}
+.swap-coin-inputs button:not(:disabled):active {
+	color: rgba(47, 16, 119, 0.13);
+	background: #2F1077;
 }
 
 div[is="swap-component"] .seal {

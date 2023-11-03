@@ -2,6 +2,7 @@
 	display: grid;
 	grid-template-columns: auto auto auto;
 	grid-template-rows: auto;
+	filter: drop-shadow(#fff 0px 0px 4px);
 }
 .header > * {
 	margin: 16px;
@@ -13,13 +14,43 @@
 
 	display: flex;
 	flex-direction: row;
-	align-items: center;
+	align-items: baseline;
 	justify-self: flex-start;
 	font-size: 72px;
 }
-.header-logo > img {
+.header-logo > img.crown {
 	height: 72px;
 }
+.header-logo > img.text-crown, .header-logo > img.text-fi, .header-logo > img.text-finance {
+	height: 48px;
+}
+.header-logo > img.text-finance {
+	margin-left: 24px;
+}
+@media screen and (max-width: 900px) {
+	.header-logo > img.text-crown {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 1040px) {
+	.header-logo > img.text-fi {
+		display: none;
+	}
+}
+
+@media screen and (min-width: 1420px) {
+	.header-logo > img.text-fi {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 1420px) {
+	.header-logo > img.text-finance {
+		display: none;
+	}
+}
+
 
 .header-links {
 	grid-column: 1 / span 3;
@@ -40,6 +71,8 @@
 	font-weight: 500;
 	text-decoration: none;
 	color: #8A591C;
+	/* Even though it'll look terrible, at least the buttons will be usable on mobile for now */
+	z-index: 1;
 }
 .header-links > a.highlighted {
 	color: #333399;

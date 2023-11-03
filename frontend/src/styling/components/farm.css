@@ -5,13 +5,20 @@
 	height: min-content;
 }
 .big-chests > * {
-	width: 200px;
+	width: 260px;
 	height: 60px;
-	background-color: #FFFF00;
-	padding-top: 20px;
-	padding-bottom: 60px;
+	background-image: url("/assets/treasure-chest.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	padding-top: 32px;
+	padding-bottom: 120px;
+
+	color: #CBB26A;
+	text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+	font-style: normal;
+	font-weight: 700;
 	text-align: center;
-	border: 4px dashed #000000;
 	margin: 8px;
 }
 
@@ -19,6 +26,7 @@
 	display: flex;
 	justify-content: flex-start;
 	align-content: stretch;
+	margin: 8px;
 }
 .pool-search-options > * {
 	margin: 0px 20px;
@@ -29,9 +37,31 @@ div[is="farm-pool-component"] .pool-list {
 	display: grid;
 	grid-template-columns: min-content 72px auto auto auto auto auto auto auto min-content;
 }
-div[is="farm-pool-component"] .pool-list-headings {
+div[is="farm-pool-component"] .pool-list-headings  {
+	color: #339;
+	font-size: 20px;
+	font-style: normal;
+	font-weight: 800; 
 	display: contents; 
+
 }
+div[is="farm-pool-component"] .pool-list-headings > * {
+	margin: 8px;
+	filter: drop-shadow(#fff 0px 0px 4px);
+}
+
+@supports not (grid-template-columns: subgrid) {
+	div[is="farm-pool-item"]::before {
+		display: block;
+		background-color: #ffff00;
+		border: 20px dashed red;
+		content: "YOUR BROWSER IS TOO OLD TO SUPPORT CSS SUBGRIDS, UPDATE YOUR BROWSER!!!";
+		font-size: 20px;
+		font-weight: 900;
+		padding: 16px;
+	}
+}
+
 div[is="farm-pool-item"] {
 	border-radius: 20px;
 	background: #FFEBB0;
@@ -69,9 +99,28 @@ div[is="farm-pool-item"] .pool-star, div[is="farm-pool-item"] .pool-expand {
 	font-size: 24px;
 	margin: 8px;
 }
+
 div[is="farm-pool-item"] .pool-star {
-	filter: grayscale(100%);
+	border-radius: 0;
+	padding: 0;
+	border: none;
+	height: 32px;
+	width: 32px;
+	margin: 14px;
+	background: url("/assets/star.svg") no-repeat;
+	background-size: contain;
 }
+div[is="farm-pool-item"] .pool-expand {
+	border-radius: 0;
+	padding: 0;
+	border: none;
+	height: 32px;
+	width: 32px;
+	margin: 14px;
+	background: url("/assets/dropdown.svg") no-repeat;
+	background-size: contain;
+}
+
 .pool-stats-icons {
 	display: flex;
 	align-items: center;
@@ -79,6 +128,11 @@ div[is="farm-pool-item"] .pool-star {
 }
 .pool-stats-icons img {
 	width: 32px;
+}
+.pool-stats-name {
+	font-size:20px;
+	color: #653B14;
+	font-weight: 800; 
 }
 
 div[is="farm-pool-item-options"] {
