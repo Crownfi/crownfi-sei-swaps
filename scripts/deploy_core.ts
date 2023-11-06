@@ -8,9 +8,9 @@ import {
 	readArtifact,
 	toEncodedBinary,
 	ClientEnv,
-} from "./helpers"
+} from "./helpers.js"
 import * as path from "path"
-import { chainConfigs } from "./types.d/chain_configs";
+import { chainConfigs } from "./types.d/chain_configs.js";
 import { strictEqual } from "assert";
 import { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 

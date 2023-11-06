@@ -8,10 +8,10 @@ import {
 	toEncodedBinary,
 	ARTIFACTS_PATH,
 	ClientEnv,
-} from './helpers'
+} from './helpers.js'
 import { join } from 'path'
-import { chainConfigs } from "./types.d/chain_configs";
-import { Pair } from './types.d/astroport_deploy_interfaces';
+import { chainConfigs } from "./types.d/chain_configs.js";
+import { Pair } from './types.d/astroport_deploy_interfaces.js';
 import { CosmWasmClient } from '@cosmjs/cosmwasm-stargate';
 const activeClients: CosmWasmClient[] = [];
 

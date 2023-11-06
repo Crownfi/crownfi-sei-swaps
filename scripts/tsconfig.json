@@ -1,11 +1,13 @@
 {
   "compilerOptions": {
     "target": "es2020",
-	  "module": "commonjs",
+	  "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "declaration": true,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
-  }
+  },
+  "ts-node": { "esm": true }
 }

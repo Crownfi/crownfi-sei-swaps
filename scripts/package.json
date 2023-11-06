@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "start": "echo TODO && exit 1",
     "build": "bash build.sh",
@@ -18,7 +19,7 @@
     "@cosmjs/cosmwasm-stargate": "0.29.5",
     "@cosmjs/proto-signing": "0.29.5",
     "@cosmjs/stargate": "0.29.5",
-    "@crownfi/sei-js-core": "^3.0.2-beta.1",
+    "@crownfi/sei-js-core": "^3.0.2-beta.7",
     "@types/wtfnode": "^0.7.0",
     "dotenv": "^8.2.0",
     "isomorphic-fetch": "^3.0.0",

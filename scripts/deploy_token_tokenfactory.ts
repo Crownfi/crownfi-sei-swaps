@@ -3,7 +3,7 @@ import * as wtfnode from "wtfnode";
 import { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import {
 	ClientEnv
-} from "./helpers"
+} from "./helpers.js"
 const activeClients: CosmWasmClient[] = [];
 
 import {seiprotocol as SeiProtocol} from "@sei-js/proto";

@@ -14,7 +14,10 @@ import {calculateFee, GasPrice, isDeliverTxFailure} from "@cosmjs/stargate"
 import path from "path"
 import fs from "fs";
 import https from "https";
-import { seidKeysListEntry } from './types.d/seid_keys_output';
+import { seidKeysListEntry } from './types.d/seid_keys_output.js';
+
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const ARTIFACTS_PATH = path.resolve(__dirname, "..", "artifacts");
 export const GAS_LIMIT = 4000000;
@@ -59,7 +62,9 @@ export class ClientEnv {
 	}
 	
 	async uploadContract(filepath: string) {
-		const contract = fs.readFileSync(filepath)
+		console.log("Upload contract " + filepath);
+		const contract = fs.readFileSync(filepath);
+		console.log("contract.length:", contract.length);
 		const result = await this.client.upload(this.account.address, contract, calculateFee(GAS_LIMIT, this.gasPrice))
 		return result.codeId
 	}
