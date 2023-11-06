@@ -101,7 +101,7 @@ export class FarmPoolItemElement extends FarmPoolItemAutogen {
 					pair: {}
 				} satisfies PairContractQueryMsg
 			);
-			console.log(poolName + " pool query:", {pair});
+			console.log(poolName + " pair query:", {pair});
 			const pool = await client.queryContract(
 				poolInfo.pool,
 				{
@@ -115,14 +115,14 @@ export class FarmPoolItemElement extends FarmPoolItemAutogen {
 					config: {}
 				} satisfies PairContractQueryMsg
 			);
-			console.log(poolName + " pool query:", {config});
+			console.log(poolName + " config query:", {config});
 			const cumulativePrices = await client.queryContract(
 				poolInfo.pool,
 				{
 					cumulative_prices: {}
 				} satisfies PairContractQueryMsg
 			);
-			console.log(poolName + " pool query:", {cumulativePrices});
+			console.log(poolName + " cumulativePrices query:", {cumulativePrices});
 			/*
 			const observation5Seconds = await client.queryContract(
 				poolInfo.pool,

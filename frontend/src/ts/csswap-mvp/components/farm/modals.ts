@@ -166,6 +166,25 @@ export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 
 		this.refreshBalances();
 	}
+	// Are there 0 shares which allow us to specify an arbitrary ratio? Or do we gotta work with a pre-existing one?
+	// This is what this function does and enables/disables the inputs accordingly
+	correctFundingModeInputs() {
+		const form = this.refs.form;
+		const {
+			amount0: amount0Input,
+			amount1: amount1Input,
+			result: resultInput
+		} = form.elements;
+		amount0Input.disabled = true;
+		amount1Input.disabled = true;
+		resultInput.disabled = true;
+		errorDialogIfRejected(async () => {
+			const appConfig = getAppChainConfig(getSelectedChain());
+			const poolInfo = appConfig.pairs[this.refs.form.elements.pool.value];
+
+			const client = await ClientEnv.get();
+		});
+	}
 }
 FarmPoolDepositDialogElement.registerElement();
 export class FarmPoolWithdrawDialogElement extends FarmPoolWithdrawDialogAutogen {

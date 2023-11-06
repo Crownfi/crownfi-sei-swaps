@@ -53,7 +53,7 @@ PopupModalElement.registerElement();
 export async function showError(error: any) {
 	const newModal = (() => {
 		if (error.name && error.message) {
-			if ((error.message as string).match(/\.go\:\d+$/m)) {
+			if ((error.message as string).match(/\.go\:\d+\]/m)) {
 				const lines = (error.message as string).split("\n")
 				return new PopupModalElement({
 					heading: "RPC Error",

@@ -220,15 +220,11 @@ export class ClientEnv {
 			) as Cw20BalanceResponse;
 			return BigInt(balance);
 		}else{
-			const {
-				balance: {
-					amount: balance
-				}
-			} = await this.queryClient.cosmos.bank.v1beta1.balance({
+			const result = await this.queryClient.cosmos.bank.v1beta1.balance({
 				address: accountAddress,
 				denom: unifiedDenom
 			});
-			return BigInt(balance);
+			return BigInt(result.balance!.amount);
 		}
 	}
 }
