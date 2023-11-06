@@ -19,10 +19,10 @@
 	font-size: 72px;
 }
 .header-logo > img.crown {
-	height: 72px;
+	height: 68px;
 }
 .header-logo > img.text-crown, .header-logo > img.text-fi, .header-logo > img.text-finance {
-	height: 48px;
+	height: 42px;
 }
 .header-logo > img.text-finance {
 	margin-left: 24px;
