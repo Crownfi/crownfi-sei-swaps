@@ -4,11 +4,12 @@ import { Cw20HookMsg as PairContractCw20HookMsg } from "../../contract_schema/pa
 import { ExecuteMsg as CW20ExecuteMsg } from "../../contract_schema/token/execute";
 
 import { QueryMsg as PairContractQueryMsg } from "../../contract_schema/pair/query";
+import { PoolResponse as PairContractPoolResponse } from "../../contract_schema/pair/responses/pool";
 import { ArrayOf_Asset as PairContractSharesResponse } from "../../contract_schema/pair/responses/share";
 import { Coin } from "@cosmjs/proto-signing";
 
 import { getAppChainConfig } from "../../chain_config";
-import { UIAmount, UIAsset, amountWithDenomToContractAsset, errorDialogIfRejected, stringDecimalToBigInt } from "../../util";
+import { UIAmount, UIAsset, amountWithDenomToContractAsset, bigIntToStringDecimal, contractAssetToAmountWithDenom, errorDialogIfRejected, stringDecimalToBigInt } from "../../util";
 import { ClientEnv, getSelectedChain } from "../../wallet-env";
 import {FarmPoolDepositDialogAutogen, FarmPoolWithdrawDialogAutogen} from "./_autogen";
 import { setLoading } from "../../loading";
@@ -101,6 +102,9 @@ export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 				}
 			});
 		});
+		this.refs.form.elements.result.addEventListener("input", (ev) => {
+			this.refreshSharesInput();
+		});
 	}
 	refreshBalances() {
 		this.refs.balanceToken0.innerText = "⏳️";
@@ -137,6 +141,47 @@ export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 			}
 		})
 	}
+	private _shouldRefreshSharesInput: boolean = false;
+	private _refreshingSharesInput: boolean = false;
+	refreshSharesInput() {
+		this._shouldRefreshSharesInput = true;
+		if (!this._refreshingSharesInput) {
+			this._refreshingSharesInput = true;
+			(async () => {
+				do {
+					this._shouldRefreshSharesInput = false;
+					await new Promise(resolve => setTimeout(resolve, 500));
+					const appConfig = getAppChainConfig(getSelectedChain());
+					const poolInfo = appConfig.pairs[this.refs.form.elements.pool.value];
+					const {decimals: token0Decimals} = appConfig.tokenUserInfo[poolInfo.token0] || {
+						decimals: 0
+					}
+					const {decimals: token1Decimals} = appConfig.tokenUserInfo[poolInfo.token1] || {
+						decimals: 0
+					}
+
+					const client = await ClientEnv.get();
+
+					const {
+						amount0: amount0Input,
+						amount1: amount1Input,
+						result: resultInput
+					} = this.refs.form.elements;
+					const desiredShares = resultInput.value;
+					const assets = await client.queryContract(
+						poolInfo.pool,
+						{
+							share: {amount: desiredShares}
+						} satisfies PairContractQueryMsg
+					) as PairContractSharesResponse;
+					amount0Input.value = bigIntToStringDecimal(BigInt(assets[0].amount), token0Decimals);
+					amount1Input.value = bigIntToStringDecimal(BigInt(assets[1].amount), token1Decimals);
+				}while(this._shouldRefreshSharesInput);
+			})().catch(console.error).finally(() => {
+				this._refreshingSharesInput = false;
+			});
+		}
+	}
 	connectedCallback() {
 		this.showModal();
 		const poolName = this.refs.form.elements.pool.value;
@@ -165,6 +210,7 @@ export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 		this.refs.form.elements.result.value = "NaN";
 
 		this.refreshBalances();
+		this.correctFundingModeInputs();
 	}
 	// Are there 0 shares which allow us to specify an arbitrary ratio? Or do we gotta work with a pre-existing one?
 	// This is what this function does and enables/disables the inputs accordingly
@@ -181,8 +227,26 @@ export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 		errorDialogIfRejected(async () => {
 			const appConfig = getAppChainConfig(getSelectedChain());
 			const poolInfo = appConfig.pairs[this.refs.form.elements.pool.value];
-
 			const client = await ClientEnv.get();
+
+			const poolQuery = await client.queryContract(
+				poolInfo.pool,
+				{
+					pool: {}
+				} satisfies PairContractQueryMsg
+			) as PairContractPoolResponse;
+			if (BigInt(poolQuery.total_share) > 0n) {
+				amount0Input.readOnly = true;
+				amount1Input.readOnly = true;
+				resultInput.readOnly = false;
+			}else{
+				amount0Input.readOnly = false;
+				amount1Input.readOnly = false;
+				resultInput.readOnly = true;
+			}
+			amount0Input.disabled = false;
+			amount1Input.disabled = false;
+			resultInput.disabled = false;
 		});
 	}
 }
