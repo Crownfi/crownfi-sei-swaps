@@ -8,49 +8,49 @@ export class FarmPoolComponentRefs {
 	private _bigChestTvl?: HTMLSpanElement;
 	get bigChestTvl() {
 		if (this._bigChestTvl === undefined) {
-			this._bigChestTvl = this._element.querySelector("[ace-ref=\"big-chest-tvl\"]:not(:not(:scope)[is] *)")!;
+			this._bigChestTvl = this._element.querySelector("[ace-ref=\"big-chest-tvl\"]:not(:scope [is] *)")!;
 		}
 		return this._bigChestTvl;
 	}
 	private _bigChestTotalTraded?: HTMLSpanElement;
 	get bigChestTotalTraded() {
 		if (this._bigChestTotalTraded === undefined) {
-			this._bigChestTotalTraded = this._element.querySelector("[ace-ref=\"big-chest-total-traded\"]:not(:not(:scope)[is] *)")!;
+			this._bigChestTotalTraded = this._element.querySelector("[ace-ref=\"big-chest-total-traded\"]:not(:scope [is] *)")!;
 		}
 		return this._bigChestTotalTraded;
 	}
 	private _bigChestVolume24H?: HTMLSpanElement;
 	get bigChestVolume24H() {
 		if (this._bigChestVolume24H === undefined) {
-			this._bigChestVolume24H = this._element.querySelector("[ace-ref=\"big-chest-volume-24h\"]:not(:not(:scope)[is] *)")!;
+			this._bigChestVolume24H = this._element.querySelector("[ace-ref=\"big-chest-volume-24h\"]:not(:scope [is] *)")!;
 		}
 		return this._bigChestVolume24H;
 	}
 	private _allPoolBtn?: HTMLButtonElement;
 	get allPoolBtn() {
 		if (this._allPoolBtn === undefined) {
-			this._allPoolBtn = this._element.querySelector("[ace-ref=\"all-pool-btn\"]:not(:not(:scope)[is] *)")!;
+			this._allPoolBtn = this._element.querySelector("[ace-ref=\"all-pool-btn\"]:not(:scope [is] *)")!;
 		}
 		return this._allPoolBtn;
 	}
 	private _myPoolBtn?: HTMLButtonElement;
 	get myPoolBtn() {
 		if (this._myPoolBtn === undefined) {
-			this._myPoolBtn = this._element.querySelector("[ace-ref=\"my-pool-btn\"]:not(:not(:scope)[is] *)")!;
+			this._myPoolBtn = this._element.querySelector("[ace-ref=\"my-pool-btn\"]:not(:scope [is] *)")!;
 		}
 		return this._myPoolBtn;
 	}
 	private _poolSearchText?: HTMLInputElement;
 	get poolSearchText() {
 		if (this._poolSearchText === undefined) {
-			this._poolSearchText = this._element.querySelector("[ace-ref=\"pool-search-text\"]:not(:not(:scope)[is] *)")!;
+			this._poolSearchText = this._element.querySelector("[ace-ref=\"pool-search-text\"]:not(:scope [is] *)")!;
 		}
 		return this._poolSearchText;
 	}
 	private _poolList?: HTMLDivElement;
 	get poolList() {
 		if (this._poolList === undefined) {
-			this._poolList = this._element.querySelector("[ace-ref=\"pool-list\"]:not(:not(:scope)[is] *)")!;
+			this._poolList = this._element.querySelector("[ace-ref=\"pool-list\"]:not(:scope [is] *)")!;
 		}
 		return this._poolList;
 	}
@@ -81,77 +81,77 @@ export class FarmPoolItemRefs {
 	private _btnStar?: HTMLButtonElement;
 	get btnStar() {
 		if (this._btnStar === undefined) {
-			this._btnStar = this._element.querySelector("[ace-ref=\"btn-star\"]:not(:not(:scope)[is] *)")!;
+			this._btnStar = this._element.querySelector("[ace-ref=\"btn-star\"]:not(:scope [is] *)")!;
 		}
 		return this._btnStar;
 	}
 	private _iconToken0?: HTMLImageElement;
 	get iconToken0() {
 		if (this._iconToken0 === undefined) {
-			this._iconToken0 = this._element.querySelector("[ace-ref=\"icon-token0\"]:not(:not(:scope)[is] *)")!;
+			this._iconToken0 = this._element.querySelector("[ace-ref=\"icon-token0\"]:not(:scope [is] *)")!;
 		}
 		return this._iconToken0;
 	}
 	private _iconToken1?: HTMLImageElement;
 	get iconToken1() {
 		if (this._iconToken1 === undefined) {
-			this._iconToken1 = this._element.querySelector("[ace-ref=\"icon-token1\"]:not(:not(:scope)[is] *)")!;
+			this._iconToken1 = this._element.querySelector("[ace-ref=\"icon-token1\"]:not(:scope [is] *)")!;
 		}
 		return this._iconToken1;
 	}
 	private _poolName?: HTMLDivElement;
 	get poolName() {
 		if (this._poolName === undefined) {
-			this._poolName = this._element.querySelector("[ace-ref=\"pool-name\"]:not(:not(:scope)[is] *)")!;
+			this._poolName = this._element.querySelector("[ace-ref=\"pool-name\"]:not(:scope [is] *)")!;
 		}
 		return this._poolName;
 	}
-	private _liquidity?: HTMLDivElement;
-	get liquidity() {
-		if (this._liquidity === undefined) {
-			this._liquidity = this._element.querySelector("[ace-ref=\"liquidity\"]:not(:not(:scope)[is] *)")!;
+	private _totalDeposits?: HTMLDivElement;
+	get totalDeposits() {
+		if (this._totalDeposits === undefined) {
+			this._totalDeposits = this._element.querySelector("[ace-ref=\"total-deposits\"]:not(:scope [is] *)")!;
 		}
-		return this._liquidity;
+		return this._totalDeposits;
 	}
 	private _volume24H?: HTMLDivElement;
 	get volume24H() {
 		if (this._volume24H === undefined) {
-			this._volume24H = this._element.querySelector("[ace-ref=\"volume-24h\"]:not(:not(:scope)[is] *)")!;
+			this._volume24H = this._element.querySelector("[ace-ref=\"volume-24h\"]:not(:scope [is] *)")!;
 		}
 		return this._volume24H;
-	}
-	private _apy?: HTMLDivElement;
-	get apy() {
-		if (this._apy === undefined) {
-			this._apy = this._element.querySelector("[ace-ref=\"apy\"]:not(:not(:scope)[is] *)")!;
-		}
-		return this._apy;
-	}
-	private _deposits?: HTMLDivElement;
-	get deposits() {
-		if (this._deposits === undefined) {
-			this._deposits = this._element.querySelector("[ace-ref=\"deposits\"]:not(:not(:scope)[is] *)")!;
-		}
-		return this._deposits;
 	}
 	private _feeRate?: HTMLDivElement;
 	get feeRate() {
 		if (this._feeRate === undefined) {
-			this._feeRate = this._element.querySelector("[ace-ref=\"fee-rate\"]:not(:not(:scope)[is] *)")!;
+			this._feeRate = this._element.querySelector("[ace-ref=\"fee-rate\"]:not(:scope [is] *)")!;
 		}
 		return this._feeRate;
 	}
-	private _rewards?: HTMLDivElement;
-	get rewards() {
-		if (this._rewards === undefined) {
-			this._rewards = this._element.querySelector("[ace-ref=\"rewards\"]:not(:not(:scope)[is] *)")!;
+	private _apy?: HTMLDivElement;
+	get apy() {
+		if (this._apy === undefined) {
+			this._apy = this._element.querySelector("[ace-ref=\"apy\"]:not(:scope [is] *)")!;
 		}
-		return this._rewards;
+		return this._apy;
+	}
+	private _userDeposits?: HTMLDivElement;
+	get userDeposits() {
+		if (this._userDeposits === undefined) {
+			this._userDeposits = this._element.querySelector("[ace-ref=\"user-deposits\"]:not(:scope [is] *)")!;
+		}
+		return this._userDeposits;
+	}
+	private _userNet?: HTMLDivElement;
+	get userNet() {
+		if (this._userNet === undefined) {
+			this._userNet = this._element.querySelector("[ace-ref=\"user-net\"]:not(:scope [is] *)")!;
+		}
+		return this._userNet;
 	}
 	private _btnExpand?: HTMLButtonElement;
 	get btnExpand() {
 		if (this._btnExpand === undefined) {
-			this._btnExpand = this._element.querySelector("[ace-ref=\"btn-expand\"]:not(:not(:scope)[is] *)")!;
+			this._btnExpand = this._element.querySelector("[ace-ref=\"btn-expand\"]:not(:scope [is] *)")!;
 		}
 		return this._btnExpand;
 	}
@@ -209,28 +209,28 @@ export class FarmPoolItemOptionsRefs {
 	private _depositTxt?: HTMLSpanElement;
 	get depositTxt() {
 		if (this._depositTxt === undefined) {
-			this._depositTxt = this._element.querySelector("[ace-ref=\"deposit-txt\"]:not(:not(:scope)[is] *)")!;
+			this._depositTxt = this._element.querySelector("[ace-ref=\"deposit-txt\"]:not(:scope [is] *)")!;
 		}
 		return this._depositTxt;
 	}
 	private _depositBtn?: HTMLButtonElement;
 	get depositBtn() {
 		if (this._depositBtn === undefined) {
-			this._depositBtn = this._element.querySelector("[ace-ref=\"deposit-btn\"]:not(:not(:scope)[is] *)")!;
+			this._depositBtn = this._element.querySelector("[ace-ref=\"deposit-btn\"]:not(:scope [is] *)")!;
 		}
 		return this._depositBtn;
 	}
 	private _withdrawTxt?: HTMLSpanElement;
 	get withdrawTxt() {
 		if (this._withdrawTxt === undefined) {
-			this._withdrawTxt = this._element.querySelector("[ace-ref=\"withdraw-txt\"]:not(:not(:scope)[is] *)")!;
+			this._withdrawTxt = this._element.querySelector("[ace-ref=\"withdraw-txt\"]:not(:scope [is] *)")!;
 		}
 		return this._withdrawTxt;
 	}
 	private _withdrawBtn?: HTMLButtonElement;
 	get withdrawBtn() {
 		if (this._withdrawBtn === undefined) {
-			this._withdrawBtn = this._element.querySelector("[ace-ref=\"withdraw-btn\"]:not(:not(:scope)[is] *)")!;
+			this._withdrawBtn = this._element.querySelector("[ace-ref=\"withdraw-btn\"]:not(:scope [is] *)")!;
 		}
 		return this._withdrawBtn;
 	}
@@ -288,7 +288,7 @@ export class FarmPoolDepositDialogRefs {
 	private _form?: HTMLFormElementKnownControls<FarmPoolDepositDialogFormCollection1, FarmPoolDepositDialogFormValues1>;
 	get form() {
 		if (this._form === undefined) {
-			this._form = this._element.querySelector("[ace-ref=\"form\"]:not(:not(:scope)[is] *)")!;
+			this._form = this._element.querySelector("[ace-ref=\"form\"]:not(:scope [is] *)")!;
 			this._form.values = normalizeFormValues.bind(this._form, this._form);
 		}
 		return this._form;
@@ -296,49 +296,49 @@ export class FarmPoolDepositDialogRefs {
 	private _denomToken0?: HTMLSpanElement;
 	get denomToken0() {
 		if (this._denomToken0 === undefined) {
-			this._denomToken0 = this._element.querySelector("[ace-ref=\"denom-token0\"]:not(:not(:scope)[is] *)")!;
+			this._denomToken0 = this._element.querySelector("[ace-ref=\"denom-token0\"]:not(:scope [is] *)")!;
 		}
 		return this._denomToken0;
 	}
 	private _balanceToken0?: HTMLSpanElement;
 	get balanceToken0() {
 		if (this._balanceToken0 === undefined) {
-			this._balanceToken0 = this._element.querySelector("[ace-ref=\"balance-token0\"]:not(:not(:scope)[is] *)")!;
+			this._balanceToken0 = this._element.querySelector("[ace-ref=\"balance-token0\"]:not(:scope [is] *)")!;
 		}
 		return this._balanceToken0;
 	}
 	private _denomToken1?: HTMLSpanElement;
 	get denomToken1() {
 		if (this._denomToken1 === undefined) {
-			this._denomToken1 = this._element.querySelector("[ace-ref=\"denom-token1\"]:not(:not(:scope)[is] *)")!;
+			this._denomToken1 = this._element.querySelector("[ace-ref=\"denom-token1\"]:not(:scope [is] *)")!;
 		}
 		return this._denomToken1;
 	}
 	private _balanceToken1?: HTMLSpanElement;
 	get balanceToken1() {
 		if (this._balanceToken1 === undefined) {
-			this._balanceToken1 = this._element.querySelector("[ace-ref=\"balance-token1\"]:not(:not(:scope)[is] *)")!;
+			this._balanceToken1 = this._element.querySelector("[ace-ref=\"balance-token1\"]:not(:scope [is] *)")!;
 		}
 		return this._balanceToken1;
 	}
 	private _denomResult?: HTMLSpanElement;
 	get denomResult() {
 		if (this._denomResult === undefined) {
-			this._denomResult = this._element.querySelector("[ace-ref=\"denom-result\"]:not(:not(:scope)[is] *)")!;
+			this._denomResult = this._element.querySelector("[ace-ref=\"denom-result\"]:not(:scope [is] *)")!;
 		}
 		return this._denomResult;
 	}
 	private _balanceResult?: HTMLSpanElement;
 	get balanceResult() {
 		if (this._balanceResult === undefined) {
-			this._balanceResult = this._element.querySelector("[ace-ref=\"balance-result\"]:not(:not(:scope)[is] *)")!;
+			this._balanceResult = this._element.querySelector("[ace-ref=\"balance-result\"]:not(:scope [is] *)")!;
 		}
 		return this._balanceResult;
 	}
 	private _btnCancel?: HTMLButtonElement;
 	get btnCancel() {
 		if (this._btnCancel === undefined) {
-			this._btnCancel = this._element.querySelector("[ace-ref=\"btn-cancel\"]:not(:not(:scope)[is] *)")!;
+			this._btnCancel = this._element.querySelector("[ace-ref=\"btn-cancel\"]:not(:scope [is] *)")!;
 		}
 		return this._btnCancel;
 	}
@@ -369,7 +369,7 @@ export class FarmPoolWithdrawDialogRefs {
 	private _form?: HTMLFormElementKnownControls<FarmPoolWithdrawDialogFormCollection2, FarmPoolWithdrawDialogFormValues2>;
 	get form() {
 		if (this._form === undefined) {
-			this._form = this._element.querySelector("[ace-ref=\"form\"]:not(:not(:scope)[is] *)")!;
+			this._form = this._element.querySelector("[ace-ref=\"form\"]:not(:scope [is] *)")!;
 			this._form.values = normalizeFormValues.bind(this._form, this._form);
 		}
 		return this._form;
@@ -377,28 +377,28 @@ export class FarmPoolWithdrawDialogRefs {
 	private _denom?: HTMLSpanElement;
 	get denom() {
 		if (this._denom === undefined) {
-			this._denom = this._element.querySelector("[ace-ref=\"denom\"]:not(:not(:scope)[is] *)")!;
+			this._denom = this._element.querySelector("[ace-ref=\"denom\"]:not(:scope [is] *)")!;
 		}
 		return this._denom;
 	}
 	private _balance?: HTMLSpanElement;
 	get balance() {
 		if (this._balance === undefined) {
-			this._balance = this._element.querySelector("[ace-ref=\"balance\"]:not(:not(:scope)[is] *)")!;
+			this._balance = this._element.querySelector("[ace-ref=\"balance\"]:not(:scope [is] *)")!;
 		}
 		return this._balance;
 	}
 	private _tradeResult?: HTMLSpanElement;
 	get tradeResult() {
 		if (this._tradeResult === undefined) {
-			this._tradeResult = this._element.querySelector("[ace-ref=\"trade-result\"]:not(:not(:scope)[is] *)")!;
+			this._tradeResult = this._element.querySelector("[ace-ref=\"trade-result\"]:not(:scope [is] *)")!;
 		}
 		return this._tradeResult;
 	}
 	private _btnCancel?: HTMLButtonElement;
 	get btnCancel() {
 		if (this._btnCancel === undefined) {
-			this._btnCancel = this._element.querySelector("[ace-ref=\"btn-cancel\"]:not(:not(:scope)[is] *)")!;
+			this._btnCancel = this._element.querySelector("[ace-ref=\"btn-cancel\"]:not(:scope [is] *)")!;
 		}
 		return this._btnCancel;
 	}

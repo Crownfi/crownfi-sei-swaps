@@ -7,6 +7,7 @@ import { ExecuteMsg as PairContractExecuteMsg } from "../../contract_schema/pair
 import { Cw20HookMsg as PairContractCw20HookMsg } from "../../contract_schema/pair/cw20_hook_msg";
 import { QueryMsg as PairContractQueryMsg } from "../../contract_schema/pair/query";
 import { ArrayOf_Asset as PairContractSharesResponse } from "../../contract_schema/pair/responses/share";
+import { PoolResponse as PairContractPoolResponse } from "../../contract_schema/pair/responses/pool";
 import { ExecuteMsg as CW20ExecuteMsg } from "../../contract_schema/token/execute";
 import { QueryMsg as Cw20QueryMsg } from "../../contract_schema/token/query";
 import { BalanceResponse as Cw20BalanceResponse } from "../../contract_schema/token/responses/balance";
@@ -107,7 +108,7 @@ export class FarmPoolItemElement extends FarmPoolItemAutogen {
 				{
 					pool: {}
 				} satisfies PairContractQueryMsg
-			);
+			) as PairContractPoolResponse;
 			console.log(poolName + " pool query:", {pool});
 			const config = await client.queryContract(
 				poolInfo.pool,
@@ -132,6 +133,7 @@ export class FarmPoolItemElement extends FarmPoolItemAutogen {
 			);
 			console.log(poolName + " pool query:", {observation5Seconds});
 			*/
+			this.refs.totalDeposits.innerText = pool.assets.map(v => UIAsset(v)).join("\n");
 		});
 	}
 }
