@@ -46,5 +46,7 @@ export async function main() {
 	) {
 		await setPreferredSeiProvider(getSelectedChain(), storedPreferredProvider as MaybeSelectedProvider);
 	}
+	
+	mainSwapButton.click();
 	setLoading(false);
 }
