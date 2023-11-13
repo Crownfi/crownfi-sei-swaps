@@ -3,11 +3,17 @@ import { UIAsset, errorDialogIfRejected, qa } from "../../util";
 import { ClientEnv, SeiWalletChangedEvent, getSelectedChain } from "../../wallet-env";
 import { FarmPoolComponentAutogen, FarmPoolItemAutogen, FarmPoolItemOptionsAutogen } from "./_autogen";
 
+import { QueryMsg as FactoryContractQueryMsg } from "../../contract_schema/factory/query";
+import { FeeInfoResponse as FactoryContractFeeInfoResponse } from "../../contract_schema/factory/responses/fee_info"
+
 import { ExecuteMsg as PairContractExecuteMsg } from "../../contract_schema/pair/execute";
 import { Cw20HookMsg as PairContractCw20HookMsg } from "../../contract_schema/pair/cw20_hook_msg";
 import { QueryMsg as PairContractQueryMsg } from "../../contract_schema/pair/query";
 import { ArrayOf_Asset as PairContractSharesResponse } from "../../contract_schema/pair/responses/share";
+import { PairInfo as PairContractPairInfoResponse } from "../../contract_schema/pair/responses/pair";
 import { PoolResponse as PairContractPoolResponse } from "../../contract_schema/pair/responses/pool";
+import { ConfigResponse as PairContractConfigResponse } from "../../contract_schema/pair/responses/config";
+
 import { ExecuteMsg as CW20ExecuteMsg } from "../../contract_schema/token/execute";
 import { QueryMsg as Cw20QueryMsg } from "../../contract_schema/token/query";
 import { BalanceResponse as Cw20BalanceResponse } from "../../contract_schema/token/responses/balance";
@@ -96,34 +102,35 @@ export class FarmPoolItemElement extends FarmPoolItemAutogen {
 		errorDialogIfRejected(async () => {
 			const client = await ClientEnv.get();
 			console.log("poolInfo.pool", poolInfo.pool);
-			const pair = await client.queryContract(
+			const pairQuery = await client.queryContract(
 				poolInfo.pool,
 				{
 					pair: {}
 				} satisfies PairContractQueryMsg
-			);
-			console.log(poolName + " pair query:", {pair});
-			const pool = await client.queryContract(
+			) as PairContractPairInfoResponse;
+			console.log(poolName + " pair query:", {pairQuery});
+			const poolQuery = await client.queryContract(
 				poolInfo.pool,
 				{
 					pool: {}
 				} satisfies PairContractQueryMsg
 			) as PairContractPoolResponse;
-			console.log(poolName + " pool query:", {pool});
-			const config = await client.queryContract(
+			console.log(poolName + " pool query:", {poolQuery});
+			const configQuery = await client.queryContract(
 				poolInfo.pool,
 				{
 					config: {}
 				} satisfies PairContractQueryMsg
-			);
-			console.log(poolName + " config query:", {config});
-			const cumulativePrices = await client.queryContract(
+			) as PairContractConfigResponse;
+			console.log(poolName + " config query:", {configQuery});
+
+			const cumulativePricesQuery = await client.queryContract(
 				poolInfo.pool,
 				{
 					cumulative_prices: {}
 				} satisfies PairContractQueryMsg
 			);
-			console.log(poolName + " cumulativePrices query:", {cumulativePrices});
+			console.log(poolName + " cumulativePrices query:", {cumulativePricesQuery});
 			/*
 			const observation5Seconds = await client.queryContract(
 				poolInfo.pool,
@@ -133,7 +140,18 @@ export class FarmPoolItemElement extends FarmPoolItemAutogen {
 			);
 			console.log(poolName + " pool query:", {observation5Seconds});
 			*/
-			this.refs.totalDeposits.innerText = pool.assets.map(v => UIAsset(v)).join("\n");
+			
+			const feeInfoQuery = await client.queryContract(
+				configQuery.factory_addr,
+				{
+					fee_info: {
+						pair_type: pairQuery.pair_type
+					}
+				} satisfies FactoryContractQueryMsg
+			) as FactoryContractFeeInfoResponse;
+
+			this.refs.totalDeposits.innerText = poolQuery.assets.map(v => UIAsset(v)).join("\n");
+			this.refs.feeRate.innerText = (feeInfoQuery.total_fee_bps / 100).toFixed(2) + "%"
 		});
 	}
 }
