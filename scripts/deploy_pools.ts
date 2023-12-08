@@ -28,7 +28,9 @@ async function uploadAndInitOracle(clientEnv: ClientEnv, pair: Pair, network: an
 			chainConfigs.oracle.admin,
 			join(ARTIFACTS_PATH, 'astroport_oracle.wasm'),
 			chainConfigs.oracle.initMsg,
-			chainConfigs.oracle.label)
+			chainConfigs.oracle.label,
+			false
+		)
 
 		network.pairs[pair.identifier].oracle = resp.shift()!.shift()!;
 		console.log(`Address of ${pair.identifier} oracle contract: ${network.pairs[pair.identifier].oracle}`)

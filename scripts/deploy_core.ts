@@ -41,7 +41,7 @@ async function uploadAndInitToken(clientEnv: ClientEnv) {
 	let network = readArtifact(clientEnv.chainId)
 
 	if (!network.tokenCodeID) {
-		network.tokenCodeID = await clientEnv.uploadContract(path.join(ARTIFACTS_PATH, 'astroport_token.wasm')!)
+		network.tokenCodeID = await clientEnv.uploadContract(path.join(ARTIFACTS_PATH, 'astroport_token.wasm')!, true)
 		writeArtifact(network, clientEnv.chainId)
 		console.log(`Token codeId: ${network.tokenCodeID}`)
 	}
@@ -60,6 +60,7 @@ async function uploadAndInitToken(clientEnv: ClientEnv) {
 			path.join(ARTIFACTS_PATH, 'astroport_token.wasm'),
 			chainConfigs.token.initMsg,
 			chainConfigs.token.label,
+			false
 		)
 
 		// @ts-ignore
@@ -82,7 +83,7 @@ async function uploadPairContracts(clientEnv: ClientEnv) {
 
 	if (!network.pairCodeID) {
 		console.log('Register Pair Contract...')
-		network.pairCodeID = await clientEnv.uploadContract(path.join(ARTIFACTS_PATH, 'astroport_pair.wasm')!)
+		network.pairCodeID = await clientEnv.uploadContract(path.join(ARTIFACTS_PATH, 'astroport_pair.wasm')!, true)
 		writeArtifact(network, clientEnv.chainId)
 	}
 }
@@ -92,7 +93,7 @@ async function uploadAndInitStaking(clientEnv: ClientEnv) {
 
 	if (!network.xastroTokenCodeID) {
 		console.log('Register xASTRO token contract...')
-		network.xastroTokenCodeID = await clientEnv.uploadContract(path.join(ARTIFACTS_PATH, 'astroport_xastro_token.wasm')!)
+		network.xastroTokenCodeID = await clientEnv.uploadContract(path.join(ARTIFACTS_PATH, 'astroport_xastro_token.wasm')!, true)
 		writeArtifact(network, clientEnv.chainId)
 	}
 
@@ -109,6 +110,7 @@ async function uploadAndInitStaking(clientEnv: ClientEnv) {
 			path.join(ARTIFACTS_PATH, 'astroport_staking.wasm'),
 			chainConfigs.staking.initMsg,
 			chainConfigs.staking.label,
+			false
 		)
 
 		let addresses = resp.shift()
@@ -152,7 +154,8 @@ async function uploadAndInitFactory(clientEnv: ClientEnv) {
 			chainConfigs.factory.admin,
 			path.join(ARTIFACTS_PATH, 'astroport_factory.wasm'),
 			chainConfigs.factory.initMsg,
-			chainConfigs.factory.label
+			chainConfigs.factory.label,
+			false
 		)
 
 		// @ts-ignore
@@ -188,7 +191,8 @@ async function uploadAndInitRouter(clientEnv: ClientEnv) {
 			chainConfigs.router.admin,
 			path.join(ARTIFACTS_PATH, 'astroport_router.wasm'),
 			chainConfigs.router.initMsg,
-			chainConfigs.router.label
+			chainConfigs.router.label,
+			false
 		)
 
 		// @ts-ignore
