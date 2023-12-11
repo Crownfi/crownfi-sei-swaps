@@ -1,20 +1,20 @@
-<template ace-name="swap-component" ace-extends="div">
+<template cewt-name="swap-component" cewt-extends="div">
 	<p>
 		Hail, noble traders and crypto enthusiasts! We bid thee welcome to the grand realm of Crownfi Swaps, where the
 		art of swapping digital treasures is elevated to a level befitting kings and queens.
 	</p>
-	<form class="swap-inner" ace-ref="form">
+	<form class="swap-inner" cewt-ref="form">
 		<div class="swap-coin">
 			<div class="left-right-text">
 				<span>From</span>
-				<span>Balance: <span ace-ref="in-balance">❓️</span></span>
+				<span>Balance: <span cewt-ref="in-balance">❓️</span></span>
 			</div>
 			<div class="swap-coin-inputs">
-				<img class="swap-coin-icon" ace-ref="in-icon" src="/assets/placeholder.svg">
+				<img class="swap-coin-icon" cewt-ref="in-icon" src="/assets/placeholder.svg">
 				<!-- Defined at runtime -->
 				<select name="in-token"></select>
-				<button ace-ref="btn-in-max" disabled>Max</button>
-				<button ace-ref="btn-in-half" disabled>Half</button>
+				<button cewt-ref="btn-in-max" disabled>Max</button>
+				<button cewt-ref="btn-in-half" disabled>Half</button>
 				<input name="in-amount" type="number">
 			</div>
 		</div>
@@ -22,10 +22,10 @@
 		<div class="swap-coin">
 			<div class="left-right-text">
 				<span>To</span>
-				<span>Balance: <span ace-ref="out-balance">❓️</span></span>
+				<span>Balance: <span cewt-ref="out-balance">❓️</span></span>
 			</div>
 			<div class="swap-coin-inputs">
-				<img class="swap-coin-icon" ace-ref="out-icon" src="/assets/placeholder.svg">
+				<img class="swap-coin-icon" cewt-ref="out-icon" src="/assets/placeholder.svg">
 				<!-- Defined at runtime -->
 				<select name="out-token"></select>
 				<input name="out-amount" type="number" readonly>

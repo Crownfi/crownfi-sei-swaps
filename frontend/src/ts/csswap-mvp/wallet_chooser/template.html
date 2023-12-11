@@ -1,21 +1,21 @@
-<template ace-name="wallet-button" ace-extends="button" ace-attributes="wallet-address">
+<template cewt-name="wallet-button" cewt-extends="button" cewt-attributes="wallet-address">
 	Connect wallet
 </template>
 
-<template ace-name="wallet-choice" ace-extends="button" ace-attributes="text, icon">
-	<img src="/assets/lazy-load.svg" ace-ref="img">
-	<span ace-ref="text">Generiwallet</span>
+<template cewt-name="wallet-choice" cewt-extends="button" cewt-attributes="text, icon">
+	<img src="/assets/lazy-load.svg" cewt-ref="img">
+	<span cewt-ref="text">Generiwallet</span>
 </template>
 
-<template ace-name="wallet-modal" ace-extends="dialog">
-	<h1 ace-ref="heading">Choose wallet</h1>
-	<select ace-ref="selected-network">
+<template cewt-name="wallet-modal" cewt-extends="dialog">
+	<h1 cewt-ref="heading">Choose wallet</h1>
+	<select cewt-ref="selected-network">
 		<option value="pacific-1">Mainnet (pacific-1)</option>
 		<option value="atlantic-2">Testnet (atlantic-2)</option>
 		<option value="localsei">Localnet (localsei)</option>
 	</select>
-	<div ace-ref="choices" class="wallet-choices">
+	<div cewt-ref="choices" class="wallet-choices">
 
 	</div>
-	<button ace-ref="cancel-button">Cancel</button>
+	<button cewt-ref="cancel-button">Cancel</button>
 </template>

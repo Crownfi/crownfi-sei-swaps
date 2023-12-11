@@ -39,6 +39,30 @@ export async function main() {
 		});
 		mainFarmButton.classList.add("highlighted");
 	}
+	console.log("ASDAAAAAAAAAAAAAAAAAA")
+	if((new URLSearchParams(document.location.search)).get("governance")) {
+		console.log("ADSVBBBBBBBBBBBBBBBBBBBB")
+		const {GovernanceComponentElement} = await import("./components/governance");
+		const mainGovernButton = document.createElement("a");
+		mainGovernButton.innerHTML = `
+			<img src="/assets/placeholder.svg">
+			<span>Governance</span>
+		`;
+		mainGovernButton.href = "#";
+		mainGovernButton.onclick = (ev) => {
+			ev.preventDefault();
+			removeHighlightsFromLinks();
+			errorDialogIfRejected(async () => {
+				mainContent.innerHTML = "";
+				mainContent.appendChild(
+					new GovernanceComponentElement()
+				);
+				
+			});
+			mainGovernButton.classList.add("highlighted");
+		}
+		q(".header .header-links")!.appendChild(mainGovernButton);
+	}
 	let storedPreferredProvider = localStorage.getItem("preferred_sei_provider");
 	if (
 		storedPreferredProvider == "seed-wallet" ||
@@ -46,7 +70,6 @@ export async function main() {
 	) {
 		await setPreferredSeiProvider(getSelectedChain(), storedPreferredProvider as MaybeSelectedProvider);
 	}
-	
 	mainSwapButton.click();
 	setLoading(false);
 }
