@@ -10,11 +10,16 @@ import {
 import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate"
 import { getSigningCosmWasmClient, restoreWallet, getCosmWasmClient } from "@crownfi/sei-js-core"
 import {calculateFee, GasPrice, isDeliverTxFailure} from "@cosmjs/stargate"
+import {randomBytes} from "crypto";
 
 import path from "path"
 import fs from "fs";
 import https from "https";
-import { seidKeysListEntry } from './types.d/seid_keys_output';
+import { seidKeysListEntry } from './types.d/seid_keys_output.js';
+
+import { fileURLToPath } from 'url';
+import { accessTypeFromString } from '@cosmjs/cosmwasm-stargate/build/modules/wasm/aminomessages.js';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const ARTIFACTS_PATH = path.resolve(__dirname, "..", "artifacts");
 export const GAS_LIMIT = 4000000;
@@ -58,9 +63,27 @@ export class ClientEnv {
 		return result
 	}
 	
-	async uploadContract(filepath: string) {
-		const contract = fs.readFileSync(filepath)
-		const result = await this.client.upload(this.account.address, contract, calculateFee(GAS_LIMIT, this.gasPrice))
+	async uploadContract(filepath: string, allowFactories: boolean) {
+		console.log("Upload contract " + filepath);
+		const contract = fs.readFileSync(filepath);
+		// const contract = Buffer.alloc(10);
+		console.log("contract.length:", contract.length);
+		const result = await this.client.upload(
+			this.account.address,
+			contract,
+			calculateFee(GAS_LIMIT, this.gasPrice),
+			undefined,
+			allowFactories ? {
+				"address": "",
+				"addresses": [],
+				"permission": 3 // ACCESS_TYPE_EVERYBODY
+			} : {
+				// This property is apparently deprecrated but Sei can't understand anything else anyway
+				"address": this.account.address,
+				"addresses": [],
+				"permission": 2 // ACCESS_TYPE_ONLY_ADDRESS
+			}
+		)
 		return result.codeId
 	}
 	async instantiateContract(admin_address: string | undefined, codeId: number, msg: object, label: string) {
@@ -69,8 +92,8 @@ export class ClientEnv {
 		})
 		return result.logs[0].events.filter(el => el.type == "instantiate").map(x => x.attributes.filter(element => element.key == '_contract_address').map(x => x.value));
 	}
-	async deployContract(adminAddress: string, filepath: string, initMsg: object, label: string) {
-		const codeId = await this.uploadContract(filepath);
+	async deployContract(adminAddress: string, filepath: string, initMsg: object, label: string, allowFactories: boolean) {
+		const codeId = await this.uploadContract(filepath, allowFactories);
 		return await this.instantiateContract(adminAddress, codeId, initMsg, label);
 	}
 	async executeContract(contractAddress: string, msg: object, funds?: Coin[]) {

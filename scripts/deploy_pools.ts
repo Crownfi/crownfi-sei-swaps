@@ -8,10 +8,10 @@ import {
 	toEncodedBinary,
 	ARTIFACTS_PATH,
 	ClientEnv,
-} from './helpers'
+} from './helpers.js'
 import { join } from 'path'
-import { chainConfigs } from "./types.d/chain_configs";
-import { Pair } from './types.d/astroport_deploy_interfaces';
+import { chainConfigs } from "./types.d/chain_configs.js";
+import { Pair } from './types.d/astroport_deploy_interfaces.js';
 import { CosmWasmClient } from '@cosmjs/cosmwasm-stargate';
 const activeClients: CosmWasmClient[] = [];
 
@@ -28,7 +28,9 @@ async function uploadAndInitOracle(clientEnv: ClientEnv, pair: Pair, network: an
 			chainConfigs.oracle.admin,
 			join(ARTIFACTS_PATH, 'astroport_oracle.wasm'),
 			chainConfigs.oracle.initMsg,
-			chainConfigs.oracle.label)
+			chainConfigs.oracle.label,
+			false
+		)
 
 		network.pairs[pair.identifier].oracle = resp.shift()!.shift()!;
 		console.log(`Address of ${pair.identifier} oracle contract: ${network.pairs[pair.identifier].oracle}`)

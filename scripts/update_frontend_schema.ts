@@ -3,6 +3,8 @@ import * as path from "path";
 import {glob} from "glob";
 import {compileFromFile} from "json-schema-to-typescript";
 import {promises as fsp} from "fs";
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
 	const schemaFiles = await glob("../contracts/**/schema/raw/*.json", {cwd: __dirname});

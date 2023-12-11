@@ -4,7 +4,7 @@ import {
 	ClientEnv,
 	writeArtifact,
 	readArtifact
-} from './helpers'
+} from './helpers.js'
 import * as path from "path"
 import { strictEqual } from "assert";
 
