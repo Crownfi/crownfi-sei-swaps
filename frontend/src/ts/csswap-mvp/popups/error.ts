@@ -52,12 +52,26 @@ PopupModalElement.registerElement();
 
 export async function showError(error: any) {
 	const newModal = (() => {
-		if (error.name && error.message) {
-			if ((error.message as string).match(/\.go\:\d+\]/m)) {
-				const lines = (error.message as string).split("\n")
+		if (typeof error.name == "string" && typeof error.message == "string") {
+			if (error.message.match(/\.go\:\d+\]/m)) {
+				// Note, this regex was only tested on atlantic-2
+				let betterErrorFormat = /failed to execute message; message index\:\s*?(\d+)\:\s+?(?:dispatch: submessages: )*(.*?)\s*?\[/.exec(
+					error.message
+				);
+				if (betterErrorFormat) {
+					return new PopupModalElement({
+						heading: "Transaction Execution Error",
+						message: "Message #" + betterErrorFormat[1] + " failed.\n" + betterErrorFormat[2],
+						details: "--error details--\n" +
+							"name: " + error.name + "\n" +
+							"message: " + (error.message + "").replace(/\t/g, "    ") + "\n" +
+							"stack: " + (error.stack + "").replace(/\t/g, "    ") + "\n" +
+							"\n\n--properties--\n" + JSON.stringify(error, undefined, "    ")
+					});
+				}
 				return new PopupModalElement({
 					heading: "RPC Error",
-					message: lines[0] + " " + lines[lines.length - 1],
+					message: error.message,
 					details: "--error details--\n" +
 						"name: " + error.name + "\n" +
 						"message: " + (error.message + "").replace(/\t/g, "    ") + "\n" +
