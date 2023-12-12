@@ -41,6 +41,13 @@ export class SwapComponentRefs {
 		}
 		return this.#btnInHalf;
 	}
+	#inError?: HTMLDivElement;
+	get inError() {
+		if (this.#inError === undefined) {
+			this.#inError = this.#element.querySelector("[cewt-ref=\"in-error\"]:not(:scope [is] *)")!;
+		}
+		return this.#inError;
+	}
 	#outBalance?: HTMLSpanElement;
 	get outBalance() {
 		if (this.#outBalance === undefined) {
@@ -54,6 +61,13 @@ export class SwapComponentRefs {
 			this.#outIcon = this.#element.querySelector("[cewt-ref=\"out-icon\"]:not(:scope [is] *)")!;
 		}
 		return this.#outIcon;
+	}
+	#outError?: HTMLDivElement;
+	get outError() {
+		if (this.#outError === undefined) {
+			this.#outError = this.#element.querySelector("[cewt-ref=\"out-error\"]:not(:scope [is] *)")!;
+		}
+		return this.#outError;
 	}
 }
 let _templateSwapComponent: HTMLTemplateElement | null = null;

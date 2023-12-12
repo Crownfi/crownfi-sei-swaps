@@ -1,3 +1,4 @@
+import { isProbablyTxError, makeTxExecErrLessFugly } from "../util";
 import { ErrorModalAutogen } from "./_autogen";
 
 // PopupModalAutogen extends HTMLDialogElement
@@ -53,15 +54,14 @@ PopupModalElement.registerElement();
 export async function showError(error: any) {
 	const newModal = (() => {
 		if (typeof error.name == "string" && typeof error.message == "string") {
-			if (error.message.match(/\.go\:\d+\]/m)) {
+			if (isProbablyTxError(error)) {
 				// Note, this regex was only tested on atlantic-2
-				let betterErrorFormat = /failed to execute message; message index\:\s*?(\d+)\:\s+?(?:dispatch: submessages: )*(.*?)\s*?\[/.exec(
-					error.message
-				);
-				if (betterErrorFormat) {
+				const errorParts = makeTxExecErrLessFugly(error.message);
+				if (errorParts) {
+					const {messageIndex, errorSource, errorDetail} = errorParts;
 					return new PopupModalElement({
 						heading: "Transaction Execution Error",
-						message: "Message #" + betterErrorFormat[1] + " failed.\n" + betterErrorFormat[2],
+						message: "Message #" + messageIndex + " failed.\n" + errorSource + ": " + errorDetail,
 						details: "--error details--\n" +
 							"name: " + error.name + "\n" +
 							"message: " + (error.message + "").replace(/\t/g, "    ") + "\n" +

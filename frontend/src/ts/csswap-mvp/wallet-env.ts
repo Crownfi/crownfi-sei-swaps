@@ -1,11 +1,13 @@
-import { CosmWasmClient, ExecuteInstruction, SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
+import { encodeSecp256k1Pubkey } from "@cosmjs/amino";
+import { CosmWasmClient, ExecuteInstruction, MsgExecuteContractEncodeObject, SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import { AccountData, Coin, EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
-import {KNOWN_SEI_PROVIDER_INFO, SeiWallet, getQueryClient, getSigningCosmWasmClient, getCosmWasmClient, KNOWN_SEI_PROVIDERS, KnownSeiProviders} from "@crownfi/sei-js-core";
+import { KNOWN_SEI_PROVIDER_INFO, SeiWallet, getQueryClient, getSigningCosmWasmClient, getCosmWasmClient, KNOWN_SEI_PROVIDERS, KnownSeiProviders } from "@crownfi/sei-js-core";
 import { SeiNetId, getAppChainConfig } from "./chain_config";
 import { GasPrice, isDeliverTxFailure } from "@cosmjs/stargate";
 import { setLoading } from "./loading";
 import { QueryMsg as Cw20QueryMsg } from "../contract_schema/token/query";
 import { BalanceResponse as Cw20BalanceResponse } from "../contract_schema/token/responses/balance";
+import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { errorDialogIfRejected } from "./util";
 
 function nativeDenomCompare(a: Coin, b: Coin) {
@@ -90,7 +92,7 @@ export async function setPreferredSeiProvider(chainId: SeiNetId, providerId: May
 		localStorage.setItem("preferred_sei_provider", providerId);
 	}
 }
-
+export type SimulateResponse = Awaited<ReturnType<ReturnType<CosmWasmClient["forceGetQueryClient"]>["tx"]["simulate"]>>;
 interface ClientEnvConstruct {
 	account: AccountData | null
 	chainId: string
@@ -207,6 +209,56 @@ export class ClientEnv {
 		}
 		return await this.wasmClient.executeMultiple(this.account.address, instructions, "auto")
 	}
+	async simulateTransactionButWithActuallyUsefulInformation(messages: readonly EncodeObject[]): Promise<SimulateResponse> {
+		// Because cosmjs says: "Why would anyone want any information other than estimated gas from a simulation?"
+		if (!this.isSignable()) {
+			throw new Error("Cannot execute transactions - " + this.readonlyReason);
+		}
+		const { sequence } = await this.wasmClient.getSequence(this.account.address);
+		// Using [] notation bypasses the "protected" rule.
+		return this.wasmClient["forceGetQueryClient"]().tx.simulate(
+			messages.map((m) => this.wasmClient.registry.encodeAsAny(m)),
+			undefined,
+			encodeSecp256k1Pubkey(this.account.pubkey),
+			sequence
+		)
+	}
+	async simulateContractMulti(
+		instructions: ExecuteInstruction[]
+	): Promise<SimulateResponse> {
+		if (!this.isSignable()) {
+			throw new Error("Cannot execute transactions - " + this.readonlyReason);
+		}
+		const msgs: MsgExecuteContractEncodeObject[] = instructions.map((i) => {
+			if (i.funds) {
+				// 🙄🙄🙄🙄
+				i.funds = (i.funds as Coin[]).sort(nativeDenomCompare);
+			}
+			return {
+				typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+					value: MsgExecuteContract.fromPartial({
+					sender: this.account.address,
+					contract: i.contractAddress,
+					msg: Buffer.from(JSON.stringify(i.msg)),
+					funds: [...(i.funds || [])],
+				}),
+			}
+		});
+		return this.simulateTransactionButWithActuallyUsefulInformation(msgs);
+	}
+	async simulateContract(
+		contractAddress: string, msg: object, funds?: Coin[]
+	): Promise<SimulateResponse> {
+		if (!this.isSignable()) {
+			throw new Error("Cannot execute transactions - " + this.readonlyReason);
+		}
+		const instruction: ExecuteInstruction = {
+			contractAddress: contractAddress,
+			msg: msg,
+			funds: funds,
+		};
+		return this.simulateContractMulti([instruction]);
+	  }
 	async queryContract(contractAddress: string, query: object): Promise<any> {
 		return await this.wasmClient.queryContractSmart(contractAddress, query)
 	}

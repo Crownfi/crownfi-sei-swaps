@@ -28,7 +28,7 @@ div[is="swap-component"] {
 	background: #FFEBB0;
 	box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
 
-	padding: 12px 24px 28px 24px;
+	padding: 12px 24px 10px 24px;
 	margin: 12px 0px;
 }
 .swap-coin:first-child {
@@ -71,6 +71,13 @@ div[is="swap-component"] {
 .swap-coin-inputs button:not(:disabled):active {
 	color: rgba(47, 16, 119, 0.13);
 	background: #2F1077;
+}
+.swap-coin .input-error {
+	margin-top: 2px;
+	text-align: right;
+}
+.swap-coin .input-error:empty::after {
+	content: "\a0";
 }
 
 div[is="swap-component"] .seal {

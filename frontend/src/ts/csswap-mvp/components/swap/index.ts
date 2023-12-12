@@ -1,5 +1,5 @@
 import { SeiNetId, getAppChainConfig } from "../../chain_config";
-import { UIAmount, bigIntToStringDecimal, denomToContractAssetInfo, errorDialogIfRejected, qa, resolveRoute, stringDecimalToBigInt } from "../../util";
+import { UIAmount, bigIntToStringDecimal, denomToContractAssetInfo, errorDialogIfRejected, isProbablyTxError, makeTxExecErrLessFugly, qa, resolveRoute, stringDecimalToBigInt } from "../../util";
 import { ClientEnv, SeiWalletChangedEvent, getSelectedChain } from "../../wallet-env";
 import { SwapComponentAutogen } from "./_autogen";
 
@@ -33,6 +33,7 @@ export class SwapComponentElement extends SwapComponentAutogen {
 
 			this.refreshRoute();
 			this.refreshBalances();
+			this.refreshTradeOutput();
 		});
 		this.refs.form.elements["out-token"].addEventListener("input", (ev) => {
 			const appConfig = getAppChainConfig(getSelectedChain());
@@ -50,6 +51,7 @@ export class SwapComponentElement extends SwapComponentAutogen {
 
 			this.refreshRoute();
 			this.refreshBalances();
+			this.refreshTradeOutput();
 		});
 		this.refs.form.elements["in-amount"].addEventListener("input", (ev) => {
 			this.refreshTradeOutput();
@@ -73,14 +75,6 @@ export class SwapComponentElement extends SwapComponentAutogen {
 				try{
 					setLoading(true, "Waiting for transaction confirmation...");
 					const client = await ClientEnv.get();
-					const operations = this.currentRoute.map(v => {
-						return {
-							astro_swap: {
-								offer_asset_info: denomToContractAssetInfo(v[0]),
-								ask_asset_info: denomToContractAssetInfo(v[1])
-							}
-						}
-					});
 					if (inDenom.startsWith("cw20/")) {
 						const {transactionHash} = await client.executeContract(
 							inDenom.substring("cw20/".length),
@@ -90,12 +84,8 @@ export class SwapComponentElement extends SwapComponentAutogen {
 									contract: appConfig.routerAddress,
 									// this is pretty fugly
 									msg: Buffer.from(
-											JSON.stringify(
-											{
-												execute_swap_operations: {
-													operations
-												}
-											} satisfies RouterContractCw20HookMsg
+										JSON.stringify(
+											this.buildExecSwapOperationsMsg() satisfies RouterContractCw20HookMsg
 										)
 									).toString("base64")
 								}
@@ -105,11 +95,7 @@ export class SwapComponentElement extends SwapComponentAutogen {
 					}else{
 						const {transactionHash} = await client.executeContract(
 							appConfig.routerAddress,
-							{
-								execute_swap_operations: {
-									operations
-								}
-							} satisfies RouterContractExecuteMsg,
+							this.buildExecSwapOperationsMsg() satisfies RouterContractExecuteMsg,
 							[
 								{
 									amount: inAmount + "",
@@ -146,6 +132,22 @@ export class SwapComponentElement extends SwapComponentAutogen {
 			});
 		});
 		this.rebuildPoolList();
+	}
+	buildExecSwapOperationsMsg() {
+		const operations = this.currentRoute.map(v => {
+			return {
+				astro_swap: {
+					offer_asset_info: denomToContractAssetInfo(v[0]),
+					ask_asset_info: denomToContractAssetInfo(v[1])
+				}
+			}
+		});
+		return {
+			execute_swap_operations: {
+				operations,
+				max_spread: "0.1"
+			}
+		};
 	}
 	refreshRoute() {
 		const inSelector = this.refs.form.elements["in-token"];
@@ -230,6 +232,11 @@ export class SwapComponentElement extends SwapComponentAutogen {
 			(async () => {
 				do {
 					this._shouldRefreshTradeOutput = false;
+					if (!this.currentRoute.length) {
+						this.refs.inError.innerText = "\"from\" and \"to\" assets are identical";
+						continue;
+					}
+					this.refs.inError.innerText = "Estimating...";
 					await new Promise(resolve => setTimeout(resolve, 500));
 					const appConfig = getAppChainConfig(getSelectedChain());
 					const client = await ClientEnv.get();
@@ -241,14 +248,21 @@ export class SwapComponentElement extends SwapComponentAutogen {
 					const tokenInAmountElem = this.refs.form.elements["in-amount"];
 					const tokenOutAmountElem = this.refs.form.elements["out-amount"];
 
+					const tokenInAmount = stringDecimalToBigInt(
+						tokenInAmountElem.value,
+						appConfig.tokenUserInfo[inDenom]?.decimals || 0
+					) || 0n;
+					if (tokenInAmount <= 0n) {
+						this.refs.inError.innerText = "Input must be a valid number greater than 0";
+						continue;
+					}
+
+					// TODO: Remove query in favour of using simulateContract result.
 					const {amount: swapResultAmount} = await client.queryContract(
 						appConfig.routerAddress,
 						{
 							simulate_swap_operations: {
-								offer_amount: stringDecimalToBigInt(
-									tokenInAmountElem.value,
-									appConfig.tokenUserInfo[inDenom]?.decimals || 0
-								) + "",
+								offer_amount: tokenInAmount + "",
 								operations: this.currentRoute.map(v => {
 									return {
 										astro_swap: {
@@ -265,8 +279,52 @@ export class SwapComponentElement extends SwapComponentAutogen {
 						appConfig.tokenUserInfo[outDenom]?.decimals || 0,
 						true
 					);
+					
+					if (inDenom.startsWith("cw20/")) {
+						const simResult = await client.simulateContract(
+							inDenom.substring("cw20/".length),
+							{
+								send: {
+									amount: tokenInAmount + "",
+									contract: appConfig.routerAddress,
+									// this is pretty fugly
+									msg: Buffer.from(
+										JSON.stringify(
+											this.buildExecSwapOperationsMsg() satisfies RouterContractCw20HookMsg
+										)
+									).toString("base64")
+								}
+							} satisfies CW20ExecuteMsg
+						);
+						console.log("SIM RESULT:", simResult);
+					}else{
+						const simResult = await client.simulateContract(
+							appConfig.routerAddress,
+							this.buildExecSwapOperationsMsg() satisfies RouterContractExecuteMsg,
+							[
+								{
+									amount: tokenInAmount + "",
+									denom: inDenom
+								}
+							]
+						);
+						console.log("SIM RESULT:", simResult);
+					}
+					this.refs.inError.innerText = "";
 				}while(this._shouldRefreshTradeOutput);
-			})().catch(console.error).finally(() => {
+			})().catch((ex: any) => {
+				if (isProbablyTxError(ex)) {
+					const errParts = makeTxExecErrLessFugly(ex);
+					if (errParts) {
+						this.refs.inError.innerText = errParts.errorSource + ": " + errParts.errorDetail;
+					}else{
+						this.refs.inError.innerText = "Transaction Error: " + ex.message;
+					}
+				}else{
+					this.refs.inError.innerText = ex.name + ": " + ex.message;
+				}
+				console.error("refreshTradeOutput:", ex);
+			}).finally(() => {
 				this._refreshingTradeOutput = false;
 			});
 		}

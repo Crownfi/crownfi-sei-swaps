@@ -37,6 +37,11 @@
 	border-image: url("/assets/backgrounds/scroll-quarter-res.png") 162 146 150 150 fill / 81px 73px 75px 75px / 69px 66px 65px stretch;
 }
 
+.input-error {
+	font-size: 12px;
+	color: #f00;
+}
+
 h1 {
 	font-family: "Carattere-Regular";
 	font-size: 78px;
