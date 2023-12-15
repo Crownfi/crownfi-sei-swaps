@@ -1,9 +1,9 @@
 import { encodeSecp256k1Pubkey } from "@cosmjs/amino";
-import { CosmWasmClient, ExecuteInstruction, MsgExecuteContractEncodeObject, SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
+import { CosmWasmClient, ExecuteInstruction, ExecuteResult, MsgExecuteContractEncodeObject, SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import { AccountData, Coin, EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
 import { KNOWN_SEI_PROVIDER_INFO, SeiWallet, getQueryClient, getSigningCosmWasmClient, getCosmWasmClient, KNOWN_SEI_PROVIDERS, KnownSeiProviders } from "@crownfi/sei-js-core";
 import { SeiNetId, getAppChainConfig } from "./chain_config";
-import { GasPrice, isDeliverTxFailure } from "@cosmjs/stargate";
+import { DeliverTxResponse, GasPrice, isDeliverTxFailure } from "@cosmjs/stargate";
 import { setLoading } from "./loading";
 import { QueryMsg as Cw20QueryMsg } from "../contract_schema/token/query";
 import { BalanceResponse as Cw20BalanceResponse } from "../contract_schema/token/responses/balance";
@@ -43,6 +43,8 @@ export function getSelectedChain(): SeiNetId {
 //export interface SeiChainChangedEvent extends CustomEvent<{chainId: SeiNetId}> {};
 export interface SeiWalletChangedEvent extends CustomEvent<{chainId: SeiNetId, address: string, provider: MaybeSelectedProvider}> {};
 
+export interface SeiTransactionConfirmedEvent extends CustomEvent<{chainId: SeiNetId, result: ExecuteResult | DeliverTxResponse}> {};
+
 export type MaybeSelectedProvider = KnownSeiProviders | "seed-wallet" | null;
 
 let preferredSeiProvider: MaybeSelectedProvider = null;
@@ -58,7 +60,7 @@ export async function setPreferredSeiProvider(chainId: SeiNetId, providerId: May
 					provider: providerId
 				},
 				cancelable: false
-			})
+			}) satisfies SeiWalletChangedEvent
 		);
 	}else{
 		let oldProvider = preferredSeiProvider;
@@ -76,7 +78,7 @@ export async function setPreferredSeiProvider(chainId: SeiNetId, providerId: May
 						provider: providerId
 					},
 					cancelable: false
-				})
+				}) satisfies SeiWalletChangedEvent
 			);
 		}catch(ex) {
 			preferredSeiProvider = oldProvider;
@@ -181,21 +183,42 @@ export class ClientEnv {
 		if (!this.isSignable()) {
 			throw new Error("Cannot execute transactions - " + this.readonlyReason);
 		}
+		const chainId = selectedChain;
 		const result = await this.wasmClient.signAndBroadcast(this.account.address, msgs, "auto")
 		if (isDeliverTxFailure(result)) {
 			throw new TransactionError(result.code, result.transactionHash, result.rawLog + "")
 		}
+		window.dispatchEvent(
+			new CustomEvent("seiTransactionConfirmed", {
+				detail: {
+					chainId,
+					result
+				},
+				cancelable: false
+			}) satisfies SeiTransactionConfirmedEvent
+		);
 		return result
 	}
 	async executeContract(contractAddress: string, msg: object, funds?: Coin[]) {
 		if (!this.isSignable()) {
 			throw new Error("Cannot execute transactions - " + this.readonlyReason);
 		}
+		const chainId = selectedChain;
 		if (funds) {
 			// 🙄🙄🙄🙄
 			funds.sort(nativeDenomCompare);
 		}
-		return await this.wasmClient.execute(this.account.address, contractAddress, msg, "auto", undefined, funds)
+		const result = await this.wasmClient.execute(this.account.address, contractAddress, msg, "auto", undefined, funds)
+		window.dispatchEvent(
+			new CustomEvent("seiTransactionConfirmed", {
+				detail: {
+					chainId,
+					result
+				},
+				cancelable: false
+			}) satisfies SeiTransactionConfirmedEvent
+		);
+		return result;
 	}
 	async executeContractMulti(instructions: ExecuteInstruction[]) {
 		if (!this.isSignable()) {
@@ -207,7 +230,18 @@ export class ClientEnv {
 				instructions[i].funds = (instructions[i].funds as Coin[]).sort(nativeDenomCompare);
 			}
 		}
-		return await this.wasmClient.executeMultiple(this.account.address, instructions, "auto")
+		const chainId = selectedChain;
+		const result = await this.wasmClient.executeMultiple(this.account.address, instructions, "auto");
+		window.dispatchEvent(
+			new CustomEvent("seiTransactionConfirmed", {
+				detail: {
+					chainId,
+					result
+				},
+				cancelable: false
+			}) satisfies SeiTransactionConfirmedEvent
+		);
+		return result;
 	}
 	async simulateTransactionButWithActuallyUsefulInformation(messages: readonly EncodeObject[]): Promise<SimulateResponse> {
 		// Because cosmjs says: "Why would anyone want any information other than estimated gas from a simulation?"

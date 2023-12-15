@@ -1,6 +1,6 @@
 import { SeiNetId, getAppChainConfig } from "../../chain_config";
 import { UIAmount, bigIntToStringDecimal, denomToContractAssetInfo, errorDialogIfRejected, isProbablyTxError, makeTxExecErrLessFugly, qa, resolveRoute, stringDecimalToBigInt } from "../../util";
-import { ClientEnv, SeiWalletChangedEvent, getSelectedChain } from "../../wallet-env";
+import { ClientEnv, SeiTransactionConfirmedEvent, SeiWalletChangedEvent, getSelectedChain } from "../../wallet-env";
 import { SwapComponentAutogen } from "./_autogen";
 
 import { ExecuteMsg as RouterContractExecuteMsg } from "../../contract_schema/router/execute";
@@ -91,7 +91,7 @@ export class SwapComponentElement extends SwapComponentAutogen {
 								}
 							} satisfies CW20ExecuteMsg
 						);
-						alert("Transaction confirmed", "Transaction ID:\n" + transactionHash);
+						// alert("Transaction confirmed", "Transaction ID:\n" + transactionHash);
 					}else{
 						const {transactionHash} = await client.executeContract(
 							appConfig.routerAddress,
@@ -103,7 +103,7 @@ export class SwapComponentElement extends SwapComponentAutogen {
 								}
 							]
 						);
-						alert("Transaction confirmed", "Transaction ID:\n" + transactionHash);
+						// alert("Transaction confirmed", "Transaction ID:\n" + transactionHash);
 					}
 					/*
 					const {transactionHash} = await client.executeContract(
@@ -336,6 +336,12 @@ window.addEventListener("seiWalletChanged", ((ev: SeiWalletChangedEvent) => {
 	console.log("seiWalletChanged event detail:", ev.detail);
 	(qa(`div[is="swap-component"]`) as NodeListOf<SwapComponentElement>).forEach(elem => {
 		elem.rebuildPoolList(true);
+	});
+}) as (ev: Event) => void);
+
+window.addEventListener("seiTransactionConfirmed", ((ev: SeiTransactionConfirmedEvent) => {
+	(qa(`div[is="swap-component"]`) as NodeListOf<SwapComponentElement>).forEach(elem => {
+		elem.refreshBalances();
 	});
 }) as (ev: Event) => void);
 

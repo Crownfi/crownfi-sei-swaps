@@ -96,7 +96,7 @@ export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 					});
 					const client = await ClientEnv.get();
 					const {transactionHash} = await client.executeContractMulti(ixs);
-					alert("Transaction confirmed", "Transaction ID:\n" + transactionHash);
+					// alert("Transaction confirmed", "Transaction ID:\n" + transactionHash);
 				}finally{
 					setLoading(false);
 				}
@@ -294,7 +294,7 @@ export class FarmPoolWithdrawDialogElement extends FarmPoolWithdrawDialogAutogen
 							}
 						} satisfies CW20ExecuteMsg
 					);
-					alert("Transaction confirmed", "Transaction ID:\n" + transactionHash);
+					// alert("Transaction confirmed", "Transaction ID:\n" + transactionHash);
 				}finally{
 					setLoading(false);
 				}

@@ -1,6 +1,6 @@
 import { getAppChainConfig } from "./chain_config";
 import { Asset, AssetInfo } from "./contract_schema/pair/query";
-import { showError } from "./popups/error";
+import { showError } from "./popups";
 import { getSelectedChain } from "./wallet-env";
 
 export const q = document.querySelector.bind(document);

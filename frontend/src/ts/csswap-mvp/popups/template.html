@@ -10,3 +10,10 @@
 	<textarea readonly cewt-ref="error-details"></textarea>
 	<button cewt-ref="dismiss-btn">OK</button>
 </template>
+
+<template cewt-name="tx-confirmed-modal" cewt-extends="dialog" cewt-attributes="chain, txhash">
+	<h1>Transaction confirmed</h1>
+	<p>Your transaction has been successfully processed.</p>
+	<p><a href="https://www.seiscan.app/" target="_blank" cewt-ref="tx-link">You may view its details here.</a></p>
+	<button cewt-ref="dismiss-btn">OK</button>
+</template>

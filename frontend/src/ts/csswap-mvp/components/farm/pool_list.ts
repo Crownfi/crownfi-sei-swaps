@@ -1,6 +1,6 @@
 import { SeiNetId, getAppChainConfig } from "../../chain_config";
 import { UIAsset, errorDialogIfRejected, qa } from "../../util";
-import { ClientEnv, SeiWalletChangedEvent, getSelectedChain } from "../../wallet-env";
+import { ClientEnv, SeiTransactionConfirmedEvent, SeiWalletChangedEvent, getSelectedChain } from "../../wallet-env";
 import { FarmPoolComponentAutogen, FarmPoolItemAutogen, FarmPoolItemOptionsAutogen } from "./_autogen";
 
 import { QueryMsg as FactoryContractQueryMsg } from "../../contract_schema/factory/query";
@@ -50,12 +50,10 @@ export class FarmPoolComponentElement extends FarmPoolComponentAutogen {
 FarmPoolComponentElement.registerElement();
 
 window.addEventListener("seiWalletChanged", ((ev: SeiWalletChangedEvent) => {
-	console.log("seiWalletChanged event detail:", ev.detail);
 	(qa(`div[is="farm-pool-component"]`) as NodeListOf<FarmPoolComponentElement>).forEach(elem => {
 		elem.rebuildPoolList(true);
 	});
 }) as (ev: Event) => void);
-
 
 export class FarmPoolItemElement extends FarmPoolItemAutogen {
 	constructor() {
@@ -99,6 +97,15 @@ export class FarmPoolItemElement extends FarmPoolItemAutogen {
 		this.refs.poolName.innerText = poolName;
 		this.refs.iconToken0.src = token0UserInfo.icon;
 		this.refs.iconToken1.src = token1UserInfo.icon;
+		this.refreshPoolStats();
+	}
+	refreshPoolStats() {
+		const poolName = this.pool;
+		if (!poolName) {
+			return;
+		}
+		const appConfig = getAppChainConfig(getSelectedChain());
+		const poolInfo = appConfig.pairs[poolName];
 		errorDialogIfRejected(async () => {
 			const client = await ClientEnv.get();
 			console.log("poolInfo.pool", poolInfo.pool);
@@ -156,6 +163,14 @@ export class FarmPoolItemElement extends FarmPoolItemAutogen {
 	}
 }
 FarmPoolItemElement.registerElement();
+
+window.addEventListener("seiTransactionConfirmed", ((ev: SeiTransactionConfirmedEvent) => {
+	(qa(`div[is="farm-pool-item"]`) as NodeListOf<FarmPoolItemElement>).forEach(elem => {
+		elem.refreshPoolStats();
+	});
+}) as (ev: Event) => void);
+
+
 
 export class FarmPoolItemOptionsElement extends FarmPoolItemOptionsAutogen {
 	constructor(){
@@ -219,6 +234,12 @@ export class FarmPoolItemOptionsElement extends FarmPoolItemOptionsAutogen {
 	}
 }
 FarmPoolItemOptionsElement.registerElement();
+
+window.addEventListener("seiTransactionConfirmed", ((ev: SeiTransactionConfirmedEvent) => {
+	(qa(`div[is="farm-pool-item-options"]`) as NodeListOf<FarmPoolItemOptionsElement>).forEach(elem => {
+		elem.refreshBalances();
+	});
+}) as (ev: Event) => void);
 
 window.addEventListener("seiWalletChanged", ((ev: SeiWalletChangedEvent) => {
 	(qa(`div[is="farm-pool-item-options"]`) as NodeListOf<FarmPoolItemOptionsElement>).forEach(elem => {

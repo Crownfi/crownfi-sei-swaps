@@ -37,21 +37,7 @@ function getPopupModalTemplate(): HTMLTemplateElement {
 export class PopupModalAutogen extends HTMLDialogElement {
 	readonly refs: PopupModalRefs;
 	static get observedAttributes() {
-		return ["heading", "message"];
-	}
-	#attributeHeadingValue: string | null = null;
-	get heading(): string | null {
-		return this.#attributeHeadingValue;
-	}
-	set heading(v: string | null) {
-		if (v == null) {
-			this.removeAttribute("heading");
-		}else{
-			this.setAttribute("heading", v);
-		}
-	}
-	protected onHeadingChanged(oldValue: string | null, newValue: string | null) {
-		// To be overridden by child class
+		return ["message", "heading"];
 	}
 	#attributeMessageValue: string | null = null;
 	get message(): string | null {
@@ -67,15 +53,29 @@ export class PopupModalAutogen extends HTMLDialogElement {
 	protected onMessageChanged(oldValue: string | null, newValue: string | null) {
 		// To be overridden by child class
 	}
+	#attributeHeadingValue: string | null = null;
+	get heading(): string | null {
+		return this.#attributeHeadingValue;
+	}
+	set heading(v: string | null) {
+		if (v == null) {
+			this.removeAttribute("heading");
+		}else{
+			this.setAttribute("heading", v);
+		}
+	}
+	protected onHeadingChanged(oldValue: string | null, newValue: string | null) {
+		// To be overridden by child class
+	}
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
 		switch(name) {
-			case "heading":
-				this.#attributeHeadingValue = newValue;
-				this.onHeadingChanged(oldValue, newValue);
-				break;
 			case "message":
 				this.#attributeMessageValue = newValue;
 				this.onMessageChanged(oldValue, newValue);
+				break;
+			case "heading":
+				this.#attributeHeadingValue = newValue;
+				this.onHeadingChanged(oldValue, newValue);
 				break;
 			default:
 				// Shouldn't happen
@@ -150,21 +150,7 @@ function getErrorModalTemplate(): HTMLTemplateElement {
 export class ErrorModalAutogen extends HTMLDialogElement {
 	readonly refs: ErrorModalRefs;
 	static get observedAttributes() {
-		return ["message", "details", "heading"];
-	}
-	#attributeMessageValue: string | null = null;
-	get message(): string | null {
-		return this.#attributeMessageValue;
-	}
-	set message(v: string | null) {
-		if (v == null) {
-			this.removeAttribute("message");
-		}else{
-			this.setAttribute("message", v);
-		}
-	}
-	protected onMessageChanged(oldValue: string | null, newValue: string | null) {
-		// To be overridden by child class
+		return ["details", "message", "heading"];
 	}
 	#attributeDetailsValue: string | null = null;
 	get details(): string | null {
@@ -178,6 +164,20 @@ export class ErrorModalAutogen extends HTMLDialogElement {
 		}
 	}
 	protected onDetailsChanged(oldValue: string | null, newValue: string | null) {
+		// To be overridden by child class
+	}
+	#attributeMessageValue: string | null = null;
+	get message(): string | null {
+		return this.#attributeMessageValue;
+	}
+	set message(v: string | null) {
+		if (v == null) {
+			this.removeAttribute("message");
+		}else{
+			this.setAttribute("message", v);
+		}
+	}
+	protected onMessageChanged(oldValue: string | null, newValue: string | null) {
 		// To be overridden by child class
 	}
 	#attributeHeadingValue: string | null = null;
@@ -196,13 +196,13 @@ export class ErrorModalAutogen extends HTMLDialogElement {
 	}
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
 		switch(name) {
-			case "message":
-				this.#attributeMessageValue = newValue;
-				this.onMessageChanged(oldValue, newValue);
-				break;
 			case "details":
 				this.#attributeDetailsValue = newValue;
 				this.onDetailsChanged(oldValue, newValue);
+				break;
+			case "message":
+				this.#attributeMessageValue = newValue;
+				this.onMessageChanged(oldValue, newValue);
 				break;
 			case "heading":
 				this.#attributeHeadingValue = newValue;
@@ -235,5 +235,104 @@ export class ErrorModalAutogen extends HTMLDialogElement {
 	}
 	public static registerElement() {
 		customElements.define("error-modal", this, { extends: "dialog"});
+	}
+}
+export class TxConfirmedModalRefs {
+	#element: HTMLElement | ShadowRoot;
+	constructor(element: HTMLElement | ShadowRoot) {
+		this.#element = element;
+	}
+	#txLink?: HTMLAnchorElement;
+	get txLink() {
+		if (this.#txLink === undefined) {
+			this.#txLink = this.#element.querySelector("[cewt-ref=\"tx-link\"]:not(:scope [is] *)")!;
+		}
+		return this.#txLink;
+	}
+	#dismissBtn?: HTMLButtonElement;
+	get dismissBtn() {
+		if (this.#dismissBtn === undefined) {
+			this.#dismissBtn = this.#element.querySelector("[cewt-ref=\"dismiss-btn\"]:not(:scope [is] *)")!;
+		}
+		return this.#dismissBtn;
+	}
+}
+let _templateTxConfirmedModal: HTMLTemplateElement | null = null;
+function getTxConfirmedModalTemplate(): HTMLTemplateElement {
+	if (_templateTxConfirmedModal == null) {
+		 _templateTxConfirmedModal = document.getElementById("cewt-template-tx-confirmed-modal") as HTMLTemplateElement;
+	}
+	return _templateTxConfirmedModal;
+}
+export class TxConfirmedModalAutogen extends HTMLDialogElement {
+	readonly refs: TxConfirmedModalRefs;
+	static get observedAttributes() {
+		return ["chain", "txhash"];
+	}
+	#attributeChainValue: string | null = null;
+	get chain(): string | null {
+		return this.#attributeChainValue;
+	}
+	set chain(v: string | null) {
+		if (v == null) {
+			this.removeAttribute("chain");
+		}else{
+			this.setAttribute("chain", v);
+		}
+	}
+	protected onChainChanged(oldValue: string | null, newValue: string | null) {
+		// To be overridden by child class
+	}
+	#attributeTxhashValue: string | null = null;
+	get txhash(): string | null {
+		return this.#attributeTxhashValue;
+	}
+	set txhash(v: string | null) {
+		if (v == null) {
+			this.removeAttribute("txhash");
+		}else{
+			this.setAttribute("txhash", v);
+		}
+	}
+	protected onTxhashChanged(oldValue: string | null, newValue: string | null) {
+		// To be overridden by child class
+	}
+	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
+		switch(name) {
+			case "chain":
+				this.#attributeChainValue = newValue;
+				this.onChainChanged(oldValue, newValue);
+				break;
+			case "txhash":
+				this.#attributeTxhashValue = newValue;
+				this.onTxhashChanged(oldValue, newValue);
+				break;
+			default:
+				// Shouldn't happen
+		}
+	}
+	constructor() {
+		super();
+		if (this.childElementCount == 0) {
+			this.appendChild(
+				getTxConfirmedModalTemplate()
+					.content
+					.cloneNode(true)
+			);
+		}
+		this.setAttribute("is", "tx-confirmed-modal"); // allow for easy query selecting
+		this.refs = new TxConfirmedModalRefs(this);
+	}
+	connectedCallback() {
+		// To be overridden by child class
+	}
+	disconnectedCallback() {
+		// To be overridden by child class
+	}
+	adoptedCallback() {
+		// To be overridden by child class
+	}
+	public static registerElement() {
+		customElements.define("tx-confirmed-modal", this, { extends: "dialog"});
 	}
 }
