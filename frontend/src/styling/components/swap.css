@@ -53,6 +53,14 @@ div[is="swap-component"] {
 	text-align: right;
 }
 
+.swap-coin-inputs input[type=number]::-webkit-inner-spin-button, 
+.swap-coin-inputs input[type=number]::-webkit-outer-spin-button { 
+	-webkit-appearance: none; 
+}
+.swap-coin-inputs input[type=number] {
+	-moz-appearance: textfield;
+}
+
 .swap-coin-inputs button {
 	padding: 4px 6px;
 	border-radius: 4px;
