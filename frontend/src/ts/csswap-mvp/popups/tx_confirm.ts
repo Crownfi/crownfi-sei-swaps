@@ -21,10 +21,10 @@ class PopupModalElement extends TxConfirmedModalAutogen {
 		});
 		this.refs.dismissBtn.onclick = () => {this.close()};
 	}
-	protected onHeadingChanged(oldValue: string | null, newValue: string | null) {
+	protected onChainChanged(oldValue: string | null, newValue: string | null) {
 		this.#updateLink();
 	}
-	protected onMessageChanged(oldValue: string | null, newValue: string | null) {
+	protected onTxhashChanged(oldValue: string | null, newValue: string | null) {
 		this.#updateLink();
 	}
 	#updateLink() {
