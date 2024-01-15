@@ -12,7 +12,7 @@ for c in "$projectPath"/contracts/*; do
   fi
 done
 
-for c in "$projectPath"/contracts/periphery/*; do
-  echo "--> cd $c && cargo schema";
-  (cd $c && cargo schema)
-done
+# for c in "$projectPath"/contracts/periphery/*; do
+#  echo "--> cd $c && cargo schema";
+#  (cd $c && cargo schema)
+#done

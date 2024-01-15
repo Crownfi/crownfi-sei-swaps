@@ -4,7 +4,7 @@ use std::fmt;
 use crate::cosmwasm_ext::DecimalToInteger;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    coin, from_slice, to_binary, Addr, Api, BankMsg, Coin, ConversionOverflowError, CosmosMsg,
+    coin, from_json, to_json_binary, Addr, Api, BankMsg, Coin, ConversionOverflowError, CosmosMsg,
     CustomMsg, CustomQuery, Decimal256, Fraction, MessageInfo, QuerierWrapper, StdError, StdResult,
     Uint128, Uint256, WasmMsg,
 };
@@ -171,7 +171,7 @@ impl Asset {
         match &self.info {
             AssetInfo::Token { contract_addr } => Ok(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: contract_addr.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
                     recipient,
                     amount: self.amount,
                 })?,
@@ -320,7 +320,7 @@ impl KeyDeserialize for &AssetInfo {
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        from_slice(&value)
+        from_json(&value)
     }
 }
 

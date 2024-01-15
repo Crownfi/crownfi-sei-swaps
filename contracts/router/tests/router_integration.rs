@@ -6,7 +6,7 @@ use crate::factory_helper::{instantiate_token, mint, FactoryHelper};
 use astroport::asset::token_asset_info;
 use astroport::factory::PairType;
 use astroport::router::{ExecuteMsg, InstantiateMsg, SwapOperation};
-use cosmwasm_std::{to_binary, Addr, Empty, StdError};
+use cosmwasm_std::{to_json_binary, Addr, Empty, StdError};
 use cw20::Cw20ExecuteMsg;
 use cw_multi_test::{App, Contract, ContractWrapper, Executor};
 
@@ -62,7 +62,7 @@ fn router_does_not_enforce_spread_assertion() {
         &Cw20ExecuteMsg::Send {
             contract: router.to_string(),
             amount: 50_000_000000u128.into(),
-            msg: to_binary(&ExecuteMsg::ExecuteSwapOperations {
+            msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperations {
                 operations: vec![
                     SwapOperation::AstroSwap {
                         offer_asset_info: token_asset_info(token_x.clone()),
@@ -92,7 +92,7 @@ fn router_does_not_enforce_spread_assertion() {
             &Cw20ExecuteMsg::Send {
                 contract: router.to_string(),
                 amount: 50_000_000000u128.into(),
-                msg: to_binary(&ExecuteMsg::ExecuteSwapOperations {
+                msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperations {
                     operations: vec![SwapOperation::AstroSwap {
                         offer_asset_info: token_asset_info(token_x.clone()),
                         ask_asset_info: token_asset_info(token_y.clone()),
@@ -120,7 +120,7 @@ fn test_swap_route() {
     use astroport::router::{
         ExecuteMsg, InstantiateMsg, QueryMsg, SimulateSwapOperationsResponse, SwapOperation,
     };
-    use cosmwasm_std::{to_binary, Addr, Uint128};
+    use cosmwasm_std::{to_json_binary, Addr, Uint128};
     use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
     let mut app = App::default();
     let owner = Addr::unchecked("owner");
@@ -273,7 +273,7 @@ fn test_swap_route() {
         &Cw20ExecuteMsg::Send {
             contract: router.to_string(),
             amount: swap_amount,
-            msg: to_binary(&ExecuteMsg::ExecuteSwapOperations {
+            msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperations {
                 operations: swap_operations.clone(),
                 minimum_receive: None,
                 to: None,
@@ -360,7 +360,7 @@ fn test_swap_route() {
         &Cw20ExecuteMsg::Send {
             contract: router.to_string(),
             amount: swap_amount,
-            msg: to_binary(&ExecuteMsg::ExecuteSwapOperations {
+            msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperations {
                 operations: swap_operations.clone(),
                 minimum_receive: None,
                 to: None,
@@ -584,7 +584,7 @@ fn test_swap_route() {
         &Cw20ExecuteMsg::Send {
             contract: router.to_string(),
             amount: swap_amount,
-            msg: to_binary(&ExecuteMsg::ExecuteSwapOperations {
+            msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperations {
                 operations: swap_operations.clone(),
                 minimum_receive: Some(donated_atom),
                 to: None,

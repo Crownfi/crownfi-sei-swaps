@@ -89,8 +89,8 @@ fn update_config() {
             &owner,
             Some(200u64),
             Some("fee".to_string()),
-            Some("generator".to_string()),
-            None,
+            // Some("generator".to_string()),
+            // None,
         )
         .unwrap();
 
@@ -101,10 +101,12 @@ fn update_config() {
 
     assert_eq!(200u64, config_res.token_code_id);
     assert_eq!("fee", config_res.fee_address.unwrap().to_string());
+    /* 
     assert_eq!(
         "generator",
         config_res.generator_address.unwrap().to_string()
     );
+    */
 
     // Unauthorized err
     let res = helper
@@ -113,8 +115,8 @@ fn update_config() {
             &Addr::unchecked("not_owner"),
             None,
             None,
-            None,
-            None,
+            // None,
+            // None,
         )
         .unwrap_err();
     assert_eq!(res.root_cause().to_string(), "Unauthorized");

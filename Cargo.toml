@@ -5,9 +5,7 @@ members = [
   "contracts/factory",
   "contracts/pair",
   "contracts/router",
-  "contracts/token",
-  "templates/*",
-  "contracts/periphery/*",
+  "contracts/token"
 ]
 
 [profile.release]

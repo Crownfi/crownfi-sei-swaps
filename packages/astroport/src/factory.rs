@@ -15,7 +15,7 @@ pub struct Config {
     /// CW20 token contract code identifier
     pub token_code_id: u64,
     /// Generator contract address
-    pub generator_address: Option<Addr>,
+   //  pub generator_address: Option<Addr>,
     /// Contract address to send governance fees to (the Maker contract)
     pub fee_address: Option<Addr>
 }
@@ -99,8 +99,8 @@ pub enum ExecuteMsg {
         token_code_id: Option<u64>,
         /// Contract address to send governance fees to (the Maker)
         fee_address: Option<String>,
-        /// Contract address where Lp tokens can be auto_staked after someone provides liquidity in an incentivized Astroport pool
-        generator_address: Option<String>
+        // Contract address where Lp tokens can be auto_staked after someone provides liquidity in an incentivized Astroport pool
+        // generator_address: Option<String>
     },
     /// UpdatePairConfig updates the config for a pair type.
     UpdatePairConfig {
@@ -178,8 +178,8 @@ pub struct ConfigResponse {
     pub token_code_id: u64,
     /// Address of contract to send governance fees to (the Maker)
     pub fee_address: Option<Addr>,
-    /// Address of contract used to auto_stake LP tokens for Astroport pairs that are incentivized
-    pub generator_address: Option<Addr>
+    // Address of contract used to auto_stake LP tokens for Astroport pairs that are incentivized
+    // pub generator_address: Option<Addr>
 }
 
 /// This structure stores the parameters used in a migration message.

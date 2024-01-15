@@ -27,13 +27,13 @@ pub struct ConfigV120 {
 pub const CONFIG_V120: Item<ConfigV120> = Item::new("config");
 
 /// Migrate config
-pub fn migrate_configs(deps: &mut DepsMut, msg: &MigrationMsg) -> StdResult<()> {
+pub fn migrate_configs(deps: &mut DepsMut, _msg: &MigrationMsg) -> StdResult<()> {
     let old_cfg = CONFIG_V120.load(deps.storage)?;
 
     let new_config = Config {
         owner: old_cfg.owner,
         token_code_id: old_cfg.token_code_id,
-        generator_address: old_cfg.generator_address,
+        // generator_address: old_cfg.generator_address,
         fee_address: old_cfg.fee_address,
     };
 

@@ -3,7 +3,7 @@ use std::collections::HashSet;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    attr, from_binary, to_binary, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Order, Reply,
+    attr, from_json, to_json_binary, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Order, Reply,
     ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgResponse, SubMsgResult, WasmMsg,
 };
 use cw2::{get_contract_version, set_contract_version};
@@ -15,7 +15,6 @@ use astroport::factory::{
     Config, ConfigResponse, ExecuteMsg, FeeInfoResponse, InstantiateMsg, MigrateMsg, PairConfig,
     PairType, PairsResponse, QueryMsg,
 };
-use astroport::generator::ExecuteMsg::DeactivatePool;
 use astroport::pair::InstantiateMsg as PairInstantiateMsg;
 use itertools::Itertools;
 
@@ -51,10 +50,10 @@ pub fn instantiate(
         owner: deps.api.addr_validate(&msg.owner)?,
         token_code_id: msg.token_code_id,
         fee_address: None,
-        generator_address: None
+        // generator_address: None
     };
 
-    config.generator_address = addr_opt_validate(deps.api, &msg.generator_address)?;
+    // config.generator_address = addr_opt_validate(deps.api, &msg.generator_address)?;
 
     config.fee_address = addr_opt_validate(deps.api, &msg.fee_address)?;
 
@@ -86,8 +85,8 @@ pub struct UpdateConfig {
     token_code_id: Option<u64>,
     /// Contract address to send governance fees to (the Maker)
     fee_address: Option<String>,
-    /// Generator contract address
-    generator_address: Option<String>,
+    // Generator contract address
+    // generator_address: Option<String>,
 }
 
 /// Exposes all the execute functions available in the contract.
@@ -128,14 +127,14 @@ pub fn execute(
         ExecuteMsg::UpdateConfig {
             token_code_id,
             fee_address,
-            generator_address
+            // generator_address
         } => execute_update_config(
             deps,
             info,
             UpdateConfig {
                 token_code_id,
                 fee_address,
-                generator_address
+                // generator_address
             },
         ),
         ExecuteMsg::UpdatePairConfig { config } => execute_update_pair_config(deps, info, config),
@@ -202,10 +201,12 @@ pub fn execute_update_config(
         config.fee_address = Some(deps.api.addr_validate(&fee_address)?);
     }
 
+    /* 
     if let Some(generator_address) = param.generator_address {
         // Validate the address format
         config.generator_address = Some(deps.api.addr_validate(&generator_address)?);
     }
+    */
 
     if let Some(token_code_id) = param.token_code_id {
         config.token_code_id = token_code_id;
@@ -288,7 +289,7 @@ pub fn execute_create_pair(
         msg: WasmMsg::Instantiate {
             admin: Some(config.owner.to_string()),
             code_id: pair_config.code_id,
-            msg: to_binary(&PairInstantiateMsg {
+            msg: to_json_binary(&PairInstantiateMsg {
                 asset_infos: asset_infos.clone(),
                 token_code_id: config.token_code_id,
                 factory_addr: env.contract.address.to_string(),
@@ -364,7 +365,8 @@ pub fn deregister(
     let pair_addr = PAIRS.load(deps.storage, &pair_key(&asset_infos))?;
     PAIRS.remove(deps.storage, &pair_key(&asset_infos));
 
-    let mut messages: Vec<CosmosMsg> = vec![];
+    let messages: Vec<CosmosMsg> = vec![];
+    /* 
     if let Some(generator) = config.generator_address {
         let pair_info = query_pair_info(&deps.querier, &pair_addr)?;
 
@@ -377,7 +379,7 @@ pub fn deregister(
             funds: vec![],
         }));
     }
-
+    */
     Ok(Response::new().add_messages(messages).add_attributes(vec![
         attr("action", "deregister"),
         attr("pair_contract_addr", pair_addr),
@@ -400,13 +402,13 @@ pub fn deregister(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => to_binary(&query_config(deps)?),
-        QueryMsg::Pair { asset_infos } => to_binary(&query_pair(deps, asset_infos)?),
+        QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
+        QueryMsg::Pair { asset_infos } => to_json_binary(&query_pair(deps, asset_infos)?),
         QueryMsg::Pairs { start_after, limit } => {
-            to_binary(&query_pairs(deps, start_after, limit)?)
+            to_json_binary(&query_pairs(deps, start_after, limit)?)
         }
-        QueryMsg::FeeInfo { pair_type } => to_binary(&query_fee_info(deps, pair_type)?),
-        QueryMsg::BlacklistedPairTypes {} => to_binary(&query_blacklisted_pair_types(deps)?),
+        QueryMsg::FeeInfo { pair_type } => to_json_binary(&query_fee_info(deps, pair_type)?),
+        QueryMsg::BlacklistedPairTypes {} => to_json_binary(&query_blacklisted_pair_types(deps)?),
     }
 }
 
@@ -438,7 +440,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
             .map(|item| Ok(item?.1))
             .collect::<StdResult<Vec<_>>>()?,
         fee_address: config.fee_address,
-        generator_address: config.generator_address
+        // generator_address: config.generator_address
     };
 
     Ok(resp)
@@ -490,7 +492,7 @@ pub fn migrate(mut deps: DepsMut, _env: Env, msg: MigrateMsg) -> Result<Response
     match contract_version.contract.as_ref() {
         "astroport-factory" => match contract_version.version.as_ref() {
             "1.2.0" | "1.2.1" => {
-                let msg: migration::MigrationMsg = from_binary(&msg.params)?;
+                let msg: migration::MigrationMsg = from_json(&msg.params)?;
                 migrate_configs(&mut deps, &msg)?;
             }
             "1.3.0" | "1.5.1" => {}

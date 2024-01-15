@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    entry_point, from_binary, to_binary, Addr, Api, Binary, CosmosMsg, Decimal, Deps, DepsMut, Env,
+    entry_point, from_json, to_json_binary, Addr, Api, Binary, CosmosMsg, Decimal, Deps, DepsMut, Env,
     MessageInfo, Response, StdResult, Uint128, WasmMsg,
 };
 use cw2::{get_contract_version, set_contract_version};
@@ -114,7 +114,7 @@ pub fn receive_cw20(
     env: Env,
     cw20_msg: Cw20ReceiveMsg,
 ) -> Result<Response, ContractError> {
-    match from_binary(&cw20_msg.msg)? {
+    match from_json(&cw20_msg.msg)? {
         Cw20HookMsg::ExecuteSwapOperations {
             operations,
             minimum_receive,
@@ -164,7 +164,7 @@ pub fn execute_swap_operations(
             Ok(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: env.contract.address.to_string(),
                 funds: vec![],
-                msg: to_binary(&ExecuteMsg::ExecuteSwapOperation {
+                msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperation {
                     operation: op,
                     to: if operation_index == operations_len - 1 {
                         Some(to.to_string())
@@ -184,7 +184,7 @@ pub fn execute_swap_operations(
         messages.push(CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: env.contract.address.to_string(),
             funds: vec![],
-            msg: to_binary(&ExecuteMsg::AssertMinimumReceive {
+            msg: to_json_binary(&ExecuteMsg::AssertMinimumReceive {
                 asset_info: target_asset_info,
                 prev_balance: receiver_balance,
                 minimum_receive,
@@ -236,11 +236,11 @@ fn assert_minimum_receive(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
     match msg {
-        QueryMsg::Config {} => Ok(to_binary(&query_config(deps)?)?),
+        QueryMsg::Config {} => Ok(to_json_binary(&query_config(deps)?)?),
         QueryMsg::SimulateSwapOperations {
             offer_amount,
             operations,
-        } => Ok(to_binary(&simulate_swap_operations(
+        } => Ok(to_json_binary(&simulate_swap_operations(
             deps,
             offer_amount,
             operations,

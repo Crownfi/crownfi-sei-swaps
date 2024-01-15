@@ -1,5 +1,5 @@
 use cosmwasm_std::testing::{mock_env, mock_info, MOCK_CONTRACT_ADDR};
-use cosmwasm_std::{from_binary, to_binary, Addr, Coin, ReplyOn, SubMsg, Uint128, WasmMsg};
+use cosmwasm_std::{from_json, to_json_binary, Addr, Coin, ReplyOn, SubMsg, Uint128, WasmMsg};
 
 use crate::contract::{execute, instantiate, query};
 use crate::error::ContractError;
@@ -28,8 +28,9 @@ fn proper_initialization() {
     let _res = instantiate(deps.as_mut(), env.clone(), info, msg).unwrap();
 
     // It worked, let's query the state
-    let config: ConfigResponse =
-        from_binary(&query(deps.as_ref(), env, QueryMsg::Config {}).unwrap()).unwrap();
+    let config: ConfigResponse = from_json(
+        &query(deps.as_ref(), env, QueryMsg::Config {}).unwrap()
+    ).unwrap();
     assert_eq!("astroportfactory", config.astroport_factory.as_str());
 }
 
@@ -100,7 +101,7 @@ fn execute_swap_operations() {
                 msg: WasmMsg::Execute {
                     contract_addr: String::from(MOCK_CONTRACT_ADDR),
                     funds: vec![],
-                    msg: to_binary(&ExecuteMsg::ExecuteSwapOperation {
+                    msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperation {
                         operation: SwapOperation::AstroSwap {
                             offer_asset_info: AssetInfo::NativeToken {
                                 denom: "ukrw".to_string(),
@@ -124,7 +125,7 @@ fn execute_swap_operations() {
                 msg: WasmMsg::Execute {
                     contract_addr: String::from(MOCK_CONTRACT_ADDR),
                     funds: vec![],
-                    msg: to_binary(&ExecuteMsg::ExecuteSwapOperation {
+                    msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperation {
                         operation: SwapOperation::AstroSwap {
                             offer_asset_info: AssetInfo::Token {
                                 contract_addr: Addr::unchecked("asset0001"),
@@ -148,7 +149,7 @@ fn execute_swap_operations() {
                 msg: WasmMsg::Execute {
                     contract_addr: String::from(MOCK_CONTRACT_ADDR),
                     funds: vec![],
-                    msg: to_binary(&ExecuteMsg::ExecuteSwapOperation {
+                    msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperation {
                         operation: SwapOperation::AstroSwap {
                             offer_asset_info: AssetInfo::NativeToken {
                                 denom: "uluna".to_string(),
@@ -172,7 +173,7 @@ fn execute_swap_operations() {
                 msg: WasmMsg::Execute {
                     contract_addr: String::from(MOCK_CONTRACT_ADDR),
                     funds: vec![],
-                    msg: to_binary(&ExecuteMsg::AssertMinimumReceive {
+                    msg: to_json_binary(&ExecuteMsg::AssertMinimumReceive {
                         asset_info: AssetInfo::Token {
                             contract_addr: Addr::unchecked("asset0002"),
                         },
@@ -193,7 +194,7 @@ fn execute_swap_operations() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: String::from("addr0000"),
         amount: Uint128::from(1000000u128),
-        msg: to_binary(&Cw20HookMsg::ExecuteSwapOperations {
+        msg: to_json_binary(&Cw20HookMsg::ExecuteSwapOperations {
             operations: vec![
                 SwapOperation::AstroSwap {
                     offer_asset_info: AssetInfo::NativeToken {
@@ -237,7 +238,7 @@ fn execute_swap_operations() {
                 msg: WasmMsg::Execute {
                     contract_addr: String::from(MOCK_CONTRACT_ADDR),
                     funds: vec![],
-                    msg: to_binary(&ExecuteMsg::ExecuteSwapOperation {
+                    msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperation {
                         operation: SwapOperation::AstroSwap {
                             offer_asset_info: AssetInfo::NativeToken {
                                 denom: "ukrw".to_string(),
@@ -261,7 +262,7 @@ fn execute_swap_operations() {
                 msg: WasmMsg::Execute {
                     contract_addr: String::from(MOCK_CONTRACT_ADDR),
                     funds: vec![],
-                    msg: to_binary(&ExecuteMsg::ExecuteSwapOperation {
+                    msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperation {
                         operation: SwapOperation::AstroSwap {
                             offer_asset_info: AssetInfo::Token {
                                 contract_addr: Addr::unchecked("asset0001"),
@@ -285,7 +286,7 @@ fn execute_swap_operations() {
                 msg: WasmMsg::Execute {
                     contract_addr: String::from(MOCK_CONTRACT_ADDR),
                     funds: vec![],
-                    msg: to_binary(&ExecuteMsg::ExecuteSwapOperation {
+                    msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperation {
                         operation: SwapOperation::AstroSwap {
                             offer_asset_info: AssetInfo::NativeToken {
                                 denom: "uluna".to_string(),
@@ -363,10 +364,10 @@ fn execute_swap_operation() {
             msg: WasmMsg::Execute {
                 contract_addr: String::from("asset"),
                 funds: vec![],
-                msg: to_binary(&Cw20ExecuteMsg::Send {
+                msg: to_json_binary(&Cw20ExecuteMsg::Send {
                     contract: String::from("pair"),
                     amount: Uint128::new(1000000u128),
-                    msg: to_binary(&astroport::pair::Cw20HookMsg::Swap {
+                    msg: to_json_binary(&astroport::pair::Cw20HookMsg::Swap {
                         ask_asset_info: Some(native_asset_info("uusd".to_string())),
                         belief_price: None,
                         max_spread: None,
@@ -424,8 +425,9 @@ fn query_buy_with_routes() {
         (&"asset0000uluna".to_string(), &String::from("pair0001")),
     ]);
 
-    let res: SimulateSwapOperationsResponse =
-        from_binary(&query(deps.as_ref(), env.clone(), msg).unwrap()).unwrap();
+    let res: SimulateSwapOperationsResponse = from_json(
+        &query(deps.as_ref(), env.clone(), msg).unwrap()
+    ).unwrap();
     assert_eq!(
         res,
         SimulateSwapOperationsResponse {
