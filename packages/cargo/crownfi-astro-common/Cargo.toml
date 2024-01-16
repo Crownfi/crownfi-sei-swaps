@@ -1,0 +1,28 @@
+[package]
+name = "crownfi-astro-common"
+version = "3.3.2"
+authors = ["Aritz Beobide-Cardinal <aritz@crownfi.io>", "Astroport"]
+edition = "2021"
+description = "Common types for CrownFi contracts based on astroport"
+license = "Apache-2.0"
+repository = "https://github.com/Crownfi/csswap-mvp"
+homepage = "https://crownfi.io"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+# for quicker tests, cargo test --lib
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+
+[dependencies]
+cw20 = { version = "0.15" }
+cosmwasm-std = { version = "1.1" }
+uint = "0.9"
+cw-storage-plus = "0.15"
+itertools = "0.10"
+cosmwasm-schema = "1.1"
+cw-utils = "1.0"
+
+[dev-dependencies]
+test-case = "3.1.0"

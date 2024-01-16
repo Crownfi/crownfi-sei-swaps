@@ -1,6 +1,6 @@
 # csswap-mvp
 
-MVP for Crownfi's Sei Swapper, currently a fork of `astroport-core` and `sparrowswap`
+This is the MVP of CrownFi's Sei swaps. Currently a minimal fork of `astroport-core`
 
 ## Contracts diagram
 
@@ -10,12 +10,10 @@ MVP for Crownfi's Sei Swapper, currently a fork of `astroport-core` and `sparrow
 
 | Name                                                       | Description                                  |
 | ---------------------------------------------------------- | -------------------------------------------- |
-| [`factory`](contracts/factory)                             | Pool creation factory                        |
-| [`pair`](contracts/pair)                                   | Pair with x*y=k curve                        |
-| [`token`](contracts/token)                                 | CW20 token implementation |
-| [`router`](contracts/router)                               | Multi-hop trade router                       |
-| [`oracle`](contracts/periphery/oracle)                     | TWAP oracles for x*y=k pool types            |
-| [`whitelist`](contracts/whitelist)                         | CW1 whitelist contract                       |
+| [`factory`](packages/cargo/crownfi-astro-factory)                             | Pool creation factory                        |
+| [`pair`](packages/cargo/crownfi-astro-pair)                                   | Pair with x*y=k curve                        |
+| [`token`](packages/cargo/crownfi-astro-token)                                 | CW20 token implementation |
+| [`router`](packages/cargo/crownfi-astro-router)                               | Multi-hop trade router                       |
 
 ## Building Contracts
 

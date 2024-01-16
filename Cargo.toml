@@ -1,11 +1,9 @@
 [workspace]
 resolver = "2"
 members = [
-  "packages/*",
-  "contracts/factory",
-  "contracts/pair",
-  "contracts/router",
-  "contracts/token"
+  "packages/cargo/*",
+  # Because the "CosmWasm/rust-optimizer" script is hard coded for contracts to be here
+  "contracts/*"
 ]
 
 [profile.release]

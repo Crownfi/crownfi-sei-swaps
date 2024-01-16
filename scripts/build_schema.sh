@@ -6,7 +6,7 @@ set -o pipefail
 projectPath=$(cd "$(dirname "${0}")" && cd ../ && pwd)
 
 for c in "$projectPath"/contracts/*; do
-  if [[ "$c" != *"periphery" ]]; then
+  if [ -d "$c/examples" ]; then
       echo "--> cd $c && cargo schema";
       (cd $c && cargo schema)
   fi
