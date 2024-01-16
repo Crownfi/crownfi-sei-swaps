@@ -2,7 +2,6 @@ pub mod asset;
 pub mod common;
 pub mod cosmwasm_ext;
 pub mod factory;
-pub mod generator;
 pub mod pair;
 pub mod querier;
 pub mod restricted_vector;
