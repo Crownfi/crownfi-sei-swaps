@@ -1,5 +1,5 @@
 use crate::state::{CONFIG, PAIR_CONFIGS};
-use crownfi_astro_common::factory::{Config, PairConfig, PairType};
+use crownfi_astro_common::factory::{AstroFactoryConfig, AstroFactoryPairConfig, AstroPairType};
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, DepsMut, StdError, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
@@ -30,7 +30,7 @@ pub const CONFIG_V120: Item<ConfigV120> = Item::new("config");
 pub fn migrate_configs(deps: &mut DepsMut, _msg: &MigrationMsg) -> StdResult<()> {
     let old_cfg = CONFIG_V120.load(deps.storage)?;
 
-    let new_config = Config {
+    let new_config = AstroFactoryConfig {
         owner: old_cfg.owner,
         token_code_id: old_cfg.token_code_id,
         // generator_address: old_cfg.generator_address,
@@ -73,13 +73,13 @@ pub fn migrate_pair_configs(storage: &mut dyn Storage) -> Result<(), StdError> {
     for key in keys {
         let old_pair_configs = OLD_PAIR_CONFIGS.load(storage, key.clone())?;
         let pair_type = match old_pair_configs.pair_type.clone() {
-            OldPairType::Xyk {} => PairType::Xyk {},
-            OldPairType::Stable {} => PairType::Stable {},
-            OldPairType::Concentrated {} => PairType::Custom("concentrated".to_string()),
-            OldPairType::Custom(pair_type) => PairType::Custom(pair_type),
+            OldPairType::Xyk {} => AstroPairType::Xyk {},
+            OldPairType::Stable {} => AstroPairType::Stable {},
+            OldPairType::Concentrated {} => AstroPairType::Custom("concentrated".to_string()),
+            OldPairType::Custom(pair_type) => AstroPairType::Custom(pair_type),
         };
 
-        let pair_config = PairConfig {
+        let pair_config = AstroFactoryPairConfig {
             code_id: old_pair_configs.code_id,
             pair_type: pair_type.clone(),
             total_fee_bps: old_pair_configs.total_fee_bps,

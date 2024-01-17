@@ -6,7 +6,7 @@ use cosmwasm_std::{attr, Addr};
 
 use crownfi_astro_common::asset::{AssetInfo, PairInfo};
 use crownfi_astro_common::factory::{
-    ConfigResponse, ExecuteMsg, FeeInfoResponse, InstantiateMsg, PairConfig, PairType, QueryMsg,
+    AstroFactoryConfigResponse, AstroFactoryExecuteMsg, AstroFactoryFeeInfoResponse, AstroFactoryInstantiateMsg, AstroFactoryPairConfig, AstroPairType, AstroFactoryQueryMsg,
 };
 
 use crate::factory_helper::{instantiate_token, FactoryHelper};
@@ -37,16 +37,16 @@ fn proper_initialization() {
 
     let factory_code_id = store_factory_code(&mut app);
 
-    let pair_configs = vec![PairConfig {
+    let pair_configs = vec![AstroFactoryPairConfig {
         code_id: 321,
-        pair_type: PairType::Xyk {},
+        pair_type: AstroPairType::Xyk {},
         total_fee_bps: 100,
         maker_fee_bps: 10,
         is_disabled: false,
         is_generator_disabled: false,
     }];
 
-    let msg = InstantiateMsg {
+    let msg = AstroFactoryInstantiateMsg {
         pair_configs: pair_configs.clone(),
         token_code_id: 123,
         fee_address: None,
@@ -65,8 +65,8 @@ fn proper_initialization() {
         )
         .unwrap();
 
-    let msg = QueryMsg::Config {};
-    let config_res: ConfigResponse = app
+    let msg = AstroFactoryQueryMsg::Config {};
+    let config_res: AstroFactoryConfigResponse = app
         .wrap()
         .query_wasm_smart(&factory_instance, &msg)
         .unwrap();
@@ -94,9 +94,9 @@ fn update_config() {
         )
         .unwrap();
 
-    let config_res: ConfigResponse = app
+    let config_res: AstroFactoryConfigResponse = app
         .wrap()
-        .query_wasm_smart(&helper.factory, &QueryMsg::Config {})
+        .query_wasm_smart(&helper.factory, &AstroFactoryQueryMsg::Config {})
         .unwrap();
 
     assert_eq!(200u64, config_res.token_code_id);
@@ -144,7 +144,7 @@ fn test_create_pair() {
     );
 
     let err = helper
-        .create_pair(&mut app, &owner, PairType::Xyk {}, [&token1, &token1], None)
+        .create_pair(&mut app, &owner, AstroPairType::Xyk {}, [&token1, &token1], None)
         .unwrap_err();
     assert_eq!(
         err.root_cause().to_string(),
@@ -152,11 +152,11 @@ fn test_create_pair() {
     );
 
     let res = helper
-        .create_pair(&mut app, &owner, PairType::Xyk {}, [&token1, &token2], None)
+        .create_pair(&mut app, &owner, AstroPairType::Xyk {}, [&token1, &token2], None)
         .unwrap();
 
     let err = helper
-        .create_pair(&mut app, &owner, PairType::Xyk {}, [&token1, &token2], None)
+        .create_pair(&mut app, &owner, AstroPairType::Xyk {}, [&token1, &token2], None)
         .unwrap_err();
     assert_eq!(err.root_cause().to_string(), "Pair was already created");
 
@@ -170,7 +170,7 @@ fn test_create_pair() {
         .wrap()
         .query_wasm_smart(
             helper.factory.clone(),
-            &QueryMsg::Pair {
+            &AstroFactoryQueryMsg::Pair {
                 asset_infos: vec![
                     AssetInfo::Token {
                         contract_addr: token1.clone(),
@@ -192,10 +192,10 @@ fn test_create_pair() {
     app.execute_contract(
         owner.clone(),
         helper.factory.clone(),
-        &ExecuteMsg::UpdatePairConfig {
-            config: PairConfig {
+        &AstroFactoryExecuteMsg::UpdatePairConfig {
+            config: AstroFactoryPairConfig {
                 code_id: 0,
-                pair_type: PairType::Custom("Custom".to_string()),
+                pair_type: AstroPairType::Custom("Custom".to_string()),
                 total_fee_bps: 100,
                 maker_fee_bps: 40,
                 is_disabled: true,
@@ -218,7 +218,7 @@ fn test_create_pair() {
         .create_pair(
             &mut app,
             &Addr::unchecked("someone"),
-            PairType::Custom("Custom".to_string()),
+            AstroPairType::Custom("Custom".to_string()),
             [&token1, &token3],
             None,
         )
@@ -226,12 +226,12 @@ fn test_create_pair() {
     assert_eq!(err.root_cause().to_string(), "Pair config disabled");
 
     // Query fee info
-    let fee_info: FeeInfoResponse = app
+    let fee_info: AstroFactoryFeeInfoResponse = app
         .wrap()
         .query_wasm_smart(
             &helper.factory,
-            &QueryMsg::FeeInfo {
-                pair_type: PairType::Custom("Custom".to_string()),
+            &AstroFactoryQueryMsg::FeeInfo {
+                pair_type: AstroPairType::Custom("Custom".to_string()),
             },
         )
         .unwrap();
@@ -239,11 +239,11 @@ fn test_create_pair() {
     assert_eq!(40, fee_info.maker_fee_bps);
 
     // query blacklisted pairs
-    let pair_types: Vec<PairType> = app
+    let pair_types: Vec<AstroPairType> = app
         .wrap()
-        .query_wasm_smart(&helper.factory, &QueryMsg::BlacklistedPairTypes {})
+        .query_wasm_smart(&helper.factory, &AstroFactoryQueryMsg::BlacklistedPairTypes {})
         .unwrap();
-    assert_eq!(pair_types, vec![PairType::Custom("Custom".to_string())]);
+    assert_eq!(pair_types, vec![AstroPairType::Custom("Custom".to_string())]);
 }
 
 #[test]
@@ -255,7 +255,7 @@ fn check_update_owner() {
     let new_owner = String::from("new_owner");
 
     // New owner
-    let msg = ExecuteMsg::ProposeNewOwner {
+    let msg = AstroFactoryExecuteMsg::ProposeNewOwner {
         owner: new_owner.clone(),
         expires_in: 100, // seconds
     };
@@ -276,7 +276,7 @@ fn check_update_owner() {
         .execute_contract(
             Addr::unchecked(new_owner.clone()),
             helper.factory.clone(),
-            &ExecuteMsg::ClaimOwnership {},
+            &AstroFactoryExecuteMsg::ClaimOwnership {},
             &[],
         )
         .unwrap_err();
@@ -294,7 +294,7 @@ fn check_update_owner() {
         .execute_contract(
             Addr::unchecked("invalid_addr"),
             helper.factory.clone(),
-            &ExecuteMsg::ClaimOwnership {},
+            &AstroFactoryExecuteMsg::ClaimOwnership {},
             &[],
         )
         .unwrap_err();
@@ -305,7 +305,7 @@ fn check_update_owner() {
         .execute_contract(
             Addr::unchecked(new_owner.clone()),
             helper.factory.clone(),
-            &ExecuteMsg::DropOwnershipProposal {},
+            &AstroFactoryExecuteMsg::DropOwnershipProposal {},
             &[],
         )
         .unwrap_err();
@@ -315,7 +315,7 @@ fn check_update_owner() {
     app.execute_contract(
         owner.clone(),
         helper.factory.clone(),
-        &ExecuteMsg::DropOwnershipProposal {},
+        &AstroFactoryExecuteMsg::DropOwnershipProposal {},
         &[],
     )
     .unwrap();
@@ -325,7 +325,7 @@ fn check_update_owner() {
         .execute_contract(
             Addr::unchecked(new_owner.clone()),
             helper.factory.clone(),
-            &ExecuteMsg::ClaimOwnership {},
+            &AstroFactoryExecuteMsg::ClaimOwnership {},
             &[],
         )
         .unwrap_err();
@@ -341,14 +341,14 @@ fn check_update_owner() {
     app.execute_contract(
         Addr::unchecked(new_owner.clone()),
         helper.factory.clone(),
-        &ExecuteMsg::ClaimOwnership {},
+        &AstroFactoryExecuteMsg::ClaimOwnership {},
         &[],
     )
     .unwrap();
 
     // Let's query the contract state
-    let msg = QueryMsg::Config {};
-    let res: ConfigResponse = app.wrap().query_wasm_smart(&helper.factory, &msg).unwrap();
+    let msg = AstroFactoryQueryMsg::Config {};
+    let res: AstroFactoryConfigResponse = app.wrap().query_wasm_smart(&helper.factory, &msg).unwrap();
 
     assert_eq!(res.owner, new_owner)
 }

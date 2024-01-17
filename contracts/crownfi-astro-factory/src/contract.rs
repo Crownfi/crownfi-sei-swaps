@@ -12,10 +12,10 @@ use cw_utils::parse_instantiate_response_data;
 use crownfi_astro_common::asset::{addr_opt_validate, AssetInfo, PairInfo};
 use crownfi_astro_common::common::{claim_ownership, drop_ownership_proposal, propose_new_owner};
 use crownfi_astro_common::factory::{
-    Config, ConfigResponse, ExecuteMsg, FeeInfoResponse, InstantiateMsg, MigrateMsg, PairConfig,
-    PairType, PairsResponse, QueryMsg,
+    AstroFactoryConfig, AstroFactoryConfigResponse, AstroFactoryExecuteMsg, AstroFactoryFeeInfoResponse, AstroFactoryInstantiateMsg, AstroFactoryMigrateMsg, AstroFactoryPairConfig,
+    AstroPairType, AstroFactoryPairsResponse, AstroFactoryQueryMsg,
 };
-use crownfi_astro_common::pair::InstantiateMsg as PairInstantiateMsg;
+use crownfi_astro_common::pair::AstroPairInstantiateMsg;
 use itertools::Itertools;
 
 use crate::error::ContractError;
@@ -42,11 +42,11 @@ pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    msg: InstantiateMsg,
+    msg: AstroFactoryInstantiateMsg,
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-    let mut config = Config {
+    let mut config = AstroFactoryConfig {
         owner: deps.api.addr_validate(&msg.owner)?,
         token_code_id: msg.token_code_id,
         fee_address: None,
@@ -90,41 +90,41 @@ pub struct UpdateConfig {
 }
 
 /// Exposes all the execute functions available in the contract.
-/// * **msg** is an object of type [`ExecuteMsg`].
+/// * **msg** is an object of type [`AstroFactoryExecuteMsg`].
 ///
 /// ## Variants
-/// * **ExecuteMsg::UpdateConfig {
+/// * **AstroFactoryExecuteMsg::UpdateConfig {
 ///             token_code_id,
 ///             fee_address,
 ///             generator_address,
 ///         }** Updates general contract parameters.
 ///
-/// * **ExecuteMsg::UpdatePairConfig { config }** Updates a pair type
+/// * **AstroFactoryExecuteMsg::UpdateAstroFactoryPairConfig { config }** Updates a pair type
 /// * configuration or creates a new pair type if a [`Custom`] name is used (which hasn't been used before).
 ///
-/// * **ExecuteMsg::CreatePair {
+/// * **AstroFactoryExecuteMsg::CreatePair {
 ///             pair_type,
 ///             asset_infos,
 ///             init_params,
 ///         }** Creates a new pair with the specified input parameters.
 ///
-/// * **ExecuteMsg::Deregister { asset_infos }** Removes an existing pair from the factory.
+/// * **AstroFactoryExecuteMsg::Deregister { asset_infos }** Removes an existing pair from the factory.
 /// * The asset information is for the assets that are traded in the pair.
 ///
-/// * **ExecuteMsg::ProposeNewOwner { owner, expires_in }** Creates a request to change contract ownership.
+/// * **AstroFactoryExecuteMsg::ProposeNewOwner { owner, expires_in }** Creates a request to change contract ownership.
 ///
-/// * **ExecuteMsg::DropOwnershipProposal {}** Removes a request to change contract ownership.
+/// * **AstroFactoryExecuteMsg::DropOwnershipProposal {}** Removes a request to change contract ownership.
 ///
-/// * **ExecuteMsg::ClaimOwnership {}** Claims contract ownership.
+/// * **AstroFactoryExecuteMsg::ClaimOwnership {}** Claims contract ownership.
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    msg: ExecuteMsg,
+    msg: AstroFactoryExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::UpdateConfig {
+        AstroFactoryExecuteMsg::UpdateConfig {
             token_code_id,
             fee_address,
             // generator_address
@@ -137,14 +137,14 @@ pub fn execute(
                 // generator_address
             },
         ),
-        ExecuteMsg::UpdatePairConfig { config } => execute_update_pair_config(deps, info, config),
-        ExecuteMsg::CreatePair {
+        AstroFactoryExecuteMsg::UpdatePairConfig { config } => execute_update_pair_config(deps, info, config),
+        AstroFactoryExecuteMsg::CreatePair {
             pair_type,
             asset_infos,
             init_params,
         } => execute_create_pair(deps, env, pair_type, asset_infos, init_params),
-        ExecuteMsg::Deregister { asset_infos } => deregister(deps, info, asset_infos),
-        ExecuteMsg::ProposeNewOwner { owner, expires_in } => {
+        AstroFactoryExecuteMsg::Deregister { asset_infos } => deregister(deps, info, asset_infos),
+        AstroFactoryExecuteMsg::ProposeNewOwner { owner, expires_in } => {
             let config = CONFIG.load(deps.storage)?;
 
             propose_new_owner(
@@ -158,13 +158,13 @@ pub fn execute(
             )
             .map_err(Into::into)
         }
-        ExecuteMsg::DropOwnershipProposal {} => {
+        AstroFactoryExecuteMsg::DropOwnershipProposal {} => {
             let config = CONFIG.load(deps.storage)?;
 
             drop_ownership_proposal(deps, info, config.owner, OWNERSHIP_PROPOSAL)
                 .map_err(Into::into)
         }
-        ExecuteMsg::ClaimOwnership {} => {
+        AstroFactoryExecuteMsg::ClaimOwnership {} => {
             claim_ownership(deps, info, env, OWNERSHIP_PROPOSAL, |deps, new_owner| {
                 CONFIG
                     .update::<_, StdError>(deps.storage, |mut v| {
@@ -219,14 +219,14 @@ pub fn execute_update_config(
 
 /// Updates a pair type's configuration.
 ///
-/// * **pair_config** is an object of type [`PairConfig`] that contains the pair type information to update.
+/// * **pair_config** is an object of type [`AstroFactoryPairConfig`] that contains the pair type information to update.
 ///
 /// ## Executor
 /// Only the owner can execute this.
 pub fn execute_update_pair_config(
     deps: DepsMut,
     info: MessageInfo,
-    pair_config: PairConfig,
+    pair_config: AstroFactoryPairConfig,
 ) -> Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage)?;
 
@@ -259,7 +259,7 @@ pub fn execute_update_pair_config(
 pub fn execute_create_pair(
     deps: DepsMut,
     env: Env,
-    pair_type: PairType,
+    pair_type: AstroPairType,
     asset_infos: Vec<AssetInfo>,
     init_params: Option<Binary>,
 ) -> Result<Response, ContractError> {
@@ -289,7 +289,7 @@ pub fn execute_create_pair(
         msg: WasmMsg::Instantiate {
             admin: Some(config.owner.to_string()),
             code_id: pair_config.code_id,
-            msg: to_json_binary(&PairInstantiateMsg {
+            msg: to_json_binary(&AstroPairInstantiateMsg {
                 asset_infos: asset_infos.clone(),
                 token_code_id: config.token_code_id,
                 factory_addr: env.contract.address.to_string(),
@@ -389,31 +389,31 @@ pub fn deregister(
 /// Exposes all the queries available in the contract.
 ///
 /// ## Queries
-/// * **QueryMsg::Config {}** Returns general contract parameters using a custom [`ConfigResponse`] structure.
+/// * **AstroFactoryQueryMsg::Config {}** Returns general contract parameters using a custom [`AstroFactoryConfigResponse`] structure.
 ///
-/// * **QueryMsg::Pair { asset_infos }** Returns a [`PairInfo`] object with information about a specific Astroport pair.
+/// * **AstroFactoryQueryMsg::Pair { asset_infos }** Returns a [`PairInfo`] object with information about a specific Astroport pair.
 ///
-/// * **QueryMsg::Pairs { start_after, limit }** Returns an array that contains items of type [`PairInfo`].
+/// * **AstroFactoryQueryMsg::Pairs { start_after, limit }** Returns an array that contains items of type [`PairInfo`].
 /// This returns information about multiple Astroport pairs
 ///
-/// * **QueryMsg::FeeInfo { pair_type }** Returns the fee structure (total and maker fees) for a specific pair type.
+/// * **AstroFactoryQueryMsg::FeeInfo { pair_type }** Returns the fee structure (total and maker fees) for a specific pair type.
 ///
-/// * **QueryMsg::BlacklistedPairTypes {}** Returns a vector that contains blacklisted pair types (pair types that cannot get ASTRO emissions).
+/// * **AstroFactoryQueryMsg::BlacklistedAstroPairTypes {}** Returns a vector that contains blacklisted pair types (pair types that cannot get ASTRO emissions).
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, _env: Env, msg: AstroFactoryQueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
-        QueryMsg::Pair { asset_infos } => to_json_binary(&query_pair(deps, asset_infos)?),
-        QueryMsg::Pairs { start_after, limit } => {
+        AstroFactoryQueryMsg::Config {} => to_json_binary(&query_config(deps)?),
+        AstroFactoryQueryMsg::Pair { asset_infos } => to_json_binary(&query_pair(deps, asset_infos)?),
+        AstroFactoryQueryMsg::Pairs { start_after, limit } => {
             to_json_binary(&query_pairs(deps, start_after, limit)?)
         }
-        QueryMsg::FeeInfo { pair_type } => to_json_binary(&query_fee_info(deps, pair_type)?),
-        QueryMsg::BlacklistedPairTypes {} => to_json_binary(&query_blacklisted_pair_types(deps)?),
+        AstroFactoryQueryMsg::FeeInfo { pair_type } => to_json_binary(&query_fee_info(deps, pair_type)?),
+        AstroFactoryQueryMsg::BlacklistedPairTypes {} => to_json_binary(&query_blacklisted_pair_types(deps)?),
     }
 }
 
 /// Returns a vector that contains blacklisted pair types
-pub fn query_blacklisted_pair_types(deps: Deps) -> StdResult<Vec<PairType>> {
+pub fn query_blacklisted_pair_types(deps: Deps) -> StdResult<Vec<AstroPairType>> {
     PAIR_CONFIGS
         .range(deps.storage, None, None, Order::Ascending)
         .filter_map(|result| match result {
@@ -429,10 +429,10 @@ pub fn query_blacklisted_pair_types(deps: Deps) -> StdResult<Vec<PairType>> {
         .collect()
 }
 
-/// Returns general contract parameters using a custom [`ConfigResponse`] structure.
-pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
+/// Returns general contract parameters using a custom [`AstroFactoryConfigResponse`] structure.
+pub fn query_config(deps: Deps) -> StdResult<AstroFactoryConfigResponse> {
     let config = CONFIG.load(deps.storage)?;
-    let resp = ConfigResponse {
+    let resp = AstroFactoryConfigResponse {
         owner: config.owner,
         token_code_id: config.token_code_id,
         pair_configs: PAIR_CONFIGS
@@ -462,22 +462,22 @@ pub fn query_pairs(
     deps: Deps,
     start_after: Option<Vec<AssetInfo>>,
     limit: Option<u32>,
-) -> StdResult<PairsResponse> {
+) -> StdResult<AstroFactoryPairsResponse> {
     let pairs = read_pairs(deps, start_after, limit)?
         .iter()
         .map(|pair_addr| query_pair_info(&deps.querier, pair_addr))
         .collect::<StdResult<Vec<_>>>()?;
 
-    Ok(PairsResponse { pairs })
+    Ok(AstroFactoryPairsResponse { pairs })
 }
 
-/// Returns the fee setup for a specific pair type using a [`FeeInfoResponse`] struct.
+/// Returns the fee setup for a specific pair type using a [`AstroFactoryFeeInfoResponse`] struct.
 /// * **pair_type** is a struct that represents the fee information (total and maker fees) for a specific pair type.
-pub fn query_fee_info(deps: Deps, pair_type: PairType) -> StdResult<FeeInfoResponse> {
+pub fn query_fee_info(deps: Deps, pair_type: AstroPairType) -> StdResult<AstroFactoryFeeInfoResponse> {
     let config = CONFIG.load(deps.storage)?;
     let pair_config = PAIR_CONFIGS.load(deps.storage, pair_type.to_string())?;
 
-    Ok(FeeInfoResponse {
+    Ok(AstroFactoryFeeInfoResponse {
         fee_address: config.fee_address,
         total_fee_bps: pair_config.total_fee_bps,
         maker_fee_bps: pair_config.maker_fee_bps,
@@ -486,7 +486,7 @@ pub fn query_fee_info(deps: Deps, pair_type: PairType) -> StdResult<FeeInfoRespo
 
 /// Manages the contract migration.
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(mut deps: DepsMut, _env: Env, msg: MigrateMsg) -> Result<Response, ContractError> {
+pub fn migrate(mut deps: DepsMut, _env: Env, msg: AstroFactoryMigrateMsg) -> Result<Response, ContractError> {
     let contract_version = get_contract_version(deps.storage)?;
 
     match contract_version.contract.as_ref() {

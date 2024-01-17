@@ -1,5 +1,5 @@
 use crownfi_astro_common::asset::PairInfo;
-use crownfi_astro_common::pair::QueryMsg;
+use crownfi_astro_common::pair::AstroPairQueryMsg;
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{
     from_json, to_json_binary, Coin, Empty, OwnedDeps, Querier, QuerierResult,
@@ -70,7 +70,7 @@ impl WasmMockQuerier {
         match &request {
             QueryRequest::Wasm(WasmQuery::Smart {contract_addr, msg})// => {
                 => match from_json(&msg).unwrap() {
-                    QueryMsg::Pair {} => {
+                    AstroPairQueryMsg::Pair {} => {
                        let pair_info: PairInfo =
                         match self.astroport_pair_querier.pairs.get(contract_addr) {
                             Some(v) => v.clone(),

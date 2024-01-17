@@ -1,7 +1,7 @@
 use crownfi_astro_common::asset::{Asset, AssetInfo};
-use crownfi_astro_common::pair::ExecuteMsg as PairExecuteMsg;
+use crownfi_astro_common::pair::AstroPairExecuteMsg;
 use crownfi_astro_common::querier::{query_balance, query_pair_info, query_token_balance};
-use crownfi_astro_common::router::SwapOperation;
+use crownfi_astro_common::router::AstroRouteSwapOperation;
 use cosmwasm_std::{
     to_json_binary, Coin, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, StdResult, WasmMsg,
 };
@@ -21,7 +21,7 @@ pub fn execute_swap_operation(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    operation: SwapOperation,
+    operation: AstroRouteSwapOperation,
     to: Option<String>,
     max_spread: Option<Decimal>,
     single: bool,
@@ -31,7 +31,7 @@ pub fn execute_swap_operation(
     }
 
     let message = match operation {
-        SwapOperation::AstroSwap {
+        AstroRouteSwapOperation::AstroSwap {
             offer_asset_info,
             ask_asset_info,
         } => {
@@ -64,7 +64,7 @@ pub fn execute_swap_operation(
                 single,
             )?
         }
-        SwapOperation::NativeSwap { .. } => return Err(ContractError::NativeSwapNotSupported {}),
+        AstroRouteSwapOperation::NativeSwap { .. } => return Err(ContractError::NativeSwapNotSupported {}),
     };
 
     Ok(Response::new().add_message(message))
@@ -101,7 +101,7 @@ pub fn asset_into_swap_msg(
                 denom: denom.to_string(),
                 amount: offer_asset.amount,
             }],
-            msg: to_json_binary(&PairExecuteMsg::Swap {
+            msg: to_json_binary(&AstroPairExecuteMsg::Swap {
                 offer_asset: Asset {
                     amount: offer_asset.amount,
                     ..offer_asset
@@ -118,7 +118,7 @@ pub fn asset_into_swap_msg(
             msg: to_json_binary(&Cw20ExecuteMsg::Send {
                 contract: pair_contract,
                 amount: offer_asset.amount,
-                msg: to_json_binary(&crownfi_astro_common::pair::Cw20HookMsg::Swap {
+                msg: to_json_binary(&crownfi_astro_common::pair::AstroPairCw20HookMsg::Swap {
                     ask_asset_info: Some(ask_asset_info),
                     belief_price,
                     max_spread,

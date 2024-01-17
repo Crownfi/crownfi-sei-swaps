@@ -7,8 +7,8 @@ use cosmwasm_std::{
 use std::collections::HashMap;
 
 use crownfi_astro_common::asset::{Asset, AssetInfo, PairInfo};
-use crownfi_astro_common::factory::PairType;
-use crownfi_astro_common::pair::SimulationResponse;
+use crownfi_astro_common::factory::AstroPairType;
+use crownfi_astro_common::pair::AstroPairSimulationResponse;
 use cw20::{BalanceResponse, Cw20QueryMsg, TokenInfoResponse};
 
 #[cw_serde]
@@ -147,7 +147,7 @@ impl WasmMockQuerier {
                                 denom: "uusd".to_string(),
                             },
                         ],
-                        pair_type: PairType::Xyk {},
+                        pair_type: AstroPairType::Xyk {},
                     }))),
                     None => SystemResult::Err(SystemError::InvalidRequest {
                         error: "No pair info exists".to_string(),
@@ -156,7 +156,7 @@ impl WasmMockQuerier {
                 }
             }
             QueryMsg::Simulation { offer_asset, .. } => {
-                SystemResult::Ok(ContractResult::from(to_json_binary(&SimulationResponse {
+                SystemResult::Ok(ContractResult::from(to_json_binary(&AstroPairSimulationResponse {
                     return_amount: offer_asset.amount,
                     commission_amount: Uint128::zero(),
                     spread_amount: Uint128::zero(),

@@ -4,7 +4,7 @@ use cw_storage_plus::{Bound, Item, Map};
 use itertools::Itertools;
 
 use crate::error::ContractError;
-use crownfi_astro_common::{asset::AssetInfo, common::OwnershipProposal, factory::{Config, PairConfig}};
+use crownfi_astro_common::{asset::AssetInfo, common::OwnershipProposal, factory::{AstroFactoryConfig, AstroFactoryPairConfig}};
 /// This is an intermediate structure for storing a pair's key. It is used in a submessage response.
 #[cw_serde]
 pub struct TmpPairInfo {
@@ -15,7 +15,7 @@ pub struct TmpPairInfo {
 pub const TMP_PAIR_INFO: Item<TmpPairInfo> = Item::new("tmp_pair_info");
 
 /// Saves factory settings
-pub const CONFIG: Item<Config> = Item::new("config");
+pub const CONFIG: Item<AstroFactoryConfig> = Item::new("config");
 
 /// Saves created pairs (from olders to latest)
 pub const PAIRS: Map<&[u8], Addr> = Map::new("pair_info");
@@ -34,7 +34,7 @@ pub fn pair_key(asset_infos: &[AssetInfo]) -> Vec<u8> {
 }
 
 /// Saves pair type configurations
-pub const PAIR_CONFIGS: Map<String, PairConfig> = Map::new("pair_configs");
+pub const PAIR_CONFIGS: Map<String, AstroFactoryPairConfig> = Map::new("pair_configs");
 
 /// ## Pagination settings
 /// The maximum limit for reading pairs from [`PAIRS`]

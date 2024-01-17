@@ -4,8 +4,8 @@ mod factory_helper;
 
 use crate::factory_helper::{instantiate_token, mint, FactoryHelper};
 use crownfi_astro_common::asset::token_asset_info;
-use crownfi_astro_common::factory::PairType;
-use crownfi_astro_common::router::{ExecuteMsg, InstantiateMsg, SwapOperation};
+use crownfi_astro_common::factory::AstroPairType;
+use crownfi_astro_common::router::{AstroRouteExecuteMsg, AstroRouteInstantiateMsg, AstroRouteSwapOperation};
 use cosmwasm_std::{to_json_binary, Addr, Empty, StdError};
 use cw20::Cw20ExecuteMsg;
 use cw_multi_test::{App, Contract, ContractWrapper, Executor};
@@ -30,8 +30,8 @@ fn router_does_not_enforce_spread_assertion() {
     let token_z = instantiate_token(&mut app, helper.cw20_token_code_id, &owner, "TOZ", None);
 
     for (a, b, typ, liq) in [
-        (&token_x, &token_y, PairType::Xyk {}, 100_000_000000),
-        (&token_y, &token_z, PairType::Stable {}, 1_000_000_000000),
+        (&token_x, &token_y, AstroPairType::Xyk {}, 100_000_000000),
+        (&token_y, &token_z, AstroPairType::Stable {}, 1_000_000_000000),
     ] {
         let pair = helper
             .create_pair_with_addr(&mut app, &owner, typ, [a, b], None)
@@ -45,7 +45,7 @@ fn router_does_not_enforce_spread_assertion() {
         .instantiate_contract(
             router_code,
             owner.clone(),
-            &InstantiateMsg {
+            &AstroRouteInstantiateMsg {
                 astroport_factory: helper.factory.to_string(),
             },
             &[],
@@ -62,13 +62,13 @@ fn router_does_not_enforce_spread_assertion() {
         &Cw20ExecuteMsg::Send {
             contract: router.to_string(),
             amount: 50_000_000000u128.into(),
-            msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperations {
+            msg: to_json_binary(&AstroRouteExecuteMsg::ExecuteSwapOperations {
                 operations: vec![
-                    SwapOperation::AstroSwap {
+                    AstroRouteSwapOperation::AstroSwap {
                         offer_asset_info: token_asset_info(token_x.clone()),
                         ask_asset_info: token_asset_info(token_y.clone()),
                     },
-                    SwapOperation::AstroSwap {
+                    AstroRouteSwapOperation::AstroSwap {
                         offer_asset_info: token_asset_info(token_y.clone()),
                         ask_asset_info: token_asset_info(token_z.clone()),
                     },
@@ -92,8 +92,8 @@ fn router_does_not_enforce_spread_assertion() {
             &Cw20ExecuteMsg::Send {
                 contract: router.to_string(),
                 amount: 50_000_000000u128.into(),
-                msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperations {
-                    operations: vec![SwapOperation::AstroSwap {
+                msg: to_json_binary(&AstroRouteExecuteMsg::ExecuteSwapOperations {
+                    operations: vec![AstroRouteSwapOperation::AstroSwap {
                         offer_asset_info: token_asset_info(token_x.clone()),
                         ask_asset_info: token_asset_info(token_y.clone()),
                     }],
@@ -116,9 +116,9 @@ fn router_does_not_enforce_spread_assertion() {
 fn test_swap_route() {
     use crate::factory_helper::{instantiate_token, mint, FactoryHelper};
     use crownfi_astro_common::asset::AssetInfo;
-    use crownfi_astro_common::factory::PairType;
+    use crownfi_astro_common::factory::AstroPairType;
     use crownfi_astro_common::router::{
-        ExecuteMsg, InstantiateMsg, QueryMsg, SimulateSwapOperationsResponse, SwapOperation,
+        AstroRouteExecuteMsg, AstroRouteInstantiateMsg, AstroRouteQueryMsg, AstroRouteSimulateSwapOperationsResponse, AstroRouteSwapOperation,
     };
     use cosmwasm_std::{to_json_binary, Addr, Uint128};
     use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
@@ -131,9 +131,9 @@ fn test_swap_route() {
     let osmo = instantiate_token(&mut app, helper.cw20_token_code_id, &owner, "osmo", None);
 
     for (a, b, typ, liq) in [
-        (&astro, &inj, PairType::Xyk {}, 100_000_000000),
-        (&inj, &osmo, PairType::Xyk {}, 100_000_000000),
-        (&atom, &osmo, PairType::Xyk {}, 100_000_000000),
+        (&astro, &inj, AstroPairType::Xyk {}, 100_000_000000),
+        (&inj, &osmo, AstroPairType::Xyk {}, 100_000_000000),
+        (&atom, &osmo, AstroPairType::Xyk {}, 100_000_000000),
     ] {
         let pair = helper
             .create_pair_with_addr(&mut app, &owner, typ, [a, b], None)
@@ -146,7 +146,7 @@ fn test_swap_route() {
         .instantiate_contract(
             router_code,
             owner.clone(),
-            &InstantiateMsg {
+            &AstroRouteInstantiateMsg {
                 astroport_factory: helper.factory.to_string(),
             },
             &[],
@@ -160,7 +160,7 @@ fn test_swap_route() {
     // Try to swap with a bad batch of path
     // route: astro -> inj, atom -> osmo
     let swap_operations = vec![
-        SwapOperation::AstroSwap {
+        AstroRouteSwapOperation::AstroSwap {
             offer_asset_info: AssetInfo::Token {
                 contract_addr: astro.clone(),
             },
@@ -168,7 +168,7 @@ fn test_swap_route() {
                 contract_addr: inj.clone(),
             },
         },
-        SwapOperation::AstroSwap {
+        AstroRouteSwapOperation::AstroSwap {
             offer_asset_info: AssetInfo::Token {
                 contract_addr: atom.clone(),
             },
@@ -180,9 +180,9 @@ fn test_swap_route() {
 
     let err = app
         .wrap()
-        .query_wasm_smart::<SimulateSwapOperationsResponse>(
+        .query_wasm_smart::<AstroRouteSimulateSwapOperationsResponse>(
             router.clone(),
-            &QueryMsg::SimulateSwapOperations {
+            &AstroRouteQueryMsg::SimulateSwapOperations {
                 offer_amount: swap_amount,
                 operations: swap_operations.clone(),
             },
@@ -199,7 +199,7 @@ fn test_swap_route() {
     // swap astro for osmo
     // route: astro -> inj, inj -> osmo, osmo -> atom, atom -> osmo
     let swap_operations = vec![
-        SwapOperation::AstroSwap {
+        AstroRouteSwapOperation::AstroSwap {
             offer_asset_info: AssetInfo::Token {
                 contract_addr: astro.clone(),
             },
@@ -207,7 +207,7 @@ fn test_swap_route() {
                 contract_addr: inj.clone(),
             },
         },
-        SwapOperation::AstroSwap {
+        AstroRouteSwapOperation::AstroSwap {
             offer_asset_info: AssetInfo::Token {
                 contract_addr: inj.clone(),
             },
@@ -215,7 +215,7 @@ fn test_swap_route() {
                 contract_addr: osmo.clone(),
             },
         },
-        SwapOperation::AstroSwap {
+        AstroRouteSwapOperation::AstroSwap {
             offer_asset_info: AssetInfo::Token {
                 contract_addr: osmo.clone(),
             },
@@ -223,7 +223,7 @@ fn test_swap_route() {
                 contract_addr: atom.clone(),
             },
         },
-        SwapOperation::AstroSwap {
+        AstroRouteSwapOperation::AstroSwap {
             offer_asset_info: AssetInfo::Token {
                 contract_addr: atom.clone(),
             },
@@ -234,11 +234,11 @@ fn test_swap_route() {
     ];
 
     // the simulation succeeds
-    let simulate_res: SimulateSwapOperationsResponse = app
+    let simulate_res: AstroRouteSimulateSwapOperationsResponse = app
         .wrap()
         .query_wasm_smart(
             router.clone(),
-            &QueryMsg::SimulateSwapOperations {
+            &AstroRouteQueryMsg::SimulateSwapOperations {
                 offer_amount: swap_amount,
                 operations: swap_operations.clone(),
             },
@@ -273,7 +273,7 @@ fn test_swap_route() {
         &Cw20ExecuteMsg::Send {
             contract: router.to_string(),
             amount: swap_amount,
-            msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperations {
+            msg: to_json_binary(&AstroRouteExecuteMsg::ExecuteSwapOperations {
                 operations: swap_operations.clone(),
                 minimum_receive: None,
                 to: None,
@@ -360,7 +360,7 @@ fn test_swap_route() {
         &Cw20ExecuteMsg::Send {
             contract: router.to_string(),
             amount: swap_amount,
-            msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperations {
+            msg: to_json_binary(&AstroRouteExecuteMsg::ExecuteSwapOperations {
                 operations: swap_operations.clone(),
                 minimum_receive: None,
                 to: None,
@@ -445,8 +445,8 @@ fn test_swap_route() {
         .execute_contract(
             attacker.clone(),
             router.clone(),
-            &ExecuteMsg::ExecuteSwapOperations {
-                operations: vec![SwapOperation::AstroSwap {
+            &AstroRouteExecuteMsg::ExecuteSwapOperations {
+                operations: vec![AstroRouteSwapOperation::AstroSwap {
                     offer_asset_info: AssetInfo::Token {
                         contract_addr: osmo.clone(),
                     },
@@ -461,7 +461,8 @@ fn test_swap_route() {
             &[],
         )
         .unwrap_err();
-    assert_eq!(err.root_cause().to_string(), "Invalid zero amount");
+    // Note: Error string value changed during dependency upgrades, used to be "Invalid zero amount"
+    assert_eq!(err.root_cause().to_string(), "Generic error: Swap amount must not be zero");
 
     // Query attacker balance and calculate profit
     let balance_res: BalanceResponse = app
@@ -584,7 +585,7 @@ fn test_swap_route() {
         &Cw20ExecuteMsg::Send {
             contract: router.to_string(),
             amount: swap_amount,
-            msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperations {
+            msg: to_json_binary(&AstroRouteExecuteMsg::ExecuteSwapOperations {
                 operations: swap_operations.clone(),
                 minimum_receive: Some(donated_atom),
                 to: None,
@@ -635,8 +636,8 @@ fn test_swap_route() {
         .execute_contract(
             attacker2.clone(),
             router.clone(),
-            &ExecuteMsg::ExecuteSwapOperations {
-                operations: vec![SwapOperation::AstroSwap {
+            &AstroRouteExecuteMsg::ExecuteSwapOperations {
+                operations: vec![AstroRouteSwapOperation::AstroSwap {
                     offer_asset_info: AssetInfo::Token {
                         contract_addr: osmo.clone(),
                     },
@@ -651,7 +652,8 @@ fn test_swap_route() {
             &[],
         )
         .unwrap_err();
-    assert_eq!(err.root_cause().to_string(), "Invalid zero amount");
+    // Note: Error string value changed during dependency upgrades, used to be "Invalid zero amount"
+    assert_eq!(err.root_cause().to_string(), "Generic error: Swap amount must not be zero");
 
     let balance_res: BalanceResponse = app
         .wrap()

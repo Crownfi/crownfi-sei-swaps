@@ -8,7 +8,7 @@ pub use cw20::{
 
 /// This structure describes the marketing info settings such as project, description, and token logo.
 #[cw_serde]
-pub struct InstantiateMarketingInfo {
+pub struct TokenInstantiateMarketingInfo {
     /// The project name
     pub project: Option<String>,
     /// The project description
@@ -21,7 +21,7 @@ pub struct InstantiateMarketingInfo {
 
 /// This structure describes the parameters used for creating a token contract.
 #[cw_serde]
-pub struct InstantiateMsg {
+pub struct TokenInstantiateMsg {
     /// Token name
     pub name: String,
     /// Token symbol
@@ -33,14 +33,14 @@ pub struct InstantiateMsg {
     /// Minting controls specified in a [`MinterResponse`] structure
     pub mint: Option<MinterResponse>,
     /// the marketing info of type [`InstantiateMarketingInfo`]
-    pub marketing: Option<InstantiateMarketingInfo>,
+    pub marketing: Option<TokenInstantiateMarketingInfo>,
 }
 
 /// This structure describes a migration message.
 #[cw_serde]
-pub struct MigrateMsg {}
+pub struct TokenMigrateMsg {}
 
-impl InstantiateMsg {
+impl TokenInstantiateMsg {
     pub fn get_cap(&self) -> Option<Uint128> {
         self.mint.as_ref().and_then(|v| v.cap)
     }

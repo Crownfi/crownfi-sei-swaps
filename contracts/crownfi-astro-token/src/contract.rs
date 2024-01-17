@@ -10,7 +10,7 @@ use cw20_base::state::{MinterData, TokenInfo, LOGO, MARKETING_INFO, TOKEN_INFO};
 use cw20_base::ContractError;
 
 use crownfi_astro_common::asset::addr_opt_validate;
-use crownfi_astro_common::token::{InstantiateMsg, MigrateMsg};
+use crownfi_astro_common::token::{TokenInstantiateMsg, TokenMigrateMsg};
 
 /// Contract name that is used for migration.
 const CONTRACT_NAME: &str = "astroport-token";
@@ -86,7 +86,7 @@ pub fn instantiate(
     mut deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    msg: InstantiateMsg,
+    msg: TokenInstantiateMsg,
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
     // check valid token info
@@ -163,7 +163,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 /// Manages contract migration.
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: TokenMigrateMsg) -> StdResult<Response> {
     let contract_version = get_contract_version(deps.storage)?;
 
     match contract_version.contract.as_ref() {
@@ -197,7 +197,7 @@ mod tests {
     use cosmwasm_std::{Addr, StdError};
 
     use super::*;
-    use crownfi_astro_common::token::InstantiateMarketingInfo;
+    use crownfi_astro_common::token::TokenInstantiateMarketingInfo;
 
     mod marketing {
         use cw20::DownloadLogoResponse;
@@ -208,13 +208,13 @@ mod tests {
         #[test]
         fn basic() {
             let mut deps = mock_dependencies();
-            let instantiate_msg = InstantiateMsg {
+            let instantiate_msg = TokenInstantiateMsg {
                 name: "Cash Token".to_string(),
                 symbol: "CASH".to_string(),
                 decimals: 9,
                 initial_balances: vec![],
                 mint: None,
-                marketing: Some(InstantiateMarketingInfo {
+                marketing: Some(TokenInstantiateMarketingInfo {
                     project: Some("Project".to_owned()),
                     description: Some("Description".to_owned()),
                     marketing: Some("marketing".to_owned()),
@@ -249,13 +249,13 @@ mod tests {
         fn svg() {
             let mut deps = mock_dependencies();
             let img = "<?xml version=\"1.0\"?><svg></svg>".as_bytes();
-            let instantiate_msg = InstantiateMsg {
+            let instantiate_msg = TokenInstantiateMsg {
                 name: "Cash Token".to_string(),
                 symbol: "CASH".to_string(),
                 decimals: 9,
                 initial_balances: vec![],
                 mint: None,
-                marketing: Some(InstantiateMarketingInfo {
+                marketing: Some(TokenInstantiateMarketingInfo {
                     project: Some("Project".to_owned()),
                     description: Some("Description".to_owned()),
                     marketing: Some("marketing".to_owned()),
@@ -292,13 +292,13 @@ mod tests {
         fn png() {
             let mut deps = mock_dependencies();
             const PNG_HEADER: [u8; 8] = [0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a];
-            let instantiate_msg = InstantiateMsg {
+            let instantiate_msg = TokenInstantiateMsg {
                 name: "Cash Token".to_string(),
                 symbol: "CASH".to_string(),
                 decimals: 9,
                 initial_balances: vec![],
                 mint: None,
-                marketing: Some(InstantiateMarketingInfo {
+                marketing: Some(TokenInstantiateMarketingInfo {
                     project: Some("Project".to_owned()),
                     description: Some("Description".to_owned()),
                     marketing: Some("marketing".to_owned()),

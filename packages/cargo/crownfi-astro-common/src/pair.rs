@@ -15,7 +15,7 @@ pub const TWAP_PRECISION: u8 = 6;
 
 /// This structure describes the parameters used for creating a contract.
 #[cw_serde]
-pub struct InstantiateMsg {
+pub struct AstroPairInstantiateMsg {
     /// Information about assets in the pool
     pub asset_infos: Vec<AssetInfo>,
     /// The token contract code ID used for the tokens in the pool
@@ -28,7 +28,7 @@ pub struct InstantiateMsg {
 
 /// This structure describes the execute messages available in the contract.
 #[cw_serde]
-pub enum ExecuteMsg {
+pub enum AstroPairExecuteMsg {
     /// Receives a message of type [`Cw20ReceiveMsg`]
     Receive(Cw20ReceiveMsg),
     /// ProvideLiquidity allows someone to provide liquidity in the pool
@@ -68,7 +68,7 @@ pub enum ExecuteMsg {
 
 /// This structure describes a CW20 hook message.
 #[cw_serde]
-pub enum Cw20HookMsg {
+pub enum AstroPairCw20HookMsg {
     /// Swap a given amount of asset
     Swap {
         ask_asset_info: Option<AssetInfo>,
@@ -86,33 +86,33 @@ pub enum Cw20HookMsg {
 /// This structure describes the query messages available in the contract.
 #[cw_serde]
 #[derive(QueryResponses)]
-pub enum QueryMsg {
+pub enum AstroPairQueryMsg {
     /// Returns information about a pair in an object of type [`super::asset::PairInfo`].
     #[returns(PairInfo)]
     Pair {},
     /// Returns information about a pool in an object of type [`PoolResponse`].
-    #[returns(PoolResponse)]
+    #[returns(AstroPairPoolResponse)]
     Pool {},
     /// Returns contract configuration settings in a custom [`ConfigResponse`] structure.
-    #[returns(ConfigResponse)]
+    #[returns(AstroPairConfigResponse)]
     Config {},
     /// Returns information about the share of the pool in a vector that contains objects of type [`Asset`].
     #[returns(Vec<Asset>)]
     Share { amount: Uint128 },
     /// Returns information about a swap simulation in a [`SimulationResponse`] object.
-    #[returns(SimulationResponse)]
+    #[returns(AstroPairSimulationResponse)]
     Simulation {
         offer_asset: Asset,
         ask_asset_info: Option<AssetInfo>,
     },
     /// Returns information about cumulative prices in a [`ReverseSimulationResponse`] object.
-    #[returns(ReverseSimulationResponse)]
+    #[returns(AstroPairReverseSimulationResponse)]
     ReverseSimulation {
         offer_asset_info: Option<AssetInfo>,
         ask_asset: Asset,
     },
     /// Returns information about the cumulative prices in a [`CumulativePricesResponse`] object
-    #[returns(CumulativePricesResponse)]
+    #[returns(AstroPairCumulativePricesResponse)]
     CumulativePrices {},
     /// Returns current D invariant in as a [`u128`] value
     #[returns(Uint128)]
@@ -127,7 +127,7 @@ pub enum QueryMsg {
 
 /// This struct is used to return a query result with the total amount of LP tokens and assets in a specific pool.
 #[cw_serde]
-pub struct PoolResponse {
+pub struct AstroPairPoolResponse {
     /// The assets in the pool together with asset amounts
     pub assets: Vec<Asset>,
     /// The total amount of LP tokens currently issued
@@ -136,7 +136,7 @@ pub struct PoolResponse {
 
 /// This struct is used to return a query result with the general contract configuration.
 #[cw_serde]
-pub struct ConfigResponse {
+pub struct AstroPairConfigResponse {
     /// Last timestamp when the cumulative prices in the pool were updated
     pub block_time_last: u64,
     /// The pool's parameters
@@ -149,7 +149,7 @@ pub struct ConfigResponse {
 
 /// This structure holds the parameters that are returned from a swap simulation response
 #[cw_serde]
-pub struct SimulationResponse {
+pub struct AstroPairSimulationResponse {
     /// The amount of ask assets returned by the swap
     pub return_amount: Uint128,
     /// The spread used in the swap operation
@@ -160,7 +160,7 @@ pub struct SimulationResponse {
 
 /// This structure holds the parameters that are returned from a reverse swap simulation response.
 #[cw_serde]
-pub struct ReverseSimulationResponse {
+pub struct AstroPairReverseSimulationResponse {
     /// The amount of offer assets returned by the reverse swap
     pub offer_amount: Uint128,
     /// The spread used in the swap operation
@@ -171,7 +171,7 @@ pub struct ReverseSimulationResponse {
 
 /// This structure is used to return a cumulative prices query response.
 #[cw_serde]
-pub struct CumulativePricesResponse {
+pub struct AstroPairCumulativePricesResponse {
     /// The assets in the pool to query
     pub assets: Vec<Asset>,
     /// The total amount of LP tokens currently issued
@@ -183,7 +183,7 @@ pub struct CumulativePricesResponse {
 /// This structure describes a migration message.
 /// We currently take no arguments for migrations.
 #[cw_serde]
-pub struct MigrateMsg {}
+pub struct AstroPairMigrateMsg {}
 
 /// This structure holds XYK pool parameters.
 #[cw_serde]
@@ -267,7 +267,7 @@ mod tests {
 
         let ser_msg = to_json_binary(&inst_msg).unwrap();
         // This .unwrap() is enough to make sure that [AssetInfo; 2] and Vec<AssetInfo> are compatible.
-        let _: InstantiateMsg = from_json(&ser_msg).unwrap();
+        let _: AstroPairInstantiateMsg = from_json(&ser_msg).unwrap();
     }
 
     #[test]
@@ -285,12 +285,12 @@ mod tests {
         })
         .unwrap();
 
-        let _: ConfigResponse = from_json(&ser_msg).unwrap();
+        let _: AstroPairConfigResponse = from_json(&ser_msg).unwrap();
     }
 
     #[test]
     fn check_empty_vec_deserialization() {
-        let variant: Cw20HookMsg = from_json(br#"{"withdraw_liquidity": {} }"#).unwrap();
-        assert_eq!(variant, Cw20HookMsg::WithdrawLiquidity { assets: vec![] });
+        let variant: AstroPairCw20HookMsg = from_json(br#"{"withdraw_liquidity": {} }"#).unwrap();
+        assert_eq!(variant, AstroPairCw20HookMsg::WithdrawLiquidity { assets: vec![] });
     }
 }

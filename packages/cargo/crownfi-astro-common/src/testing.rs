@@ -4,7 +4,7 @@ use crate::querier::{
     query_all_balances, query_balance, query_pair_info, query_supply, query_token_balance,
 };
 
-use crate::factory::PairType;
+use crate::factory::AstroPairType;
 use crate::DecimalCheckedOps;
 use cosmwasm_std::testing::MOCK_CONTRACT_ADDR;
 use cosmwasm_std::{to_json_binary, Addr, BankMsg, Coin, CosmosMsg, Decimal, Empty, Uint128, WasmMsg};
@@ -232,7 +232,7 @@ fn query_astroport_pair_contract() {
             ],
             contract_addr: Addr::unchecked("pair0000"),
             liquidity_token: Addr::unchecked("liquidity0000"),
-            pair_type: PairType::Xyk {},
+            pair_type: AstroPairType::Xyk {},
         },
     )]);
 
@@ -270,7 +270,7 @@ fn test_format_lp_token_name() {
             ],
             contract_addr: Addr::unchecked("pair0000"),
             liquidity_token: Addr::unchecked("liquidity0000"),
-            pair_type: PairType::Xyk {},
+            pair_type: AstroPairType::Xyk {},
         },
     )]);
 

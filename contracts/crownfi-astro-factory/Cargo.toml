@@ -24,20 +24,19 @@ backtraces = ["cosmwasm-std/backtraces"]
 library = []
 
 [dependencies]
-cosmwasm-std = "1.1"
+cosmwasm-std = {workspace = true}
 crownfi-astro-common = { path = "../../packages/cargo/crownfi-astro-common", default-features = false }
-cw-storage-plus = "0.15"
-cw2 = "0.15"
-thiserror = "1.0"
-protobuf = { version = "2", features = ["with-bytes"] }
-itertools = "0.10"
-cosmwasm-schema = "1.1"
-cw-utils = "1.0.1"
+cw-storage-plus = {workspace = true}
+cw2 = {workspace = true}
+thiserror = {workspace = true}
+itertools = {workspace = true}
+cosmwasm-schema = {workspace = true}
+cw-utils = {workspace = true}
 
 [dev-dependencies]
-cw-multi-test = "0.15"
+cw-multi-test = {workspace = true}
 crownfi-astro-token = { path = "../crownfi-astro-token" }
 crownfi-astro-pair = { path = "../crownfi-astro-pair" }
-cw20 = "0.15"
-anyhow = "1.0"
-prost = "0.11.5"
+cw20 = {workspace = true}
+anyhow = {workspace = true}
+prost = {workspace = true}

@@ -1,8 +1,8 @@
 use crate::asset::{Asset, AssetInfo, PairInfo};
 use crate::factory::{
-    Config as FactoryConfig, FeeInfoResponse, PairType, PairsResponse, QueryMsg as FactoryQueryMsg,
+    AstroFactoryConfig, AstroFactoryFeeInfoResponse, AstroPairType, AstroFactoryPairsResponse, AstroFactoryQueryMsg,
 };
-use crate::pair::{QueryMsg as PairQueryMsg, ReverseSimulationResponse, SimulationResponse};
+use crate::pair::{AstroPairQueryMsg, AstroPairReverseSimulationResponse, AstroPairSimulationResponse};
 
 use cosmwasm_std::{
     from_json, Addr, AllBalanceResponse, BankQuery, Coin, CustomQuery, Decimal, QuerierWrapper,
@@ -102,7 +102,7 @@ where
 pub fn query_factory_config<C>(
     querier: &QuerierWrapper<C>,
     factory_contract: impl Into<String>,
-) -> StdResult<FactoryConfig>
+) -> StdResult<AstroFactoryConfig>
 where
     C: CustomQuery,
 {
@@ -130,13 +130,13 @@ pub struct FeeInfo {
 pub fn query_fee_info<C>(
     querier: &QuerierWrapper<C>,
     factory_contract: impl Into<String>,
-    pair_type: PairType,
+    pair_type: AstroPairType,
 ) -> StdResult<FeeInfo>
 where
     C: CustomQuery,
 {
-    let res: FeeInfoResponse =
-        querier.query_wasm_smart(factory_contract, &FactoryQueryMsg::FeeInfo { pair_type })?;
+    let res: AstroFactoryFeeInfoResponse =
+        querier.query_wasm_smart(factory_contract, &AstroFactoryQueryMsg::FeeInfo { pair_type })?;
 
     Ok(FeeInfo {
         fee_address: res.fee_address,
@@ -153,7 +153,7 @@ pub fn query_pair_info(
 ) -> StdResult<PairInfo> {
     querier.query_wasm_smart(
         factory_contract,
-        &FactoryQueryMsg::Pair {
+        &AstroFactoryQueryMsg::Pair {
             asset_infos: asset_infos.to_vec(),
         },
     )
@@ -166,10 +166,10 @@ pub fn query_pairs_info(
     factory_contract: impl Into<String>,
     start_after: Option<Vec<AssetInfo>>,
     limit: Option<u32>,
-) -> StdResult<PairsResponse> {
+) -> StdResult<AstroFactoryPairsResponse> {
     querier.query_wasm_smart(
         factory_contract,
-        &FactoryQueryMsg::Pairs { start_after, limit },
+        &AstroFactoryQueryMsg::Pairs { start_after, limit },
     )
 }
 
@@ -182,10 +182,10 @@ pub fn simulate(
     querier: &QuerierWrapper,
     pair_contract: impl Into<String>,
     offer_asset: &Asset,
-) -> StdResult<SimulationResponse> {
+) -> StdResult<AstroPairSimulationResponse> {
     querier.query_wasm_smart(
         pair_contract,
-        &PairQueryMsg::Simulation {
+        &AstroPairQueryMsg::Simulation {
             offer_asset: offer_asset.clone(),
             ask_asset_info: None,
         },
@@ -201,10 +201,10 @@ pub fn reverse_simulate(
     querier: &QuerierWrapper,
     pair_contract: impl Into<String>,
     ask_asset: &Asset,
-) -> StdResult<ReverseSimulationResponse> {
+) -> StdResult<AstroPairReverseSimulationResponse> {
     querier.query_wasm_smart(
         pair_contract,
-        &PairQueryMsg::ReverseSimulation {
+        &AstroPairQueryMsg::ReverseSimulation {
             offer_asset_info: None,
             ask_asset: ask_asset.clone(),
         },

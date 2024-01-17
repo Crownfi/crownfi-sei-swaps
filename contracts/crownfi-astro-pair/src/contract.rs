@@ -16,17 +16,17 @@ use crownfi_astro_common::asset::{
     addr_opt_validate, check_swap_parameters, format_lp_token_name, Asset, AssetInfo, CoinsExt,
     PairInfo, MINIMUM_LIQUIDITY_AMOUNT,
 };
-use crownfi_astro_common::factory::PairType;
+use crownfi_astro_common::factory::AstroPairType;
 use crownfi_astro_common::pair::{
-    ConfigResponse, XYKPoolConfig, XYKPoolParams, XYKPoolUpdateParams, DEFAULT_SLIPPAGE,
+    AstroPairConfigResponse, XYKPoolConfig, XYKPoolParams, XYKPoolUpdateParams, DEFAULT_SLIPPAGE,
     MAX_ALLOWED_SLIPPAGE,
 };
 use crownfi_astro_common::pair::{
-    CumulativePricesResponse, Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, PoolResponse,
-    QueryMsg, ReverseSimulationResponse, SimulationResponse, TWAP_PRECISION,
+    AstroPairCumulativePricesResponse, AstroPairCw20HookMsg, AstroPairExecuteMsg, AstroPairInstantiateMsg, AstroPairMigrateMsg, AstroPairPoolResponse,
+    AstroPairQueryMsg, AstroPairReverseSimulationResponse, AstroPairSimulationResponse, TWAP_PRECISION,
 };
 use crownfi_astro_common::querier::{query_factory_config, query_fee_info, query_supply};
-use crownfi_astro_common::{token::InstantiateMsg as TokenInstantiateMsg, U256};
+use crownfi_astro_common::{token::TokenInstantiateMsg, U256};
 use cw_utils::parse_instantiate_response_data;
 
 use crate::error::ContractError;
@@ -45,7 +45,7 @@ pub fn instantiate(
     deps: DepsMut,
     env: Env,
     _info: MessageInfo,
-    msg: InstantiateMsg,
+    msg: AstroPairInstantiateMsg,
 ) -> Result<Response, ContractError> {
     if msg.asset_infos.len() != 2 {
         return Err(StdError::generic_err("asset_infos must contain exactly two elements").into());
@@ -72,7 +72,7 @@ pub fn instantiate(
             contract_addr: env.contract.address.clone(),
             liquidity_token: Addr::unchecked(""),
             asset_infos: msg.asset_infos.clone(),
-            pair_type: PairType::Xyk {},
+            pair_type: AstroPairType::Xyk {},
         },
         factory_addr: deps.api.addr_validate(msg.factory_addr.as_str())?,
         block_time_last: 0,
@@ -185,11 +185,11 @@ pub fn execute(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    msg: ExecuteMsg,
+    msg: AstroPairExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Receive(msg) => receive_cw20(deps, env, info, msg),
-        ExecuteMsg::ProvideLiquidity {
+        AstroPairExecuteMsg::Receive(msg) => receive_cw20(deps, env, info, msg),
+        AstroPairExecuteMsg::ProvideLiquidity {
             assets,
             slippage_tolerance,
             auto_stake,
@@ -203,7 +203,7 @@ pub fn execute(
             auto_stake,
             receiver,
         ),
-        ExecuteMsg::Swap {
+        AstroPairExecuteMsg::Swap {
             offer_asset,
             belief_price,
             max_spread,
@@ -228,7 +228,7 @@ pub fn execute(
                 to_addr,
             )
         }
-        ExecuteMsg::UpdateConfig { params } => update_config(deps, env, info, params),
+        AstroPairExecuteMsg::UpdateConfig { params } => update_config(deps, env, info, params),
         _ => Err(ContractError::NonSupported {}),
     }
 }
@@ -243,7 +243,7 @@ pub fn receive_cw20(
     cw20_msg: Cw20ReceiveMsg,
 ) -> Result<Response, ContractError> {
     match from_json(&cw20_msg.msg)? {
-        Cw20HookMsg::Swap {
+        AstroPairCw20HookMsg::Swap {
             belief_price,
             max_spread,
             to,
@@ -282,7 +282,7 @@ pub fn receive_cw20(
                 to_addr,
             )
         }
-        Cw20HookMsg::WithdrawLiquidity { assets } => withdraw_liquidity(
+        AstroPairCw20HookMsg::WithdrawLiquidity { assets } => withdraw_liquidity(
             deps,
             env,
             info,
@@ -883,20 +883,20 @@ pub fn calculate_maker_fee(
 /// * **QueryMsg::AssetBalanceAt { asset_info, block_height }** Returns the balance of the specified asset that was in the pool
 /// just preceeding the moment of the specified block height creation.
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: AstroPairQueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Pair {} => to_json_binary(&CONFIG.load(deps.storage)?.pair_info),
-        QueryMsg::Pool {} => to_json_binary(&query_pool(deps)?),
-        QueryMsg::Share { amount } => to_json_binary(&query_share(deps, amount)?),
-        QueryMsg::Simulation { offer_asset, .. } => {
+        AstroPairQueryMsg::Pair {} => to_json_binary(&CONFIG.load(deps.storage)?.pair_info),
+        AstroPairQueryMsg::Pool {} => to_json_binary(&query_pool(deps)?),
+        AstroPairQueryMsg::Share { amount } => to_json_binary(&query_share(deps, amount)?),
+        AstroPairQueryMsg::Simulation { offer_asset, .. } => {
             to_json_binary(&query_simulation(deps, offer_asset)?)
         }
-        QueryMsg::ReverseSimulation { ask_asset, .. } => {
+        AstroPairQueryMsg::ReverseSimulation { ask_asset, .. } => {
             to_json_binary(&query_reverse_simulation(deps, ask_asset)?)
         }
-        QueryMsg::CumulativePrices {} => to_json_binary(&query_cumulative_prices(deps, env)?),
-        QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
-        QueryMsg::AssetBalanceAt {
+        AstroPairQueryMsg::CumulativePrices {} => to_json_binary(&query_cumulative_prices(deps, env)?),
+        AstroPairQueryMsg::Config {} => to_json_binary(&query_config(deps)?),
+        AstroPairQueryMsg::AssetBalanceAt {
             asset_info,
             block_height,
         } => to_json_binary(&query_asset_balances_at(deps, asset_info, block_height)?),
@@ -906,11 +906,11 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 /// Returns the amounts of assets in the pair contract as well as the amount of LP
 /// tokens currently minted in an object of type [`PoolResponse`].
-pub fn query_pool(deps: Deps) -> StdResult<PoolResponse> {
+pub fn query_pool(deps: Deps) -> StdResult<AstroPairPoolResponse> {
     let config = CONFIG.load(deps.storage)?;
     let (assets, total_share) = pool_info(deps.querier, &config)?;
 
-    let resp = PoolResponse {
+    let resp = AstroPairPoolResponse {
         assets,
         total_share,
     };
@@ -933,7 +933,7 @@ pub fn query_share(deps: Deps, amount: Uint128) -> StdResult<Vec<Asset>> {
 /// Returns information about a swap simulation in a [`SimulationResponse`] object.
 ///
 /// * **offer_asset** is the asset to swap as well as an amount of the said asset.
-pub fn query_simulation(deps: Deps, offer_asset: Asset) -> StdResult<SimulationResponse> {
+pub fn query_simulation(deps: Deps, offer_asset: Asset) -> StdResult<AstroPairSimulationResponse> {
     let config = CONFIG.load(deps.storage)?;
 
     let pools = config
@@ -968,7 +968,7 @@ pub fn query_simulation(deps: Deps, offer_asset: Asset) -> StdResult<SimulationR
         fee_info.total_fee_rate,
     )?;
 
-    Ok(SimulationResponse {
+    Ok(AstroPairSimulationResponse {
         return_amount,
         spread_amount,
         commission_amount,
@@ -982,7 +982,7 @@ pub fn query_simulation(deps: Deps, offer_asset: Asset) -> StdResult<SimulationR
 pub fn query_reverse_simulation(
     deps: Deps,
     ask_asset: Asset,
-) -> StdResult<ReverseSimulationResponse> {
+) -> StdResult<AstroPairReverseSimulationResponse> {
     let config = CONFIG.load(deps.storage)?;
 
     let pools = config
@@ -1017,7 +1017,7 @@ pub fn query_reverse_simulation(
         fee_info.total_fee_rate,
     )?;
 
-    Ok(ReverseSimulationResponse {
+    Ok(AstroPairReverseSimulationResponse {
         offer_amount,
         spread_amount,
         commission_amount,
@@ -1025,7 +1025,7 @@ pub fn query_reverse_simulation(
 }
 
 /// Returns information about cumulative prices for the assets in the pool using a [`CumulativePricesResponse`] object.
-pub fn query_cumulative_prices(deps: Deps, env: Env) -> StdResult<CumulativePricesResponse> {
+pub fn query_cumulative_prices(deps: Deps, env: Env) -> StdResult<AstroPairCumulativePricesResponse> {
     let config = CONFIG.load(deps.storage)?;
     let (assets, total_share) = pool_info(deps.querier, &config)?;
 
@@ -1052,7 +1052,7 @@ pub fn query_cumulative_prices(deps: Deps, env: Env) -> StdResult<CumulativePric
         ),
     ];
 
-    let resp = CumulativePricesResponse {
+    let resp = AstroPairCumulativePricesResponse {
         assets,
         total_share,
         cumulative_prices,
@@ -1062,12 +1062,12 @@ pub fn query_cumulative_prices(deps: Deps, env: Env) -> StdResult<CumulativePric
 }
 
 /// Returns the pair contract configuration in a [`ConfigResponse`] object.
-pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
+pub fn query_config(deps: Deps) -> StdResult<AstroPairConfigResponse> {
     let config: Config = CONFIG.load(deps.storage)?;
 
     let factory_config = query_factory_config(&deps.querier, &config.factory_addr)?;
 
-    Ok(ConfigResponse {
+    Ok(AstroPairConfigResponse {
         block_time_last: config.block_time_last,
         params: Some(to_json_binary(&XYKPoolConfig {
             track_asset_balances: config.track_asset_balances,
@@ -1258,7 +1258,7 @@ pub fn assert_slippage_tolerance(
 
 /// Manages the contract migration.
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: AstroPairMigrateMsg) -> Result<Response, ContractError> {
     use crate::migration;
     let contract_version = get_contract_version(deps.storage)?;
 

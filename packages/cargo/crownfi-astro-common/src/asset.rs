@@ -13,8 +13,8 @@ use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use cw_utils::must_pay;
 use itertools::Itertools;
 
-use crate::factory::PairType;
-use crate::pair::QueryMsg as PairQueryMsg;
+use crate::factory::AstroPairType;
+use crate::pair::AstroPairQueryMsg;
 use crate::querier::{
     query_balance, query_token_balance, query_token_symbol,
 };
@@ -513,7 +513,7 @@ pub struct PairInfo {
     /// Pair LP token address
     pub liquidity_token: Addr,
     /// The pool type (xyk, stableswap etc) available in [`PairType`]
-    pub pair_type: PairType,
+    pub pair_type: AstroPairType,
 }
 
 impl PairInfo {
@@ -641,7 +641,7 @@ pub fn pair_info_by_pool(querier: &QuerierWrapper, pool: impl Into<String>) -> S
     let minter_info: MinterResponse = querier.query_wasm_smart(pool, &Cw20QueryMsg::Minter {})?;
 
     let pair_info: PairInfo =
-        querier.query_wasm_smart(minter_info.minter, &PairQueryMsg::Pair {})?;
+        querier.query_wasm_smart(minter_info.minter, &AstroPairQueryMsg::Pair {})?;
 
     Ok(pair_info)
 }

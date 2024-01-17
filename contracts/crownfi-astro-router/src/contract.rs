@@ -6,11 +6,11 @@ use cw2::{get_contract_version, set_contract_version};
 use cw20::Cw20ReceiveMsg;
 
 use crownfi_astro_common::asset::{addr_opt_validate, Asset, AssetInfo};
-use crownfi_astro_common::pair::{QueryMsg as PairQueryMsg, SimulationResponse};
+use crownfi_astro_common::pair::{AstroPairQueryMsg, AstroPairSimulationResponse};
 use crownfi_astro_common::querier::query_pair_info;
 use crownfi_astro_common::router::{
-    ConfigResponse, Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
-    SimulateSwapOperationsResponse, SwapOperation, MAX_SWAP_OPERATIONS,
+    AstroRouteConfigResponse, AstroRouteCw20HookMsg, AstroRouteExecuteMsg, AstroRouteInstantiateMsg, AstroRouteMigrateMsg, AstroRouteQueryMsg,
+    AstroRouteSimulateSwapOperationsResponse, AstroRouteSwapOperation, MAX_SWAP_OPERATIONS,
 };
 
 use crate::error::ContractError;
@@ -28,7 +28,7 @@ pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    msg: InstantiateMsg,
+    msg: AstroRouteInstantiateMsg,
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
@@ -67,11 +67,11 @@ pub fn execute(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    msg: ExecuteMsg,
+    msg: AstroRouteExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Receive(msg) => receive_cw20(deps, env, msg),
-        ExecuteMsg::ExecuteSwapOperations {
+        AstroRouteExecuteMsg::Receive(msg) => receive_cw20(deps, env, msg),
+        AstroRouteExecuteMsg::ExecuteSwapOperations {
             operations,
             minimum_receive,
             to,
@@ -85,13 +85,13 @@ pub fn execute(
             to,
             max_spread,
         ),
-        ExecuteMsg::ExecuteSwapOperation {
+        AstroRouteExecuteMsg::ExecuteSwapOperation {
             operation,
             to,
             max_spread,
             single,
         } => execute_swap_operation(deps, env, info, operation, to, max_spread, single),
-        ExecuteMsg::AssertMinimumReceive {
+        AstroRouteExecuteMsg::AssertMinimumReceive {
             asset_info,
             prev_balance,
             minimum_receive,
@@ -115,7 +115,7 @@ pub fn receive_cw20(
     cw20_msg: Cw20ReceiveMsg,
 ) -> Result<Response, ContractError> {
     match from_json(&cw20_msg.msg)? {
-        Cw20HookMsg::ExecuteSwapOperations {
+        AstroRouteCw20HookMsg::ExecuteSwapOperations {
             operations,
             minimum_receive,
             to,
@@ -146,7 +146,7 @@ pub fn execute_swap_operations(
     deps: DepsMut,
     env: Env,
     sender: Addr,
-    operations: Vec<SwapOperation>,
+    operations: Vec<AstroRouteSwapOperation>,
     minimum_receive: Option<Uint128>,
     to: Option<String>,
     max_spread: Option<Decimal>,
@@ -164,7 +164,7 @@ pub fn execute_swap_operations(
             Ok(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: env.contract.address.to_string(),
                 funds: vec![],
-                msg: to_json_binary(&ExecuteMsg::ExecuteSwapOperation {
+                msg: to_json_binary(&AstroRouteExecuteMsg::ExecuteSwapOperation {
                     operation: op,
                     to: if operation_index == operations_len - 1 {
                         Some(to.to_string())
@@ -184,7 +184,7 @@ pub fn execute_swap_operations(
         messages.push(CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: env.contract.address.to_string(),
             funds: vec![],
-            msg: to_json_binary(&ExecuteMsg::AssertMinimumReceive {
+            msg: to_json_binary(&AstroRouteExecuteMsg::AssertMinimumReceive {
                 asset_info: target_asset_info,
                 prev_balance: receiver_balance,
                 minimum_receive,
@@ -234,10 +234,10 @@ fn assert_minimum_receive(
 ///             operations,
 ///         }** Simulates one or multiple swap operations and returns the end result in a [`SimulateSwapOperationsResponse`] object.
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
+pub fn query(deps: Deps, _env: Env, msg: AstroRouteQueryMsg) -> Result<Binary, ContractError> {
     match msg {
-        QueryMsg::Config {} => Ok(to_json_binary(&query_config(deps)?)?),
-        QueryMsg::SimulateSwapOperations {
+        AstroRouteQueryMsg::Config {} => Ok(to_json_binary(&query_config(deps)?)?),
+        AstroRouteQueryMsg::SimulateSwapOperations {
             offer_amount,
             operations,
         } => Ok(to_json_binary(&simulate_swap_operations(
@@ -249,9 +249,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<Binary, ContractErr
 }
 
 /// Returns general contract settings in a [`ConfigResponse`] object.
-pub fn query_config(deps: Deps) -> Result<ConfigResponse, ContractError> {
+pub fn query_config(deps: Deps) -> Result<AstroRouteConfigResponse, ContractError> {
     let state = CONFIG.load(deps.storage)?;
-    let resp = ConfigResponse {
+    let resp = AstroRouteConfigResponse {
         astroport_factory: state.astroport_factory.into_string(),
     };
 
@@ -260,7 +260,7 @@ pub fn query_config(deps: Deps) -> Result<ConfigResponse, ContractError> {
 
 /// Manages contract migration.
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: AstroRouteMigrateMsg) -> Result<Response, ContractError> {
     let contract_version = get_contract_version(deps.storage)?;
 
     match contract_version.contract.as_ref() {
@@ -290,8 +290,8 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, C
 fn simulate_swap_operations(
     deps: Deps,
     offer_amount: Uint128,
-    operations: Vec<SwapOperation>,
-) -> Result<SimulateSwapOperationsResponse, ContractError> {
+    operations: Vec<AstroRouteSwapOperation>,
+) -> Result<AstroRouteSimulateSwapOperationsResponse, ContractError> {
     assert_operations(deps.api, &operations)?;
 
     let config = CONFIG.load(deps.storage)?;
@@ -300,7 +300,7 @@ fn simulate_swap_operations(
 
     for operation in operations.into_iter() {
         match operation {
-            SwapOperation::AstroSwap {
+            AstroRouteSwapOperation::AstroSwap {
                 offer_asset_info,
                 ask_asset_info,
             } => {
@@ -310,9 +310,9 @@ fn simulate_swap_operations(
                     &[offer_asset_info.clone(), ask_asset_info.clone()],
                 )?;
 
-                let res: SimulationResponse = deps.querier.query_wasm_smart(
+                let res: AstroPairSimulationResponse = deps.querier.query_wasm_smart(
                     pair_info.contract_addr,
-                    &PairQueryMsg::Simulation {
+                    &AstroPairQueryMsg::Simulation {
                         offer_asset: Asset {
                             info: offer_asset_info.clone(),
                             amount: return_amount,
@@ -323,13 +323,13 @@ fn simulate_swap_operations(
 
                 return_amount = res.return_amount;
             }
-            SwapOperation::NativeSwap { .. } => {
+            AstroRouteSwapOperation::NativeSwap { .. } => {
                 return Err(ContractError::NativeSwapNotSupported {})
             }
         }
     }
 
-    Ok(SimulateSwapOperationsResponse {
+    Ok(AstroRouteSimulateSwapOperationsResponse {
         amount: return_amount,
     })
 }
@@ -337,7 +337,7 @@ fn simulate_swap_operations(
 /// Validates swap operations.
 ///
 /// * **operations** is a vector that contains objects of type [`SwapOperation`]. These are all the swap operations we check.
-fn assert_operations(api: &dyn Api, operations: &[SwapOperation]) -> Result<(), ContractError> {
+fn assert_operations(api: &dyn Api, operations: &[AstroRouteSwapOperation]) -> Result<(), ContractError> {
     let operations_len = operations.len();
     if operations_len == 0 {
         return Err(ContractError::MustProvideOperations {});
@@ -351,11 +351,11 @@ fn assert_operations(api: &dyn Api, operations: &[SwapOperation]) -> Result<(), 
 
     for operation in operations {
         let (offer_asset, ask_asset) = match operation {
-            SwapOperation::AstroSwap {
+            AstroRouteSwapOperation::AstroSwap {
                 offer_asset_info,
                 ask_asset_info,
             } => (offer_asset_info.clone(), ask_asset_info.clone()),
-            SwapOperation::NativeSwap { .. } => {
+            AstroRouteSwapOperation::NativeSwap { .. } => {
                 return Err(ContractError::NativeSwapNotSupported {})
             }
         };
@@ -403,7 +403,7 @@ mod testing {
             assert_operations(
                 deps.as_ref().api,
                 &vec![
-                    SwapOperation::AstroSwap {
+                    AstroRouteSwapOperation::AstroSwap {
                         offer_asset_info: AssetInfo::NativeToken {
                             denom: "ukrw".to_string(),
                         },
@@ -411,7 +411,7 @@ mod testing {
                             contract_addr: Addr::unchecked("asset0001"),
                         },
                     },
-                    SwapOperation::AstroSwap {
+                    AstroRouteSwapOperation::AstroSwap {
                         offer_asset_info: AssetInfo::Token {
                             contract_addr: Addr::unchecked("asset0001"),
                         },
@@ -430,7 +430,7 @@ mod testing {
             assert_operations(
                 deps.as_ref().api,
                 &vec![
-                    SwapOperation::AstroSwap {
+                    AstroRouteSwapOperation::AstroSwap {
                         offer_asset_info: AssetInfo::NativeToken {
                             denom: "ukrw".to_string(),
                         },
@@ -438,7 +438,7 @@ mod testing {
                             contract_addr: Addr::unchecked("asset0001"),
                         },
                     },
-                    SwapOperation::AstroSwap {
+                    AstroRouteSwapOperation::AstroSwap {
                         offer_asset_info: AssetInfo::Token {
                             contract_addr: Addr::unchecked("asset0001"),
                         },
@@ -446,7 +446,7 @@ mod testing {
                             denom: "uluna".to_string(),
                         },
                     },
-                    SwapOperation::AstroSwap {
+                    AstroRouteSwapOperation::AstroSwap {
                         offer_asset_info: AssetInfo::NativeToken {
                             denom: "uluna".to_string(),
                         },
@@ -465,7 +465,7 @@ mod testing {
             assert_operations(
                 deps.as_ref().api,
                 &vec![
-                    SwapOperation::AstroSwap {
+                    AstroRouteSwapOperation::AstroSwap {
                         offer_asset_info: AssetInfo::NativeToken {
                             denom: "ukrw".to_string(),
                         },
@@ -473,7 +473,7 @@ mod testing {
                             contract_addr: Addr::unchecked("asset0001"),
                         },
                     },
-                    SwapOperation::AstroSwap {
+                    AstroRouteSwapOperation::AstroSwap {
                         offer_asset_info: AssetInfo::Token {
                             contract_addr: Addr::unchecked("asset0001"),
                         },
@@ -481,7 +481,7 @@ mod testing {
                             denom: "uaud".to_string(),
                         },
                     },
-                    SwapOperation::AstroSwap {
+                    AstroRouteSwapOperation::AstroSwap {
                         offer_asset_info: AssetInfo::NativeToken {
                             denom: "uluna".to_string(),
                         },

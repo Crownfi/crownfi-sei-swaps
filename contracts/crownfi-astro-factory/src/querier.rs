@@ -1,4 +1,4 @@
-use crownfi_astro_common::{asset::PairInfo, pair::QueryMsg};
+use crownfi_astro_common::{asset::PairInfo, pair::AstroPairQueryMsg};
 use cosmwasm_std::{QuerierWrapper, StdResult};
 
 /// Returns information about a pair (using the [`PairInfo`] struct).
@@ -8,5 +8,5 @@ pub fn query_pair_info(
     querier: &QuerierWrapper,
     pair_contract: impl Into<String>,
 ) -> StdResult<PairInfo> {
-    querier.query_wasm_smart(pair_contract, &QueryMsg::Pair {})
+    querier.query_wasm_smart(pair_contract, &AstroPairQueryMsg::Pair {})
 }

@@ -1,0 +1,20 @@
+[package]
+name = "crownfi-sei-swaps-sdk-maker"
+version = "0.1.0"
+authors = ["Aritz Beobide-Cardinal <aritz@crownfi.io>"]
+edition = "2021"
+description = "Common types for CrownFi contracts based on astroport"
+license = "Apache-2.0"
+repository = "https://github.com/Crownfi/csswap-mvp"
+homepage = "https://crownfi.io"
+private = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+
+[dependencies]
+crownfi-astro-common = {path = "../crownfi-astro-common"}
+crownfi-sei-sdk-autogen = {path = "/home/aritz/git/@crownfi/crownfi-sei-common/packages/cargo/crownfi-sei-sdk-autogen"}
+bpaf = {workspace = true}
+color-eyre = {workspace = true}

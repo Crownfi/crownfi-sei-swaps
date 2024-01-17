@@ -5,8 +5,8 @@ use cosmwasm_std::{
 };
 use std::collections::HashMap;
 
-use crownfi_astro_common::factory::FeeInfoResponse;
-use crownfi_astro_common::factory::QueryMsg::FeeInfo;
+use crownfi_astro_common::factory::AstroFactoryFeeInfoResponse;
+use crownfi_astro_common::factory::AstroFactoryQueryMsg::FeeInfo;
 use cw20::{BalanceResponse, Cw20QueryMsg, TokenInfoResponse};
 
 /// mock_dependencies is a drop-in replacement for cosmwasm_std::testing::mock_dependencies.
@@ -82,7 +82,7 @@ impl WasmMockQuerier {
                 if contract_addr == "factory" {
                     match from_json(&msg).unwrap() {
                         FeeInfo { .. } => SystemResult::Ok(
-                            to_json_binary(&FeeInfoResponse {
+                            to_json_binary(&AstroFactoryFeeInfoResponse {
                                 fee_address: Some(Addr::unchecked("fee_address")),
                                 total_fee_bps: 30,
                                 maker_fee_bps: 1660,

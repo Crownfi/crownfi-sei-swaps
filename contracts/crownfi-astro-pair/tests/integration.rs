@@ -2,14 +2,14 @@
 
 use crownfi_astro_common::asset::{native_asset_info, Asset, AssetInfo, PairInfo};
 use crownfi_astro_common::factory::{
-    ExecuteMsg as FactoryExecuteMsg, InstantiateMsg as FactoryInstantiateMsg, PairConfig, PairType,
-    QueryMsg as FactoryQueryMsg,
+    AstroFactoryExecuteMsg, AstroFactoryInstantiateMsg, AstroFactoryPairConfig, AstroPairType,
+    AstroFactoryQueryMsg,
 };
 use crownfi_astro_common::pair::{
-    ConfigResponse, CumulativePricesResponse, Cw20HookMsg, ExecuteMsg, InstantiateMsg, QueryMsg,
+    AstroPairConfigResponse, AstroPairCumulativePricesResponse, AstroPairCw20HookMsg, AstroPairExecuteMsg, AstroPairInstantiateMsg, AstroPairQueryMsg,
     XYKPoolConfig, XYKPoolParams, XYKPoolUpdateParams, TWAP_PRECISION,
 };
-use crownfi_astro_common::token::InstantiateMsg as TokenInstantiateMsg;
+use crownfi_astro_common::token::TokenInstantiateMsg;
 use crownfi_astro_pair::error::ContractError;
 use cosmwasm_std::{attr, to_json_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{BalanceResponse, Cw20Coin, Cw20ExecuteMsg, Cw20QueryMsg, MinterResponse};
@@ -66,12 +66,12 @@ fn instantiate_pair(mut router: &mut App, owner: &Addr) -> Addr {
     let pair_contract_code_id = store_pair_code(&mut router);
     let factory_code_id = store_factory_code(&mut router);
 
-    let init_msg = FactoryInstantiateMsg {
+    let init_msg = AstroFactoryInstantiateMsg {
         fee_address: None,
-        pair_configs: vec![PairConfig {
+        pair_configs: vec![AstroFactoryPairConfig {
             code_id: pair_contract_code_id,
             maker_fee_bps: 0,
-            pair_type: PairType::Xyk {},
+            pair_type: AstroPairType::Xyk {},
             total_fee_bps: 0,
             is_disabled: false,
             is_generator_disabled: false,
@@ -92,7 +92,7 @@ fn instantiate_pair(mut router: &mut App, owner: &Addr) -> Addr {
         )
         .unwrap();
 
-    let msg = InstantiateMsg {
+    let msg = AstroPairInstantiateMsg {
         asset_infos: vec![
             AssetInfo::NativeToken {
                 denom: "uusd".to_string(),
@@ -119,7 +119,7 @@ fn instantiate_pair(mut router: &mut App, owner: &Addr) -> Addr {
 
     let res: PairInfo = router
         .wrap()
-        .query_wasm_smart(pair.clone(), &QueryMsg::Pair {})
+        .query_wasm_smart(pair.clone(), &AstroPairQueryMsg::Pair {})
         .unwrap();
     assert_eq!("contract1", res.contract_addr);
     assert_eq!("contract2", res.liquidity_token);
@@ -176,7 +176,7 @@ fn test_provide_and_withdraw_liquidity() {
 
     let res: PairInfo = router
         .wrap()
-        .query_wasm_smart(pair_instance.to_string(), &QueryMsg::Pair {})
+        .query_wasm_smart(pair_instance.to_string(), &AstroPairQueryMsg::Pair {})
         .unwrap();
     let lp_token = res.liquidity_token;
 
@@ -263,7 +263,7 @@ fn test_provide_and_withdraw_liquidity() {
         .instantiate_contract(
             token_contract_code_id,
             owner.clone(),
-            &crownfi_astro_common::token::InstantiateMsg {
+            &crownfi_astro_common::token::TokenInstantiateMsg {
                 name: "Foo token".to_string(),
                 symbol: "FOO".to_string(),
                 decimals: 6,
@@ -283,7 +283,7 @@ fn test_provide_and_withdraw_liquidity() {
     let msg = Cw20ExecuteMsg::Send {
         contract: pair_instance.to_string(),
         amount: Uint128::from(50u8),
-        msg: to_json_binary(&Cw20HookMsg::WithdrawLiquidity { assets: vec![] }).unwrap(),
+        msg: to_json_binary(&AstroPairCw20HookMsg::WithdrawLiquidity { assets: vec![] }).unwrap(),
     };
     // Try to send withdraw liquidity with FOO token
     let err = router
@@ -299,7 +299,7 @@ fn test_provide_and_withdraw_liquidity() {
         .execute_contract(
             alice_address.clone(),
             pair_instance.clone(),
-            &ExecuteMsg::Swap {
+            &AstroPairExecuteMsg::Swap {
                 offer_asset: Asset {
                     info: AssetInfo::NativeToken {
                         denom: "cny".to_string(),
@@ -323,13 +323,13 @@ fn test_provide_and_withdraw_liquidity() {
     );
 
     // Check pair config
-    let config: ConfigResponse = router
+    let config: AstroPairConfigResponse = router
         .wrap()
-        .query_wasm_smart(pair_instance.to_string(), &QueryMsg::Config {})
+        .query_wasm_smart(pair_instance.to_string(), &AstroPairQueryMsg::Config {})
         .unwrap();
     assert_eq!(
         config.clone(),
-        ConfigResponse {
+        AstroPairConfigResponse {
             block_time_last: router.block_info().time.seconds(),
             params: Some(
                 to_json_binary(&XYKPoolConfig {
@@ -348,8 +348,8 @@ fn provide_liquidity_msg(
     uluna_amount: Uint128,
     receiver: Option<String>,
     slippage_tolerance: Option<Decimal>,
-) -> (ExecuteMsg, [Coin; 2]) {
-    let msg = ExecuteMsg::ProvideLiquidity {
+) -> (AstroPairExecuteMsg, [Coin; 2]) {
+    let msg = AstroPairExecuteMsg::ProvideLiquidity {
         assets: vec![
             Asset {
                 info: AssetInfo::NativeToken {
@@ -467,12 +467,12 @@ fn test_compatibility_of_tokens_with_different_precision() {
     let pair_code_id = store_pair_code(&mut app);
     let factory_code_id = store_factory_code(&mut app);
 
-    let init_msg = FactoryInstantiateMsg {
+    let init_msg = AstroFactoryInstantiateMsg {
         fee_address: None,
-        pair_configs: vec![PairConfig {
+        pair_configs: vec![AstroFactoryPairConfig {
             code_id: pair_code_id,
             maker_fee_bps: 0,
-            pair_type: PairType::Xyk {},
+            pair_type: AstroPairType::Xyk {},
             total_fee_bps: 0,
             is_disabled: false,
             is_generator_disabled: false,
@@ -493,7 +493,7 @@ fn test_compatibility_of_tokens_with_different_precision() {
         )
         .unwrap();
 
-    let msg = FactoryExecuteMsg::CreatePair {
+    let msg = AstroFactoryExecuteMsg::CreatePair {
         asset_infos: vec![
             AssetInfo::Token {
                 contract_addr: token_x_instance.clone(),
@@ -502,14 +502,14 @@ fn test_compatibility_of_tokens_with_different_precision() {
                 contract_addr: token_y_instance.clone(),
             },
         ],
-        pair_type: PairType::Xyk {},
+        pair_type: AstroPairType::Xyk {},
         init_params: None,
     };
 
     app.execute_contract(owner.clone(), factory_instance.clone(), &msg, &[])
         .unwrap();
 
-    let msg = FactoryQueryMsg::Pair {
+    let msg = AstroFactoryQueryMsg::Pair {
         asset_infos: vec![
             AssetInfo::Token {
                 contract_addr: token_x_instance.clone(),
@@ -549,7 +549,7 @@ fn test_compatibility_of_tokens_with_different_precision() {
 
     let swap_msg = Cw20ExecuteMsg::Send {
         contract: pair_instance.to_string(),
-        msg: to_json_binary(&Cw20HookMsg::Swap {
+        msg: to_json_binary(&AstroPairCw20HookMsg::Swap {
             ask_asset_info: None,
             belief_price: None,
             max_spread: None,
@@ -567,7 +567,7 @@ fn test_compatibility_of_tokens_with_different_precision() {
         err.root_cause().to_string()
     );
 
-    let msg = ExecuteMsg::ProvideLiquidity {
+    let msg = AstroPairExecuteMsg::ProvideLiquidity {
         assets: vec![
             Asset {
                 info: AssetInfo::Token {
@@ -594,7 +594,7 @@ fn test_compatibility_of_tokens_with_different_precision() {
 
     let swap_msg = Cw20ExecuteMsg::Send {
         contract: pair_instance.to_string(),
-        msg: to_json_binary(&Cw20HookMsg::Swap {
+        msg: to_json_binary(&AstroPairCw20HookMsg::Swap {
             ask_asset_info: None,
             belief_price: None,
             max_spread: None,
@@ -691,8 +691,8 @@ fn test_if_twap_is_calculated_correctly_when_pool_idles() {
         .unwrap();
 
     // Get current twap accumulator values
-    let msg = QueryMsg::CumulativePrices {};
-    let cpr_old: CumulativePricesResponse =
+    let msg = AstroPairQueryMsg::CumulativePrices {};
+    let cpr_old: AstroPairCumulativePricesResponse =
         app.wrap().query_wasm_smart(&pair_instance, &msg).unwrap();
 
     // A day later
@@ -702,8 +702,8 @@ fn test_if_twap_is_calculated_correctly_when_pool_idles() {
     });
 
     // Get current cumulative price values; they should have been updated by the query method with new 2/1 ratio
-    let msg = QueryMsg::CumulativePrices {};
-    let cpr_new: CumulativePricesResponse =
+    let msg = AstroPairQueryMsg::CumulativePrices {};
+    let cpr_new: AstroPairCumulativePricesResponse =
         app.wrap().query_wasm_smart(&pair_instance, &msg).unwrap();
 
     let twap0 = cpr_new.cumulative_prices[0].2 - cpr_old.cumulative_prices[0].2;
@@ -736,7 +736,7 @@ fn create_pair_with_same_assets() {
     let token_contract_code_id = store_token_code(&mut router);
     let pair_contract_code_id = store_pair_code(&mut router);
 
-    let msg = InstantiateMsg {
+    let msg = AstroPairInstantiateMsg {
         asset_infos: vec![
             AssetInfo::NativeToken {
                 denom: "uusd".to_string(),
@@ -774,7 +774,7 @@ fn wrong_number_of_assets() {
 
     let pair_contract_code_id = store_pair_code(&mut router);
 
-    let msg = InstantiateMsg {
+    let msg = AstroPairInstantiateMsg {
         asset_infos: vec![AssetInfo::NativeToken {
             denom: "uusd".to_string(),
         }],
@@ -799,7 +799,7 @@ fn wrong_number_of_assets() {
         "Generic error: asset_infos must contain exactly two elements"
     );
 
-    let msg = InstantiateMsg {
+    let msg = AstroPairInstantiateMsg {
         asset_infos: vec![
             native_asset_info("uusd".to_string()),
             native_asset_info("dust".to_string()),
@@ -855,12 +855,12 @@ fn asset_balances_tracking_works_correctly() {
     let pair_code_id = store_pair_code(&mut app);
     let factory_code_id = store_factory_code(&mut app);
 
-    let init_msg = FactoryInstantiateMsg {
+    let init_msg = AstroFactoryInstantiateMsg {
         fee_address: None,
-        pair_configs: vec![PairConfig {
+        pair_configs: vec![AstroFactoryPairConfig {
             code_id: pair_code_id,
             maker_fee_bps: 0,
-            pair_type: PairType::Xyk {},
+            pair_type: AstroPairType::Xyk {},
             total_fee_bps: 0,
             is_disabled: false,
             is_generator_disabled: false,
@@ -882,7 +882,7 @@ fn asset_balances_tracking_works_correctly() {
         .unwrap();
 
     // Instantiate pair without asset balances tracking
-    let msg = FactoryExecuteMsg::CreatePair {
+    let msg = AstroFactoryExecuteMsg::CreatePair {
         asset_infos: vec![
             AssetInfo::NativeToken {
                 denom: "test1".to_string(),
@@ -891,14 +891,14 @@ fn asset_balances_tracking_works_correctly() {
                 denom: "test2".to_string(),
             },
         ],
-        pair_type: PairType::Xyk {},
+        pair_type: AstroPairType::Xyk {},
         init_params: None,
     };
 
     app.execute_contract(owner.clone(), factory_instance.clone(), &msg, &[])
         .unwrap();
 
-    let msg = FactoryQueryMsg::Pair {
+    let msg = AstroFactoryQueryMsg::Pair {
         asset_infos: vec![
             AssetInfo::NativeToken {
                 denom: "test1".to_string(),
@@ -922,7 +922,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "test1".to_owned(),
                 },
@@ -936,7 +936,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "test2".to_owned(),
                 },
@@ -947,7 +947,7 @@ fn asset_balances_tracking_works_correctly() {
     assert!(res.is_none());
 
     // Enable asset balances tracking
-    let msg = ExecuteMsg::UpdateConfig {
+    let msg = AstroPairExecuteMsg::UpdateConfig {
         params: to_json_binary(&XYKPoolUpdateParams::EnableAssetBalancesTracking).unwrap(),
     };
     app.execute_contract(owner.clone(), pair_instance.clone(), &msg, &[])
@@ -959,7 +959,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "test1".to_owned(),
                 },
@@ -973,7 +973,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "test2".to_owned(),
                 },
@@ -990,7 +990,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "test1".to_owned(),
                 },
@@ -1004,7 +1004,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "test2".to_owned(),
                 },
@@ -1015,7 +1015,7 @@ fn asset_balances_tracking_works_correctly() {
     assert!(res.unwrap().is_zero());
 
     // Provide liquidity
-    let msg = ExecuteMsg::ProvideLiquidity {
+    let msg = AstroPairExecuteMsg::ProvideLiquidity {
         assets: vec![
             Asset {
                 info: AssetInfo::NativeToken {
@@ -1055,7 +1055,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "test1".to_owned(),
                 },
@@ -1069,7 +1069,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "test2".to_owned(),
                 },
@@ -1080,7 +1080,7 @@ fn asset_balances_tracking_works_correctly() {
     assert_eq!(res.unwrap(), Uint128::new(5_000000));
 
     // Instantiate new pair with asset balances tracking starting from instantiation
-    let msg = FactoryExecuteMsg::CreatePair {
+    let msg = AstroFactoryExecuteMsg::CreatePair {
         asset_infos: vec![
             AssetInfo::NativeToken {
                 denom: "uluna".to_string(),
@@ -1089,7 +1089,7 @@ fn asset_balances_tracking_works_correctly() {
                 denom: "uusd".to_string(),
             },
         ],
-        pair_type: PairType::Xyk {},
+        pair_type: AstroPairType::Xyk {},
         init_params: Some(
             to_json_binary(&XYKPoolParams {
                 track_asset_balances: Some(true),
@@ -1101,7 +1101,7 @@ fn asset_balances_tracking_works_correctly() {
     app.execute_contract(owner.clone(), factory_instance.clone(), &msg, &[])
         .unwrap();
 
-    let msg = FactoryQueryMsg::Pair {
+    let msg = AstroFactoryQueryMsg::Pair {
         asset_infos: vec![
             AssetInfo::NativeToken {
                 denom: "uluna".to_string(),
@@ -1126,7 +1126,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "uluna".to_owned(),
                 },
@@ -1140,7 +1140,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "uusd".to_owned(),
                 },
@@ -1151,7 +1151,7 @@ fn asset_balances_tracking_works_correctly() {
     assert!(res.is_none());
 
     // Check that enabling asset balances tracking can not be done if it is already enabled
-    let msg = ExecuteMsg::UpdateConfig {
+    let msg = AstroPairExecuteMsg::UpdateConfig {
         params: to_json_binary(&XYKPoolUpdateParams::EnableAssetBalancesTracking).unwrap(),
     };
     assert_eq!(
@@ -1168,7 +1168,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "uluna".to_owned(),
                 },
@@ -1182,7 +1182,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "uusd".to_owned(),
                 },
@@ -1199,7 +1199,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "uluna".to_owned(),
                 },
@@ -1213,7 +1213,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "uusd".to_owned(),
                 },
@@ -1248,7 +1248,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "uluna".to_owned(),
                 },
@@ -1262,7 +1262,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "uusd".to_owned(),
                 },
@@ -1274,7 +1274,7 @@ fn asset_balances_tracking_works_correctly() {
 
     // Swap
 
-    let msg = ExecuteMsg::Swap {
+    let msg = AstroPairExecuteMsg::Swap {
         offer_asset: Asset {
             info: AssetInfo::NativeToken {
                 denom: "uusd".to_owned(),
@@ -1299,7 +1299,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "uluna".to_owned(),
                 },
@@ -1313,7 +1313,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "uusd".to_owned(),
                 },
@@ -1327,7 +1327,7 @@ fn asset_balances_tracking_works_correctly() {
     let msg = Cw20ExecuteMsg::Send {
         contract: pair_instance.to_string(),
         amount: Uint128::new(500_000000),
-        msg: to_json_binary(&Cw20HookMsg::WithdrawLiquidity { assets: vec![] }).unwrap(),
+        msg: to_json_binary(&AstroPairCw20HookMsg::WithdrawLiquidity { assets: vec![] }).unwrap(),
     };
 
     app.execute_contract(owner.clone(), lp_token_address, &msg, &[])
@@ -1339,7 +1339,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "uluna".to_owned(),
                 },
@@ -1353,7 +1353,7 @@ fn asset_balances_tracking_works_correctly() {
         .wrap()
         .query_wasm_smart(
             &pair_instance,
-            &QueryMsg::AssetBalanceAt {
+            &AstroPairQueryMsg::AssetBalanceAt {
                 asset_info: AssetInfo::NativeToken {
                     denom: "uusd".to_owned(),
                 },
@@ -1386,7 +1386,7 @@ fn update_pair_config() {
 
     let factory_code_id = store_factory_code(&mut router);
 
-    let init_msg = FactoryInstantiateMsg {
+    let init_msg = AstroFactoryInstantiateMsg {
         fee_address: None,
         pair_configs: vec![],
         token_code_id: token_contract_code_id,
@@ -1405,7 +1405,7 @@ fn update_pair_config() {
         )
         .unwrap();
 
-    let msg = InstantiateMsg {
+    let msg = AstroPairInstantiateMsg {
         asset_infos: vec![
             AssetInfo::NativeToken {
                 denom: "uusd".to_string(),
@@ -1430,14 +1430,14 @@ fn update_pair_config() {
         )
         .unwrap();
 
-    let res: ConfigResponse = router
+    let res: AstroPairConfigResponse = router
         .wrap()
-        .query_wasm_smart(pair.clone(), &QueryMsg::Config {})
+        .query_wasm_smart(pair.clone(), &AstroPairQueryMsg::Config {})
         .unwrap();
 
     assert_eq!(
         res,
-        ConfigResponse {
+        AstroPairConfigResponse {
             block_time_last: 0,
             params: Some(
                 to_json_binary(&XYKPoolConfig {
@@ -1450,7 +1450,7 @@ fn update_pair_config() {
         }
     );
 
-    let msg = ExecuteMsg::UpdateConfig {
+    let msg = AstroPairExecuteMsg::UpdateConfig {
         params: to_json_binary(&XYKPoolUpdateParams::EnableAssetBalancesTracking).unwrap(),
     };
     assert_eq!(
@@ -1471,13 +1471,13 @@ fn update_pair_config() {
         .execute_contract(owner.clone(), pair.clone(), &msg, &[])
         .unwrap();
 
-    let res: ConfigResponse = router
+    let res: AstroPairConfigResponse = router
         .wrap()
-        .query_wasm_smart(pair.clone(), &QueryMsg::Config {})
+        .query_wasm_smart(pair.clone(), &AstroPairQueryMsg::Config {})
         .unwrap();
     assert_eq!(
         res,
-        ConfigResponse {
+        AstroPairConfigResponse {
             block_time_last: 0,
             params: Some(
                 to_json_binary(&XYKPoolConfig {
@@ -1532,7 +1532,7 @@ fn test_imbalanced_withdraw_is_disabled() {
 
     let res: PairInfo = router
         .wrap()
-        .query_wasm_smart(pair_instance.to_string(), &QueryMsg::Pair {})
+        .query_wasm_smart(pair_instance.to_string(), &AstroPairQueryMsg::Pair {})
         .unwrap();
     let lp_token = res.liquidity_token;
 
@@ -1574,7 +1574,7 @@ fn test_imbalanced_withdraw_is_disabled() {
     let msg_imbalance = Cw20ExecuteMsg::Send {
         contract: pair_instance.to_string(),
         amount: Uint128::from(50u8),
-        msg: to_json_binary(&Cw20HookMsg::WithdrawLiquidity {
+        msg: to_json_binary(&AstroPairCw20HookMsg::WithdrawLiquidity {
             assets: vec![Asset {
                 info: AssetInfo::NativeToken {
                     denom: "uusd".to_string(),

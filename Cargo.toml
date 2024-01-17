@@ -6,6 +6,39 @@ members = [
   "contracts/*"
 ]
 
+[workspace.dependencies]
+
+# Contracts/Generic
+cw-utils = "1"
+cw2 = "1"
+cw20 = "1"
+cw20-base = "1"
+cosmwasm-std = {version = "1"}
+cw-storage-plus = "1"
+cosmwasm-schema = "1"
+thiserror = "1"
+borsh = "0.10"
+itertools = "0.12"
+serde = "1"
+
+# Potential future
+#sei-cosmwasm = "0.4"
+#crownfi-cw-common = { git = "ssh://git@github.com/Crownfi/crownfi-sei-common.git", branch = "main" }
+
+# Potentially deprecated
+uint = "0.9" # cosmwasm-std already provides U256/U512 types?
+integer-sqrt = "0.1" # cosmwasm-std already provides this?
+
+
+# CLI tools
+bpaf = "0.9"
+color-eyre = "0.6" 
+
+# Testing stuff
+cw-multi-test = "0.20"
+anyhow = "1"
+prost = "0.12"
+
 [profile.release]
 opt-level = "z"
 debug = false

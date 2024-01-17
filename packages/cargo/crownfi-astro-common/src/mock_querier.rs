@@ -7,7 +7,7 @@ use cosmwasm_std::{
 use std::collections::HashMap;
 
 use crate::asset::PairInfo;
-use crate::factory::QueryMsg as FactoryQueryMsg;
+use crate::factory::AstroFactoryQueryMsg;
 use cw20::{BalanceResponse, Cw20QueryMsg, TokenInfoResponse};
 
 /// mock_dependencies is a drop-in replacement for cosmwasm_std::testing::mock_dependencies
@@ -183,7 +183,7 @@ impl DefaultQueryHandler {
                 contract_addr: _,
                 msg,
             }) => match from_json(msg).unwrap() {
-                FactoryQueryMsg::Pair { asset_infos } => {
+                AstroFactoryQueryMsg::Pair { asset_infos } => {
                     let key = asset_infos[0].to_string() + asset_infos[1].to_string().as_str();
                     match self.astroport_factory_querier.pairs.get(&key) {
                         Some(v) => SystemResult::Ok(to_json_binary(&v).into()),

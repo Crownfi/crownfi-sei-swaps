@@ -2,7 +2,7 @@
 
 use anyhow::Result as AnyResult;
 use crownfi_astro_common::asset::{AssetInfo, PairInfo};
-use crownfi_astro_common::factory::{PairConfig, PairType, QueryMsg};
+use crownfi_astro_common::factory::{AstroFactoryPairConfig, AstroPairType, AstroFactoryQueryMsg};
 use cosmwasm_std::{Addr, Binary};
 use cw20::MinterResponse;
 use cw_multi_test::{App, AppResponse, ContractWrapper, Executor};
@@ -24,7 +24,7 @@ impl FactoryHelper {
 
         let cw20_token_code_id = router.store_code(astro_token_contract);
 
-        let msg = crownfi_astro_common::token::InstantiateMsg {
+        let msg = crownfi_astro_common::token::TokenInstantiateMsg {
             name: String::from("Astro token"),
             symbol: String::from("ASTRO"),
             decimals: 6,
@@ -69,19 +69,19 @@ impl FactoryHelper {
 
         let factory_code_id = router.store_code(factory_contract);
 
-        let msg = crownfi_astro_common::factory::InstantiateMsg {
+        let msg = crownfi_astro_common::factory::AstroFactoryInstantiateMsg {
             pair_configs: vec![
-                PairConfig {
+                AstroFactoryPairConfig {
                     code_id: pair_code_id,
-                    pair_type: PairType::Xyk {},
+                    pair_type: AstroPairType::Xyk {},
                     total_fee_bps: 0,
                     maker_fee_bps: 0,
                     is_disabled: false,
                     is_generator_disabled: false,
                 },
-                PairConfig {
+                AstroFactoryPairConfig {
                     code_id: pair_code_id,
-                    pair_type: PairType::Stable {},
+                    pair_type: AstroPairType::Stable {},
                     total_fee_bps: 0,
                     maker_fee_bps: 0,
                     is_disabled: false,
@@ -117,7 +117,7 @@ impl FactoryHelper {
         &mut self,
         router: &mut App,
         sender: &Addr,
-        pair_type: PairType,
+        pair_type: AstroPairType,
         tokens: [&Addr; 2],
         init_params: Option<Binary>,
     ) -> AnyResult<AppResponse> {
@@ -130,7 +130,7 @@ impl FactoryHelper {
             },
         ];
 
-        let msg = crownfi_astro_common::factory::ExecuteMsg::CreatePair {
+        let msg = crownfi_astro_common::factory::AstroFactoryExecuteMsg::CreatePair {
             pair_type,
             asset_infos,
             init_params,
@@ -143,7 +143,7 @@ impl FactoryHelper {
         &mut self,
         router: &mut App,
         sender: &Addr,
-        pair_type: PairType,
+        pair_type: AstroPairType,
         tokens: [&Addr; 2],
         init_params: Option<Binary>,
     ) -> AnyResult<Addr> {
@@ -160,7 +160,7 @@ impl FactoryHelper {
 
         let res: PairInfo = router.wrap().query_wasm_smart(
             self.factory.clone(),
-            &QueryMsg::Pair {
+            &AstroFactoryQueryMsg::Pair {
                 asset_infos: asset_infos.clone(),
             },
         )?;
@@ -176,7 +176,7 @@ pub fn instantiate_token(
     token_name: &str,
     decimals: Option<u8>,
 ) -> Addr {
-    let init_msg = crownfi_astro_common::token::InstantiateMsg {
+    let init_msg = crownfi_astro_common::token::TokenInstantiateMsg {
         name: token_name.to_string(),
         symbol: token_name.to_string(),
         decimals: decimals.unwrap_or(6),
