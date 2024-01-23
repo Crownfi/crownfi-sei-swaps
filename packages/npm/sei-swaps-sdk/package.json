@@ -1,0 +1,25 @@
+{
+	"name": "@crownfi/sei-swaps-sdk",
+	"version": "0.8.0",
+	"main": "dist/index.js",
+	"type": "module",
+	"license": "MIT",
+	"scripts": {
+		"build": "rm -rf dist/* && mkdir -p dist && tsc"
+	},
+	"dependencies": {
+		"tiny-emitter": "^2.1.0",
+		"@cosmjs/cosmwasm-stargate": "^0.32.1",
+		"@cosmjs/proto-signing": "^0.32.1",
+		"@cosmjs/amino": "^0.32.1",
+		"@cosmjs/stargate": "^0.32.1",
+		"@crownfi/sei-js-core": "^4.0.0-beta.0",
+		"@crownfi/sei-utils": "^0.2.4"
+	},
+	"devDependencies": {
+		"typescript": "^5.2.2"
+	},
+	"publishConfig": {
+		"registry": "https://npm.crownfi.io"
+	}
+}

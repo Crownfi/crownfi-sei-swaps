@@ -15,6 +15,6 @@ private = true
 
 [dependencies]
 crownfi-astro-common = {path = "../crownfi-astro-common"}
-crownfi-sei-sdk-autogen = {path = "/home/aritz/git/@crownfi/crownfi-sei-common/packages/cargo/crownfi-sei-sdk-autogen"}
+crownfi-sei-sdk-autogen = {workspace = true}
 bpaf = {workspace = true}
 color-eyre = {workspace = true}

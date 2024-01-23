@@ -20,6 +20,7 @@ thiserror = "1"
 borsh = "0.10"
 itertools = "0.12"
 serde = "1"
+crownfi-sei-sdk-autogen = { git = "ssh://git@github.com/Crownfi/crownfi-sei-common.git", branch = "main" }
 
 # Potential future
 #sei-cosmwasm = "0.4"

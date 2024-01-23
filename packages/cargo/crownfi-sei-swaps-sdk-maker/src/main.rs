@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use bpaf::Bpaf;
-use crownfi_astro_common::factory::{AstroFactoryInstantiateMsg, AstroFactoryExecuteMsg, AstroFactoryQueryMsg, AstroFactoryMigrateMsg};
+use crownfi_astro_common::{factory::{AstroFactoryInstantiateMsg, AstroFactoryExecuteMsg, AstroFactoryQueryMsg, AstroFactoryMigrateMsg}, pair::{AstroPairInstantiateMsg, AstroPairExecuteMsg, AstroPairQueryMsg, AstroPairMigrateMsg, AstroPairCw20HookMsg}, router::{AstroRouteInstantiateMsg, AstroRouteExecuteMsg, AstroRouteQueryMsg, AstroRouteMigrateMsg, AstroRouteCw20HookMsg}};
 use crownfi_sei_sdk_autogen::CrownfiSdkMaker;
 type Void = ();
 
@@ -24,6 +24,22 @@ fn main() -> color_eyre::Result<()> {
 			Void,
 			Void
 		>("astro_factory")?
+		.add_contract::<
+			AstroPairInstantiateMsg,
+			AstroPairExecuteMsg,
+			AstroPairQueryMsg,
+			AstroPairMigrateMsg,
+			Void,
+			AstroPairCw20HookMsg
+		>("astro_pair")?
+		.add_contract::<
+			AstroRouteInstantiateMsg,
+			AstroRouteExecuteMsg,
+			AstroRouteQueryMsg,
+			AstroRouteMigrateMsg,
+			Void,
+			AstroRouteCw20HookMsg
+		>("astro_router")?
 		.generate_code(args.out_dir)?;
 	
 	Ok(())

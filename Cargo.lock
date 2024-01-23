@@ -404,6 +404,7 @@ dependencies = [
 [[package]]
 name = "crownfi-sei-sdk-autogen"
 version = "0.1.0"
+source = "git+ssh://git@github.com/Crownfi/crownfi-sei-common.git?branch=main#d09e249428a8e25ee36924ab2757b1aac308e5e4"
 dependencies = [
  "bpaf",
  "convert_case",
