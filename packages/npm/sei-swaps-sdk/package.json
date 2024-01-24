@@ -3,7 +3,8 @@
 	"version": "0.8.0",
 	"main": "dist/index.js",
 	"type": "module",
-	"license": "MIT",
+	"license": "GPL-3.0-or-later",
+	"files": ["dist"],
 	"scripts": {
 		"build": "rm -rf dist/* && mkdir -p dist && tsc"
 	},
