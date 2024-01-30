@@ -60,8 +60,12 @@ export class SwapMarketPair {
 		const factoryPairConfig = factoryConfig.pair_configs.find(v => {
 			// Ugh, the "single property with empty object" convention for rust handling Rust enums sucks.
 			// Can't wait until we migrate away from astroport-derived contracts...
-			JSON.stringify(v.pair_type) == JSON.stringify(this.#astroPairType)
-		})!;
+			return JSON.stringify(v.pair_type) == JSON.stringify(this.#astroPairType);
+		});
+		if (factoryPairConfig === undefined) {
+			// Some assertion
+			throw new Error("Couln't find factoryPairConfig " + JSON.stringify(this.#astroPairType) + " in " + JSON.stringify(factoryConfig.pair_configs));
+		}
 		this.#makerFeeBasisPoints = factoryPairConfig.maker_fee_bps;
 		this.#poolFeeBasisPoints = factoryPairConfig.total_fee_bps - factoryPairConfig.maker_fee_bps;
 	}
@@ -101,8 +105,12 @@ export class SwapMarketPair {
 		const factoryPairConfig = factoryConfig.pair_configs.find(v => {
 			// Ugh, the "single property with empty object" convention for rust handling Rust enums sucks.
 			// Can't wait until we migrate away from astroport-derived contracts...
-			JSON.stringify(v.pair_type) == JSON.stringify(this.#astroPairType)
-		})!;
+			return JSON.stringify(v.pair_type) == JSON.stringify(this.#astroPairType);
+		});
+		if (factoryPairConfig === undefined) {
+			// Some assertion
+			throw new Error("Couln't find factoryPairConfig " + JSON.stringify(this.#astroPairType) + " in " + JSON.stringify(factoryConfig.pair_configs));
+		}
 		this.#makerFeeBasisPoints = factoryPairConfig.maker_fee_bps;
 		this.#poolFeeBasisPoints = factoryPairConfig.total_fee_bps - factoryPairConfig.maker_fee_bps;
 	}
@@ -307,6 +315,26 @@ export class SwapMarket {
 		this.routerContract = new AstroRouterContract(endpoint, routerContractAddress);
 		this.#assetPairMap = {};
 		this.#marketingNameToPair = {};
+	}
+	/**
+	 * Gets the default SwapMarket. That is, the one with contracts published by CrownFi.
+	 * 
+	 * @param endpoint RPC Endpoint
+	 * @param chainId network ID, if unspecified, the endpoint will be queried.
+	 * @returns The SwapMarket with the default contracts
+	 */
+	static async getFromChainId(endpoint: CosmWasmClient, chainId?: string): Promise<SwapMarket> {
+		chainId = chainId || await endpoint.getChainId();
+		switch (chainId) {
+			case "atlantic-2":
+				return new SwapMarket(
+					endpoint,
+					"sei1nguta7v9s0tp0m07r46p7tsyg54rmuzjhcy0mkglxgekt2q3gdeqyhmyu7",
+					"sei1vnjfpnsm70puc2umdujw6fc3p0gv98p2vdymnt4ammqv46ht7vyss6rjhm"
+				);
+			default:
+				throw new Error("SwapMarket contract addresses aren't known for chain: " + chainId);
+		}
 	}
 	/**
 	 * Resolves the promise if the factory contract is compatible with this library.
