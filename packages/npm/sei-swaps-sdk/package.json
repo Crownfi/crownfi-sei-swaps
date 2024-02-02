@@ -1,6 +1,6 @@
 {
 	"name": "@crownfi/sei-swaps-sdk",
-	"version": "0.8.1",
+	"version": "0.8.2",
 	"main": "dist/index.js",
 	"type": "module",
 	"license": "GPL-3.0-or-later",
@@ -15,7 +15,7 @@
 		"@cosmjs/amino": "^0.32.1",
 		"@cosmjs/stargate": "^0.32.1",
 		"@crownfi/sei-js-core": "^4.0.0-beta.0",
-		"@crownfi/sei-utils": "^0.2.4"
+		"@crownfi/sei-utils": "^0.2.8"
 	},
 	"devDependencies": {
 		"typescript": "^5.2.2"

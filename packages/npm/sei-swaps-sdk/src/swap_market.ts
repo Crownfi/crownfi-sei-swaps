@@ -1,6 +1,6 @@
 import { CosmWasmClient, ExecuteInstruction } from "@cosmjs/cosmwasm-stargate";
 import { AstroFactoryContract, AstroPairContract } from "./index.js"
-import { Addr, ClientEnv, getUserTokenInfo, updateUserTokenInfo } from "@crownfi/sei-utils";
+import { Addr, ClientEnv, getBalanceChangesFor, getUserTokenInfo, updateUserTokenInfo } from "@crownfi/sei-utils";
 import { amountWithDenomToAstroAsset, astroAssetInfoToUniDenom, astroAssetToAmountWithDenom, uniDenomToAstroAssetInfo } from "./astro_legacy_conversions.js";
 import { Asset, AstroFactoryConfigResponse, AstroPairPoolResponse, AstroPairType, AstroRouterContract, PairInfo } from "./base/index.js";
 import { UnifiedDenom, UnifiedDenomPair, matchIfCW20Token } from "./types.js";
@@ -10,7 +10,7 @@ import { Coin } from "@cosmjs/amino";
 export type SwapMarketDepositSimResult = {
 	newShares: bigint,
 	newShareValue: [[bigint, UnifiedDenom], [bigint, UnifiedDenom]]
-	slippage: number,
+	// slippage: number,
 	instructions: ExecuteInstruction[]
 }
 
@@ -52,7 +52,7 @@ export class SwapMarketPair {
 			.map(asset => astroAssetInfoToUniDenom(asset.info)) as [UnifiedDenom, UnifiedDenom];
 		this.totalDeposits = (poolInfo.assets as [Asset, Asset])
 			.map(asset => BigInt(asset.amount)) as [bigint, bigint];
-		this.name = this.assets.map(denom => getUserTokenInfo(denom).name).join("-");
+		this.name = this.assets.map(denom => getUserTokenInfo(denom).symbol).join("-");
 		
 		this.#astroPairType = pairInfo.pair_type;
 		this.#sharesDenom = "cw20/" + pairInfo.liquidity_token;
@@ -129,10 +129,14 @@ export class SwapMarketPair {
 		await this._refresh(await factoryContract.queryConfig());
 	}
 	/**
-	 * Returns an approximate exchange rate between token0 and token1.
+	 * Returns an approximate exchange rate between assets[0] and assets[1].
 	 */
-	exchangeRate(): number {
-		return Number(this.totalDeposits[0]) / Number(this.totalDeposits[1])
+	exchangeRate(inverse?: boolean): number {
+		if (inverse) {
+			return Number(this.totalDeposits[0]) / Number(this.totalDeposits[1]);	
+		} else {
+			return Number(this.totalDeposits[1]) / Number(this.totalDeposits[0]);	
+		}
 	}
 	/**
 	 * Calculates the value of the shares amount specified
@@ -285,13 +289,29 @@ export class SwapMarketPair {
 		slippageTolerance: number = 0.01,
 		receiver?: Addr | null,
 	): Promise<SwapMarketSwapSimResult> {
-		throw new Error("TODO: simulateSwap");
+		const instructions = this.buildSwapIxs(
+			offerAmount,
+			offerDenom,
+			slippageTolerance,
+			receiver
+		);
+		if (instructions == null) {
+			throw new Error("Market does not hold assets offered or requested");
+		}
+		const simResult = await client.simulateContractMulti(instructions);
+		const balanceChanges = getBalanceChangesFor(client.account!.address, simResult.result!.events, true);
+		const askDenom = offerDenom == this.assets[0] ? this.assets[1] : this.assets[0];
+		const amount = balanceChanges[askDenom] || 0n;
+		return {
+			instructions,
+			amount
+		};
 	}
 }
 
 export type SwapMarketSwapSimResult = {
 	amount: bigint,
-	slippage: number,
+	// slippage: number,
 	instructions: ExecuteInstruction[]
 }
 
@@ -363,12 +383,14 @@ export class SwapMarket {
 			if (this.#assetPairMap[pairKey] == null) {
 				const pairContract = new AstroPairContract(this.factoryContract.endpoint, pairInfo.contract_addr);
 				const poolInfo = await pairContract.queryPool();
-				this.#assetPairMap[pairKey] = new SwapMarketPair(
+				const pair = new SwapMarketPair(
 					pairContract,
 					factoryConfig,
 					pairInfo,
 					poolInfo
 				);
+				this.#assetPairMap[pairKey] = pair;
+				this.#marketingNameToPair[pair.name] = pair;
 			} else {
 				await this.#assetPairMap[pairKey]._refresh(factoryConfig);
 			}
@@ -556,6 +578,19 @@ export class SwapMarket {
 		
 	}
 
+	/**
+	 * Simulates the swap. This requires a signable ClientEnv as an actual transaction simulation is performed.
+	 * 
+	 * Stable for `1.0`
+	 * 
+	 * @param client 
+	 * @param offerAmount 
+	 * @param offerDenom 
+	 * @param askDenom 
+	 * @param slippageTolerance 
+	 * @param receiver 
+	 * @returns 
+	 */
 	async simulateSwap(
 		client: ClientEnv,
 		offerAmount: bigint,
@@ -564,6 +599,59 @@ export class SwapMarket {
 		slippageTolerance: number = 0.01,
 		receiver?: Addr | null,
 	): Promise<SwapMarketSwapSimResult> {
-		throw new Error("TODO: simulateSwap");
+		const instructions = this.buildSwapIxs(
+			offerAmount,
+			offerDenom,
+			askDenom,
+			slippageTolerance,
+			receiver
+		);
+		if (offerDenom == askDenom) {
+			throw new Error("Trading input denom must differ from trading output denom");
+		}
+		if (instructions == null) {
+			throw new Error("Market does not hold assets offered or requested");
+		}
+		const simResult = await client.simulateContractMulti(instructions);
+		const balanceChanges = getBalanceChangesFor(client.account!.address, simResult.result!.events, true);
+		const amount = balanceChanges[askDenom] || 0n;
+		return {
+			instructions,
+			amount
+		};
+	}
+
+	/**
+	 * Returns an approximate exchange reate between the specified assets
+	 * 
+	 * Stable for `1.0`
+	 * 
+	 * @param fromDenom 
+	 * @param toDenom 
+	 * @param includeFees
+	 * @returns The exchange rate or NaN if either of the assets aren't in the market
+	 */
+	exchangeRate(
+		fromDenom: UnifiedDenom,
+		toDenom: UnifiedDenom,
+		includeFees?: boolean
+	): number {
+		if (fromDenom == toDenom) {
+			return 1;
+		}
+		const route = this.resolveMultiSwapRoute(fromDenom, toDenom);
+		if (route == null || route.length == 0) {
+			return NaN;
+		}
+		let result = 1;
+		for (const directExchange of route) {
+			const pair = this.getPair(directExchange, true)!;
+			let directRate = pair.exchangeRate(pair.assets[1] == fromDenom);
+			if (includeFees) {
+				directRate *= ((10000 - pair.totalFeeBasisPoints) / 10000);
+			}
+			result *= directRate;
+		}
+		return result;
 	}
 }
