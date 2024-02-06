@@ -5,13 +5,12 @@ import { amountWithDenomToAstroAsset, astroAssetInfoToUniDenom, astroAssetToAmou
 import { Asset, AstroFactoryConfigResponse, AstroPairPoolResponse, AstroPairType, AstroRouterContract, PairInfo } from "./base/index.js";
 import { UnifiedDenom, UnifiedDenomPair, matchIfCW20Token } from "./types.js";
 import { Coin } from "@cosmjs/amino";
+import { bigIntMin } from "math-bigint";
 
 
-export type SwapMarketDepositSimResult = {
+export type SwapMarketDepositCalcResult = {
 	newShares: bigint,
 	newShareValue: [[bigint, UnifiedDenom], [bigint, UnifiedDenom]]
-	// slippage: number,
-	instructions: ExecuteInstruction[]
 }
 
 export class SwapMarketPair {
@@ -130,6 +129,11 @@ export class SwapMarketPair {
 	}
 	/**
 	 * Returns an approximate exchange rate between assets[0] and assets[1].
+	 * 
+	 * Stable for `1.0`
+	 * 
+	 * @param inverse return assets[1] -> assets[0] rate instead
+	 * @returns The approximate exchange rate
 	 */
 	exchangeRate(inverse?: boolean): number {
 		if (inverse) {
@@ -138,6 +142,27 @@ export class SwapMarketPair {
 			return Number(this.totalDeposits[1]) / Number(this.totalDeposits[0]);	
 		}
 	}
+
+	/**
+	 * Performs a "dumb" exchange quote from assets[0] to assets[1] assuming infinite liquidity and no slippage
+	 * 
+	 * Stable for `1.0`
+	 * 
+	 * @param value input value
+	 * @param inverse return assets[1] -> assets[0] rate instead
+	 * @param includeFees subtract swap fees from the input
+	 */
+	exchangeValue(value: bigint, inverse?: boolean, includeFees?: boolean) {
+		if (includeFees) {
+			value = value * (10000n - BigInt(this.totalFeeBasisPoints)) / 10000n;
+		}
+		if (inverse) {
+			return value * this.totalDeposits[0] / this.totalDeposits[1];	
+		} else {
+			return value * this.totalDeposits[1] / this.totalDeposits[0];	
+		}
+	}
+
 	/**
 	 * Calculates the value of the shares amount specified
 	 */
@@ -214,12 +239,33 @@ export class SwapMarketPair {
 		return ixs;
 	}
 
-	async simulateProvideLiquidity(
-		client: ClientEnv,
+	calculateProvideLiquidity(
 		token0Amount: bigint,
 		token1Amount: bigint
-	): Promise<SwapMarketDepositSimResult> {
-		throw new Error("TODO: simulateProvideLiquidity");
+	): SwapMarketDepositCalcResult {
+		if (this.totalDeposits[0] == 0n || this.totalDeposits[1] == 0n) {
+			// Honestly, this is an edgecase which isn't worth thinking about in publicly facing pools
+			return {
+				newShares: 1000n,
+				newShareValue: [[token0Amount, this.assets[0]], [token1Amount, this.assets[1]]],
+			};
+		}
+		// The contract calculates the minting of new shares before deposit using this algorithm
+		const newShares = bigIntMin(
+			token0Amount * this.totalShares / this.totalDeposits[0],
+			token1Amount * this.totalShares / this.totalDeposits[1]
+		);
+		const totalSharesAfter = this.totalShares + newShares;
+		const totalDeposit0After = this.totalDeposits[0] + token0Amount;
+		const totalDeposit1After = this.totalDeposits[1] + token1Amount;
+
+		return {
+			newShares,
+			newShareValue: [
+				[totalDeposit0After * newShares / totalSharesAfter, this.assets[0]],
+				[totalDeposit1After * newShares / totalSharesAfter, this.assets[1]]
+			]
+		};
 	}
 
 	buildWithdrawLiquidityIxs(
@@ -440,6 +486,30 @@ export class SwapMarket {
 		}
 		return result;
 	}
+	/**
+	 * Checks if this market holds the specified asset(s)
+	 * 
+	 * Stable for `1.0`
+	 * @param asset asset or multiple assets to check (as multiple args)
+	 * @returns true if all the specified assets are in the market
+	 */
+	hasAsset(...asset: UnifiedDenom[]): boolean {
+		for (const k in this.#assetPairMap) {
+			const [pairAsset0, pairAsset1] = k.split("\0");
+			let assetIndex = asset.indexOf(pairAsset0);
+			if (assetIndex >= 0) {
+				asset.splice(assetIndex, 1);
+			}
+			assetIndex = asset.indexOf(pairAsset1);
+			if (assetIndex >= 0) {
+				asset.splice(assetIndex, 1);
+			}
+			if (asset.length == 0) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	#resolveMultiSwapRoute(
 		from: UnifiedDenom,
@@ -628,7 +698,7 @@ export class SwapMarket {
 	 * 
 	 * @param fromDenom 
 	 * @param toDenom 
-	 * @param includeFees
+	 * @param includeFees include swap fees (not transaction fees)
 	 * @returns The exchange rate or NaN if either of the assets aren't in the market
 	 */
 	exchangeRate(
@@ -653,5 +723,34 @@ export class SwapMarket {
 			result *= directRate;
 		}
 		return result;
+	}
+
+	/**
+	 * Performs a "dumb" exchange quote assuming infinite liquidity and no slippage
+	 * 
+	 * @param value 
+	 * @param fromDenom 
+	 * @param toDenom 
+	 * @param includeFees include swap fees (not transaction fees)
+	 * @returns The exchange value or null if either of the assets aren't in the market
+	 */
+	exchangeValue(
+		value: bigint,
+		fromDenom: UnifiedDenom,
+		toDenom: UnifiedDenom,
+		includeFees?: boolean
+	): bigint | null {
+		if (fromDenom == toDenom) {
+			return value;
+		}
+		const route = this.resolveMultiSwapRoute(fromDenom, toDenom);
+		if (route == null || route.length == 0) {
+			return null;
+		}
+		for (const directExchange of route) {
+			const pair = this.getPair(directExchange, true)!;
+			value = pair.exchangeValue(value, pair.assets[1] == fromDenom, includeFees);
+		}
+		return value;
 	}
 }
