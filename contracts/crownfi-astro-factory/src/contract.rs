@@ -85,8 +85,8 @@ pub struct UpdateConfig {
     token_code_id: Option<u64>,
     /// Contract address to send governance fees to (the Maker)
     fee_address: Option<String>,
-    // Generator contract address
-    // generator_address: Option<String>,
+    /// Whether to prevent the public from creating pairs
+    permissioned: Option<bool>,
 }
 
 /// Exposes all the execute functions available in the contract.
@@ -127,14 +127,14 @@ pub fn execute(
         AstroFactoryExecuteMsg::UpdateConfig {
             token_code_id,
             fee_address,
-            // generator_address
+            permissioned,
         } => execute_update_config(
             deps,
             info,
             UpdateConfig {
                 token_code_id,
                 fee_address,
-                // generator_address
+                permissioned,
             },
         ),
         AstroFactoryExecuteMsg::UpdatePairConfig { config } => execute_update_pair_config(deps, info, config),
@@ -142,7 +142,7 @@ pub fn execute(
             pair_type,
             asset_infos,
             init_params,
-        } => execute_create_pair(deps, env, pair_type, asset_infos, init_params),
+        } => execute_create_pair(deps, info, env, pair_type, asset_infos, init_params),
         AstroFactoryExecuteMsg::Deregister { asset_infos } => deregister(deps, info, asset_infos),
         AstroFactoryExecuteMsg::ProposeNewOwner { owner, expires_in } => {
             let config = CONFIG.load(deps.storage)?;
@@ -258,6 +258,7 @@ pub fn execute_update_pair_config(
 /// * **init_params** These are packed params used for custom pair types that need extra data to be instantiated.
 pub fn execute_create_pair(
     deps: DepsMut,
+    info: MessageInfo,
     env: Env,
     pair_type: AstroPairType,
     asset_infos: Vec<AssetInfo>,
@@ -275,6 +276,10 @@ pub fn execute_create_pair(
     let pair_config = PAIR_CONFIGS
         .load(deps.storage, pair_type.to_string())
         .map_err(|_| ContractError::PairConfigNotFound {})?;
+
+    if pair_config.permissioned && info.sender != config.owner {
+        return Err(ContractError::Unauthorized {});
+    }
 
     // Check if pair config is disabled
     if pair_config.is_disabled {

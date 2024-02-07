@@ -78,6 +78,7 @@ impl FactoryHelper {
                     maker_fee_bps: 0,
                     is_disabled: false,
                     is_generator_disabled: false,
+                    permissioned: false,
                 },
                 AstroFactoryPairConfig {
                     code_id: pair_code_id,
@@ -86,6 +87,7 @@ impl FactoryHelper {
                     maker_fee_bps: 0,
                     is_disabled: false,
                     is_generator_disabled: false,
+                    permissioned: false,
                 },
             ],
             token_code_id: cw20_token_code_id,

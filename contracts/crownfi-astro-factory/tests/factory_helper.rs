@@ -77,6 +77,7 @@ impl FactoryHelper {
                 maker_fee_bps: 10,
                 is_disabled: false,
                 is_generator_disabled: false,
+                permissioned: true,
             }],
             token_code_id: cw20_token_code_id,
             fee_address: None,
@@ -109,13 +110,12 @@ impl FactoryHelper {
         sender: &Addr,
         token_code_id: Option<u64>,
         fee_address: Option<String>,
-        // generator_address: Option<String>,
-        // coin_registry_address: Option<String>,
+        permissioned: Option<bool>
     ) -> AnyResult<AppResponse> {
         let msg = crownfi_astro_common::factory::AstroFactoryExecuteMsg::UpdateConfig {
             token_code_id,
             fee_address,
-            // generator_address,
+            permissioned
         };
 
         router.execute_contract(sender.clone(), self.factory.clone(), &msg, &[])

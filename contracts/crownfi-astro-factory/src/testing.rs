@@ -50,6 +50,7 @@ fn proper_initialization() {
                 maker_fee_bps: 10,
                 is_disabled: false,
                 is_generator_disabled: false,
+                permissioned: false,
             },
             AstroFactoryPairConfig {
                 code_id: 325u64,
@@ -58,6 +59,7 @@ fn proper_initialization() {
                 maker_fee_bps: 10,
                 is_disabled: false,
                 is_generator_disabled: false,
+                permissioned: false,
             },
         ],
         token_code_id: 123u64,
@@ -80,6 +82,7 @@ fn proper_initialization() {
             maker_fee_bps: 10,
             is_disabled: false,
             is_generator_disabled: false,
+            permissioned: false,
         }],
         token_code_id: 123u64,
         fee_address: None,
@@ -104,6 +107,7 @@ fn proper_initialization() {
                 maker_fee_bps: 10,
                 is_disabled: false,
                 is_generator_disabled: false,
+                permissioned: false,
             },
             AstroFactoryPairConfig {
                 code_id: 123u64,
@@ -112,6 +116,7 @@ fn proper_initialization() {
                 maker_fee_bps: 10,
                 is_disabled: false,
                 is_generator_disabled: false,
+                permissioned: false,
             },
         ],
         token_code_id: 123u64,
@@ -144,6 +149,7 @@ fn update_config() {
         maker_fee_bps: 166,
         is_disabled: false,
         is_generator_disabled: false,
+        permissioned: false,
     }];
 
     let msg = AstroFactoryInstantiateMsg {
@@ -166,7 +172,7 @@ fn update_config() {
     let msg = AstroFactoryExecuteMsg::UpdateConfig {
         token_code_id: Some(200u64),
         fee_address: Some(String::from("new_fee_addr")),
-        // generator_address: Some(String::from("new_generator_addr")),
+        permissioned: None
     };
 
     let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
@@ -194,7 +200,7 @@ fn update_config() {
     let msg = AstroFactoryExecuteMsg::UpdateConfig {
         token_code_id: None,
         fee_address: None,
-        // generator_address: None,
+        permissioned: None,
     };
 
     let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap_err();
@@ -289,6 +295,7 @@ fn update_pair_config() {
         maker_fee_bps: 10,
         is_disabled: false,
         is_generator_disabled: false,
+        permissioned: false,
     }];
 
     let msg = AstroFactoryInstantiateMsg {
@@ -318,6 +325,7 @@ fn update_pair_config() {
         maker_fee_bps: 2,
         is_disabled: false,
         is_generator_disabled: false,
+        permissioned: false,
     };
 
     // Unauthorized err
@@ -341,6 +349,7 @@ fn update_pair_config() {
             maker_fee_bps: 10_001,
             is_disabled: false,
             is_generator_disabled: false,
+            permissioned: false,
         },
     };
 
@@ -368,6 +377,7 @@ fn update_pair_config() {
         maker_fee_bps: 20,
         is_disabled: false,
         is_generator_disabled: false,
+        permissioned: false,
     };
 
     let info = mock_info(owner, &[]);
@@ -397,6 +407,7 @@ fn create_pair() {
         maker_fee_bps: 10,
         is_disabled: false,
         is_generator_disabled: false,
+        permissioned: false,
     };
 
     let msg = AstroFactoryInstantiateMsg {
@@ -496,6 +507,7 @@ fn register() {
             maker_fee_bps: 10,
             is_disabled: false,
             is_generator_disabled: false,
+            permissioned: false,
         }],
         token_code_id: 123u64,
         fee_address: None,

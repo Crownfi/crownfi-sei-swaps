@@ -8,6 +8,7 @@ use crownfi_astro_common::asset::{AssetInfo, PairInfo};
 use crownfi_astro_common::factory::{
     AstroFactoryConfigResponse, AstroFactoryExecuteMsg, AstroFactoryFeeInfoResponse, AstroFactoryInstantiateMsg, AstroFactoryPairConfig, AstroPairType, AstroFactoryQueryMsg,
 };
+use crownfi_astro_factory::error::ContractError;
 
 use crate::factory_helper::{instantiate_token, FactoryHelper};
 use cw_multi_test::{App, ContractWrapper, Executor};
@@ -44,6 +45,7 @@ fn proper_initialization() {
         maker_fee_bps: 10,
         is_disabled: false,
         is_generator_disabled: false,
+        permissioned: false,
     }];
 
     let msg = AstroFactoryInstantiateMsg {
@@ -89,8 +91,7 @@ fn update_config() {
             &owner,
             Some(200u64),
             Some("fee".to_string()),
-            // Some("generator".to_string()),
-            // None,
+            None,
         )
         .unwrap();
 
@@ -115,8 +116,7 @@ fn update_config() {
             &Addr::unchecked("not_owner"),
             None,
             None,
-            // None,
-            // None,
+            None,
         )
         .unwrap_err();
     assert_eq!(res.root_cause().to_string(), "Unauthorized");
@@ -200,6 +200,7 @@ fn test_create_pair() {
                 maker_fee_bps: 40,
                 is_disabled: true,
                 is_generator_disabled: false,
+                permissioned: false,
             },
         },
         &[],
@@ -351,4 +352,38 @@ fn check_update_owner() {
     let res: AstroFactoryConfigResponse = app.wrap().query_wasm_smart(&helper.factory, &msg).unwrap();
 
     assert_eq!(res.owner, new_owner)
+}
+
+#[test]
+fn test_create_permissioned_pair() {
+    let mut app = mock_app();
+    let owner = Addr::unchecked("owner");
+    let mut helper = FactoryHelper::init(&mut app, &owner);
+
+    let token1 = instantiate_token(&mut app, helper.cw20_token_code_id, &owner, "tokenX", None);
+    let token2 = instantiate_token(&mut app, helper.cw20_token_code_id, &owner, "tokenY", None);
+
+    let err = helper
+        .create_pair(
+            &mut app,
+            &Addr::unchecked("random_stranger"),
+            AstroPairType::Xyk {},
+            [&token1, &token2],
+            None,
+        )
+        .unwrap_err();
+    assert_eq!(
+        err.downcast::<ContractError>().unwrap(),
+        ContractError::Unauthorized {}
+    );
+
+    helper
+        .create_pair(
+            &mut app,
+            &owner,
+            AstroPairType::Xyk {},
+            [&token1, &token2],
+            None,
+        )
+        .unwrap();
 }

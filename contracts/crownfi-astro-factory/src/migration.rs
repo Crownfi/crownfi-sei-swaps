@@ -86,6 +86,7 @@ pub fn migrate_pair_configs(storage: &mut dyn Storage) -> Result<(), StdError> {
             maker_fee_bps: old_pair_configs.maker_fee_bps,
             is_disabled: old_pair_configs.is_disabled,
             is_generator_disabled: old_pair_configs.is_generator_disabled,
+            permissioned: false
         };
 
         if key != pair_type.to_string() {

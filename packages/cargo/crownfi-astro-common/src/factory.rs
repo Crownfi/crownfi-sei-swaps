@@ -66,6 +66,10 @@ pub struct AstroFactoryPairConfig {
     /// Setting this to true means that pairs of this type will not be able
     /// to get an ASTRO generator
     pub is_generator_disabled: bool,
+    /// If pool type is permissioned, only factory owner can create pairs of this type.
+    /// Default is false.
+    #[serde(default)]
+    pub permissioned: bool,
 }
 
 impl AstroFactoryPairConfig {
@@ -99,8 +103,8 @@ pub enum AstroFactoryExecuteMsg {
         token_code_id: Option<u64>,
         /// Contract address to send governance fees to (the Maker)
         fee_address: Option<String>,
-        // Contract address where Lp tokens can be auto_staked after someone provides liquidity in an incentivized Astroport pool
-        // generator_address: Option<String>
+        /// Whether to prevent the public from creating pairs
+        permissioned: Option<bool>
     },
     /// UpdatePairConfig updates the config for a pair type.
     UpdatePairConfig {
