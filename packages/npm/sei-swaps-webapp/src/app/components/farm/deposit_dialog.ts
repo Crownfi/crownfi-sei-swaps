@@ -1,8 +1,8 @@
 import { SwapMarket } from "@crownfi/sei-swaps-sdk";
-import { FarmPoolDepositDialogAutogen } from "./_autogen";
+import { FarmPoolDepositDialogAutogen } from "./_autogen.js";
 import { ClientEnv, UIAmount, bigIntToStringDecimal, getUserTokenInfo, stringDecimalToBigInt } from "@crownfi/sei-utils";
-import { setLoading } from "../../loading";
-import { errorDialogIfRejected } from "../../dialogs";
+import { setLoading } from "../../loading.js";
+import { errorDialogIfRejected } from "../../dialogs/index.js";
 
 export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 	constructor() {
@@ -69,6 +69,7 @@ export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 				}
 			});
 		});
+		this.refs.tradeWarning.hidden = true;
 	}
 	invalidateSwapMarket() {
 		this.#swapMarket = null;
@@ -91,9 +92,13 @@ export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 		this.refs.balanceToken0.innerText = "";
 		this.refs.balanceToken1.innerText = "";
 		this.refs.balanceResult.innerText = "";
+		this.refs.denomToken0.innerText = "";
+		this.refs.denomToken1.innerText = "";
 		this.refs.balanceToken0.classList.add("lazy-loading-text-2");
 		this.refs.balanceToken1.classList.add("lazy-loading-text-2");
 		this.refs.balanceResult.classList.add("lazy-loading-text-2");
+		this.refs.denomToken0.classList.add("lazy-loading-text-2");
+		this.refs.denomToken1.classList.add("lazy-loading-text-2");
 		errorDialogIfRejected(async () => {
 			try{
 				const [client, swapMarket] = await Promise.all([
@@ -101,20 +106,32 @@ export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 					this.swapMarket()
 				]);
 				const pair = swapMarket.getPairFromName(this.refs.form.elements.pool.value)!;
-				this.refs.form.elements.amount0.step
+				const token0Info = getUserTokenInfo(pair.assets[0]);
+				const token1Info = getUserTokenInfo(pair.assets[1]);
+
+				this.refs.denomToken0.classList.remove("lazy-loading-text-2");
+				this.refs.denomToken1.classList.remove("lazy-loading-text-2");
+				this.refs.denomToken0.innerText = token0Info.symbol;
+				this.refs.denomToken1.innerText = token1Info.symbol;
+				this.refs.form.elements.amount0.step = (10 ** -token0Info.decimals).toString();
+				this.refs.form.elements.amount1.step = (10 ** -token1Info.decimals).toString();
 
 				this.refs.balanceToken0.innerText = UIAmount(
 					await client.getBalance(pair.assets[0]),
 					pair.assets[0]
 				);
-				this.refs.balanceToken0.innerText = UIAmount(
+				this.refs.balanceToken0.classList.remove("lazy-loading-text-2");
+
+				this.refs.balanceToken1.innerText = UIAmount(
 					await client.getBalance(pair.assets[1]),
 					pair.assets[1]
 				);
+				this.refs.balanceToken1.classList.remove("lazy-loading-text-2");
 
 				this.refs.balanceResult.innerText = (
 					await client.getBalance(pair.sharesDenom)
 				).toString();
+				this.refs.balanceResult.classList.remove("lazy-loading-text-2");
 			}catch(ex: any){
 				if (!this.refs.balanceToken0.innerText) {
 					this.refs.balanceToken0.innerText = "[Error]"
@@ -130,6 +147,8 @@ export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 				this.refs.balanceToken0.classList.remove("lazy-loading-text-2");
 				this.refs.balanceToken1.classList.remove("lazy-loading-text-2");
 				this.refs.balanceResult.classList.remove("lazy-loading-text-2");
+				this.refs.denomToken0.classList.remove("lazy-loading-text-2");
+				this.refs.denomToken1.classList.remove("lazy-loading-text-2");
 			}
 		})
 	}
@@ -145,7 +164,7 @@ export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 			(async () => {
 				do {
 					this.#shouldRefreshTradeInput = false;
-					await new Promise(resolve => setTimeout(resolve, 500));
+					//await new Promise(resolve => setTimeout(resolve, 500));
 					const pair = (await this.swapMarket()).getPairFromName(this.refs.form.elements.pool.value)!;
 					const form = this.refs.form;
 					switch (form.values()["deposit-type"]) {
@@ -153,19 +172,26 @@ export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 							form.elements.result.readOnly = false;
 							switch (this.#tradeInputEdited) {
 								case "amount0": {
-									const amount0 = BigInt(form.elements.amount0.value);
+									const amount0 = stringDecimalToBigInt(
+										form.elements.amount0.value,
+										getUserTokenInfo(pair.assets[0]).decimals
+									) ?? 0n;
 									const amount1 = pair.exchangeValue(amount0);
 									form.elements.amount1.value = bigIntToStringDecimal(amount1, getUserTokenInfo(pair.assets[1]).decimals);
 									form.elements.result.value = pair.calculateProvideLiquidity(amount0, amount1).newShares + "";
 									break;
 								}
 								case "amount1": {
-									const amount1 = BigInt(form.elements.amount1.value);
-									const amount0 = pair.exchangeValue(amount1);
+									const amount1 = stringDecimalToBigInt(
+										form.elements.amount1.value,
+										getUserTokenInfo(pair.assets[1]).decimals
+									) ?? 0n;
+									const amount0 = pair.exchangeValue(amount1, true);
 									form.elements.amount0.value = bigIntToStringDecimal(amount0, getUserTokenInfo(pair.assets[0]).decimals);
 									form.elements.result.value = pair.calculateProvideLiquidity(amount0, amount1).newShares + "";
 									break;
 								}
+								case undefined:
 								case "result": {
 									const [[amount0, _], [amount1, __]] = pair.shareValue(BigInt(form.elements.result.value));
 									form.elements.amount0.value = bigIntToStringDecimal(amount0, getUserTokenInfo(pair.assets[0]).decimals);

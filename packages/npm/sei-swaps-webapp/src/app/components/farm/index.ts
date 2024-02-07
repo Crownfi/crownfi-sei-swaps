@@ -4,6 +4,7 @@ import { ClientEnv, UIAmount, getUserTokenInfo, seiUtilEventEmitter } from "@cro
 import { errorDialogIfRejected } from "../../dialogs/index.js";
 import { qa } from "../../util.js";
 import { FarmPoolWithdrawDialogElement } from "./withdraw_dialog.js";
+import { FarmPoolDepositDialogElement } from "./deposit_dialog.js";
 
 export class FarmPoolComponentElement extends FarmPoolComponentAutogen {
 
@@ -214,11 +215,9 @@ export class FarmPoolItemOptionsElement extends FarmPoolItemOptionsAutogen {
 		super();
 
 		this.refs.depositBtn.addEventListener("click", (ev) => {
-			/*
 			const newDialog = new FarmPoolDepositDialogElement();
 			newDialog.refs.form.elements.pool.value = this.pool!;
 			document.body.appendChild(newDialog);
-			*/
 		});
 		this.refs.withdrawBtn.addEventListener("click", (ev) => {
 			const newDialog = new FarmPoolWithdrawDialogElement();

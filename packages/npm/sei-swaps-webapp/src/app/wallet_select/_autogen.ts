@@ -92,7 +92,7 @@ let _templateWalletChoice: HTMLTemplateElement | null = null;
 function getWalletChoiceTemplate(): HTMLTemplateElement {
 	if (_templateWalletChoice == null) {
 		 _templateWalletChoice = document.createElement("template")
-		 _templateWalletChoice.innerHTML = "\n\t<img src=\"/assets/lazy-load.svg\" cewt-ref=\"img\">\n\t<span cewt-ref=\"text\">Generiwallet</span>\n";
+		 _templateWalletChoice.innerHTML = "\n\t<img cewt-ref=\"img\" src=\"/assets/lazy-load.svg\">\n\t<span cewt-ref=\"text\">Generiwallet</span>\n";
 	}
 	return _templateWalletChoice;
 }
@@ -206,7 +206,7 @@ let _templateWalletModal: HTMLTemplateElement | null = null;
 function getWalletModalTemplate(): HTMLTemplateElement {
 	if (_templateWalletModal == null) {
 		 _templateWalletModal = document.createElement("template")
-		 _templateWalletModal.innerHTML = "\n\t<h1 cewt-ref=\"heading\">Choose wallet</h1>\n\t<select cewt-ref=\"selected-network\">\n\t\t<option value=\"pacific-1\">Mainnet (pacific-1)</option>\n\t\t<option value=\"atlantic-2\">Testnet (atlantic-2)</option>\n\t\t<option value=\"sei-chain\">Localnet (sei-chain)</option>\n\t</select>\n\t<div cewt-ref=\"choices\" class=\"wallet-choices\">\n\n\t</div>\n\t<button cewt-ref=\"cancel-button\">Cancel</button>\n";
+		 _templateWalletModal.innerHTML = "\n\t<h1 cewt-ref=\"heading\">Choose wallet</h1>\n\t<select cewt-ref=\"selected-network\">\n\t\t<option value=\"pacific-1\">Mainnet (pacific-1)</option>\n\t\t<option value=\"atlantic-2\">Testnet (atlantic-2)</option>\n\t\t<option value=\"sei-chain\">Localnet (sei-chain)</option>\n\t</select>\n\t<div class=\"wallet-choices\" cewt-ref=\"choices\">\n\n\t</div>\n\t<button cewt-ref=\"cancel-button\">Cancel</button>\n";
 	}
 	return _templateWalletModal;
 }
