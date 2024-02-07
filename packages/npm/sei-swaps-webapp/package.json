@@ -10,7 +10,7 @@
 		"build:webpack:final": "webpack --mode=production",
 		"build:copy-assets": "rm -rf ./dist/assets && mkdir -p ./dist/assets && cp -R ./assets/* ./dist/assets",
 		"build:copy-static": "cp -R ./static/* ./dist/",
-		"build:final": "rm -rf dist/* && mkdir -p dist && npm run build:html && npm run build:webpack:final && npm run build:copy-assets && npm run build:copy-static",
+		"build:final": "rm -rf dist/* && mkdir -p dist && npm run build:webpack:final && npm run build:copy-assets && npm run build:copy-static",
 		"bloat-finder": "webpack --json > stats.json",
 		"codegen": "cewt codegen --inline-html ./src/app"
 	},
