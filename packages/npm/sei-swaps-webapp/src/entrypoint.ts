@@ -35,7 +35,7 @@ async function entrypoint() {
 		}
 	});
 	
-	const {main} = await import("./app/index");
+	const {main} = await import("./app/index.js");
 	await main();
 }
 

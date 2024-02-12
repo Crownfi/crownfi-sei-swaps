@@ -1,6 +1,6 @@
-import { askUserForWallet } from "./wallet_dialog";
-import { WalletButtonAutogen } from "./_autogen";
-import { errorDialogIfRejected } from "../dialogs/index";
+import { askUserForWallet } from "./wallet_dialog.js";
+import { WalletButtonAutogen } from "./_autogen.js";
+import { errorDialogIfRejected } from "../dialogs/index.js";
 import { ClientEnv, getDefaultNetworkConfig, seiUtilEventEmitter } from "@crownfi/sei-utils";
 import { qa } from "../util.js";
 

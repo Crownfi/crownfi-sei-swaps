@@ -1,9 +1,11 @@
-const path = require("path");
-const webpack = require("webpack");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+import { resolve as pathResolve } from "path";
+import { fileURLToPath } from 'url';
+import webpack from "webpack";
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
+const __dirname = import.meta.dirname;
 
-module.exports = (env, argv) => {
+export default (env, argv) => {
 	const config = {
 		entry: {
 			"main": ["./src/entrypoint.ts", "./styles/main.css"]
@@ -23,7 +25,7 @@ module.exports = (env, argv) => {
 		},
 		output: {
 			filename: "[name].js",
-			path: path.resolve(__dirname, "dist", "bundles"),
+			path: pathResolve(__dirname, "dist", "bundles"),
 		},
 		resolve: {
 			extensions: [".tsx", ".ts", ".js"],
@@ -32,7 +34,7 @@ module.exports = (env, argv) => {
 				'.js': ['.js', '.ts'],
 			},
 			fallback: {
-				buffer: require.resolve("buffer-lite"),
+				buffer: fileURLToPath(import.meta.resolve("buffer-lite")),
 				crypto: false,
 			}
 		},
