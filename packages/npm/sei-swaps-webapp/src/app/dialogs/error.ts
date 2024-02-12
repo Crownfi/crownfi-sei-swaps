@@ -1,5 +1,5 @@
 import { isProbablyTxError, makeTxExecErrLessFugly } from "@crownfi/sei-utils";
-import { ErrorModalAutogen } from "./_autogen";
+import { ErrorModalAutogen } from "./_autogen.js";
 
 // PopupModalAutogen extends HTMLDialogElement
 class PopupModalElement extends ErrorModalAutogen {

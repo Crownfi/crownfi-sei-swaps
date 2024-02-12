@@ -1,4 +1,4 @@
-import { PopupModalAutogen } from "./_autogen";
+import { PopupModalAutogen } from "./_autogen.js";
 
 // PopupModalAutogen extends HTMLDialogElement
 class PopupModalElement extends PopupModalAutogen {

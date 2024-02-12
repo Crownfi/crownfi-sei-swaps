@@ -1,8 +1,9 @@
 {
 	"name": "@crownfi/sei-swaps-webapp",
 	"version": "0.1.0",
-	"main": "dist/index.js",
-	"license": "MIT",
+	"main": "dist/bundles/index.js",
+	"license": "GPL-3.0-only",
+	"type": "module",
 	"scripts": {
 		"start": "http-server -p 8080 -c-1 ./dist",
 		"build": "rm -rf dist/* && mkdir -p dist && npm run build:webpack && npm run build:copy-assets && npm run build:copy-static",

@@ -1,5 +1,5 @@
 import { seiUtilEventEmitter } from "@crownfi/sei-utils";
-import { TxConfirmedModalAutogen } from "./_autogen";
+import { TxConfirmedModalAutogen } from "./_autogen.js";
 
 // PopupModalAutogen extends HTMLDialogElement
 class PopupModalElement extends TxConfirmedModalAutogen {
