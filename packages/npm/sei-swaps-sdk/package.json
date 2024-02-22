@@ -10,12 +10,12 @@
 	},
 	"dependencies": {
 		"tiny-emitter": "^2.1.0",
-		"@cosmjs/cosmwasm-stargate": "^0.32.1",
-		"@cosmjs/proto-signing": "^0.32.1",
-		"@cosmjs/amino": "^0.32.1",
-		"@cosmjs/stargate": "^0.32.1",
-		"@crownfi/sei-js-core": "^4.0.0-beta.0",
-		"@crownfi/sei-utils": "^0.2.8",
+		"@cosmjs/cosmwasm-stargate": "^0.32.2",
+		"@cosmjs/proto-signing": "^0.32.2",
+		"@cosmjs/amino": "^0.32.2",
+		"@cosmjs/stargate": "^0.32.2",
+		"@crownfi/sei-js-core": "^4.0.0-beta.1",
+		"@crownfi/sei-utils": "^0.2.12",
 		"math-bigint": "^1.0.0"
 	},
 	"devDependencies": {

@@ -46,7 +46,7 @@ export async function main() {
 		storedNetworkPref = (
 			document.location.host.startsWith("127.0.0.1") ||
 			document.location.host.startsWith("localhost")
-		) ? "localsei" : "atlantic-2";
+		) ? "sei-chain" : "atlantic-2";
 	}
 	setDefaultNetwork(storedNetworkPref);
 	let storedProviderPref = localStorage.getItem("preferred_sei_provider");

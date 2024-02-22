@@ -14,6 +14,7 @@ struct MakeSdkOptions {
 }
 
 fn main() -> color_eyre::Result<()> {
+	color_eyre::install()?;
 	let args = make_sdk_options().run();
 	CrownfiSdkMaker::new()
 		.add_contract::<

@@ -72,7 +72,6 @@ h1 {
 	background-image: url("/assets/lazy-load.svg");
 	border-radius: inherit;
 	z-index: 10;
-	
 }
 
 .lazy-loading-text::before {
