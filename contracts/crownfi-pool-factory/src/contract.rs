@@ -1,6 +1,6 @@
 use cosmwasm_std::{attr, Addr, Coin, DepsMut, Env, MessageInfo, Reply, Response, StdError};
 use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, env::ClonableEnvInfoMut, storage::item::StoredItem};
-use crownfi_swaps_common::data_types::pair_id::PoolPairIdentifier;
+use crownfi_swaps_common::{data_types::pair_id::PoolPairIdentifier, validation::msg::two_coins};
 use cw2::set_contract_version;
 use cw_utils::{nonpayable, parse_reply_instantiate_data, ParseReplyError};
 use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
@@ -22,7 +22,7 @@ pub fn instantiate(
 ) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
 	nonpayable(&msg_info)?;
 	set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-	msg.config.into_storable(deps.api)?.save(deps.storage)?;
+	PoolFactoryConfig::try_from(&msg.config)?.save(deps.storage)?;
 	Ok(Response::new())
 }
 
@@ -73,6 +73,9 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, PoolFacto
 			let new_pair_addr = Addr::unchecked(msg.contract_address);
 			//deps.api.
 			PoolPairIdentifier::remove(deps.storage);
+			
+			//let 
+
 			Ok(Response::new().add_attributes(vec![
 				attr("action", "create_pair"),
 				attr("pair", new_pair.to_string()),
@@ -99,14 +102,14 @@ fn process_update_config(
 ) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
 	nonpayable(&msg_info)?;
 	let mut config = PoolFactoryConfig::load_non_empty(deps.storage)?;
-	if config.admin != SeiCanonicalAddr::from_addr_using_api(&msg_info.sender, deps.api)? {
+	if config.admin != msg_info.sender.try_into()? {
 		return Err(PoolFactoryContractError::Unauthorized("Sender is not the currently configured admin".into()));
 	}
 	if let Some(admin) = admin {
-		config.admin = SeiCanonicalAddr::from_addr_using_api(&admin, deps.api)?;
+		config.admin = admin.try_into()?;
 	}
 	if let Some(fee_receiver) = fee_receiver {
-		config.fee_receiver = SeiCanonicalAddr::from_addr_using_api(&fee_receiver, deps.api)?;
+		config.fee_receiver = fee_receiver.try_into()?;
 	}
 	if let Some(pair_code_id) = pair_code_id {
 		config.pair_code_id = pair_code_id;
@@ -142,15 +145,4 @@ fn process_update_global_config_for_pool(
 	msg_info: MessageInfo,
 ) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
 	todo!("impl this after pair contract is created");
-}
-
-pub(crate) fn two_coins<'msg>(
-	msg_info: &'msg MessageInfo
-) -> Result<&'msg [Coin; 2], PoolFactoryContractError> {
-    if msg_info.funds.len() != 2 {
-		return Err(
-			PoolFactoryContractError::NeedsTwoCoins
-		);
-	}
-	Ok(msg_info.funds.as_slice().try_into().expect("length was already checked"))
 }

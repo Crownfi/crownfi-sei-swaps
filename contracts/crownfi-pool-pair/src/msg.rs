@@ -6,7 +6,9 @@ use crate::state::PoolPairConfigJsonable;
 /// This structure stores the basic settings for creating a new factory contract.
 #[cw_serde]
 pub struct PoolPairInstantiateMsg {
-	pub config: PoolPairConfigJsonable
+	pub shares_receiver: Addr,
+	pub config: PoolPairConfigJsonable,
+	pub pair_id_swapped: bool
 }
 
 /// This structure describes the execute messages available in the contract.
@@ -46,12 +48,20 @@ pub enum PoolPairExecuteMsg {
 }
 
 #[cw_serde]
+#[derive(Default)]
+pub struct VolumeResponse {
+	pub volume: [Uint128; 2],
+	pub from_timestamp_ms: u64,
+	pub to_timestamp_ms: u64
+}
+
+#[cw_serde]
 #[derive(QueryResponses)]
 pub enum PoolPairQueryMsg {
 	/// Returns the pair identifier as it's marketed.
 	#[returns([String; 2])]
 	PairIdentifier,
-	/// Returns the pair identifier as it's internally represented.
+	/// Returns the pair identifier as it's internally represented (Denoms are in lexicographical order).
 	#[returns([String; 2])]
 	CanonicalPairIdentifier,
 	/// Config returns contract settings specified in the custom [`ConfigResponse`] structure.
@@ -64,14 +74,18 @@ pub enum PoolPairQueryMsg {
 	Simulation {
 		offer: Coin,
 	},
-	#[returns([Coin; 2])]
-	HourlyVolume {
-		past: Option<u8>
+	/// If past_hours is 0/null/undefined, returns the amount of volume since this hour started (UTC).
+	/// If past_hours is non-zero, returns the total volume in the past specified hours.
+	/// (e.g. 24 means volume over the past 24 hours, updated every hour.)
+	/// 
+	#[returns(VolumeResponse)]
+	HourlyVolumeSum {
+		past_hours: Option<u8>
 	},
-	#[returns([Coin; 2])]
-	DailyVolume {
-		past: Option<u8>
+	#[returns(VolumeResponse)]
+	DailyVolumeSum {
+		past_days: Option<u8>
 	},
-	#[returns([Coin; 2])]
-	SevenDayVolume
+	#[returns(VolumeResponse)]
+	TotalVolumeSum
 }

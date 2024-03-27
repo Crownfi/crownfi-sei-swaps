@@ -52,10 +52,15 @@ pub enum PoolFactoryQueryMsg {
 	/// Config returns contract settings specified in the custom [`ConfigResponse`] structure.
 	#[returns(PoolFactoryConfigJsonable)]
 	Config,
+	/// Gets the contract address for a pair. The result may include the inverse pair if it exists.
+	#[returns(Option<Addr>)]
+	PairAddr {
+		pair: [String; 2]
+	},
 	/// Pairs returns an array of pairs and their information according to the specified parameters in `start_after` and `limit` variables.
 	#[returns(Vec<Addr>)]
 	Pairs {
-		index: Option<u32>,
+		start_after: Option<Addr>,
 		limit: Option<u32>
 	}
 }

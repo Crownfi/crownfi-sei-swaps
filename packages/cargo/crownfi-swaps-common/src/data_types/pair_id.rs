@@ -121,7 +121,8 @@ impl From<CanonicalPoolPairIdentifier> for PoolPairIdentifier {
 
 /// Represents a pool ID as it is marketed, not necessarily as it's referenced.
 /// 
-/// Note that while the `left` and `right` properties are still accessible, 
+/// Note that while the `left` and `right` properties are still accessible, they aren't mutable. As that may break the
+/// guarantee that this struct has them in lexicographical order.
 #[repr(transparent)]
 #[derive(Debug, Clone, PartialEq, Eq, BorshSerialize)]
 pub struct CanonicalPoolPairIdentifier(PoolPairIdentifier);
@@ -131,6 +132,11 @@ impl BorshDeserialize for CanonicalPoolPairIdentifier {
 	}
 }
 impl_serializable_borsh!(CanonicalPoolPairIdentifier);
+impl StoredItem for CanonicalPoolPairIdentifier {
+	fn namespace() -> &'static [u8] {
+		NEW_POOL_NAMESPACE.as_bytes()
+	}
+}
 impl From<PoolPairIdentifier> for CanonicalPoolPairIdentifier {
 	fn from(mut value: PoolPairIdentifier) -> Self {
 		value.make_canonical();

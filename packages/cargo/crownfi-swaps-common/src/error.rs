@@ -1,14 +1,8 @@
-use cosmwasm_std::StdError;
-use crownfi_swaps_common::{error::CrownfiSwapsCommonError, impl_from_cosmwasm_std_error_common};
 use cw_utils::PaymentError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum PoolPairContractError {
-	#[error("StdError: {0}")]
-	Std(#[from] StdError),
-	#[error("{0}")]
-	SwapsCommon(#[from] CrownfiSwapsCommonError),
+pub enum CrownfiSwapsCommonError {
 	#[error("Payment error: {0}")]
 	PaymentError(#[from] PaymentError),
 	#[error("This message requires both denoms in the trading pair")]
@@ -17,10 +11,6 @@ pub enum PoolPairContractError {
 	PaymentIsZero,
 	#[error("Permission denied: {0}")]
 	Unauthorized(String),
-	#[error("This instruction expects no associated funds")]
-	MustBeUnfunded,
 	#[error("This instruction require a pair of coins to be supplied")]
 	NeedsTwoCoins
 }
-
-impl_from_cosmwasm_std_error_common!(PoolPairContractError);

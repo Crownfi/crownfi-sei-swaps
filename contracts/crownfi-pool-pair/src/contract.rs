@@ -1,64 +1,50 @@
-use cosmwasm_std::{MessageInfo, Uint128};
-use crownfi_swaps_common::data_types::pair_id::CanonicalPoolPairIdentifier;
-use cw_utils::PaymentError;
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, Uint128};
+use crownfi_cw_common::storage::item::StoredItem;
+use crownfi_swaps_common::{data_types::pair_id::{CanonicalPoolPairIdentifier, PoolPairIdentifier}, validation::msg::two_coins};
+use cw2::set_contract_version;
+use cw_utils::{nonpayable, PaymentError};
+use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
 
-use crate::error::PoolPairContractError;
+use crate::{error::PoolPairContractError, msg::PoolPairInstantiateMsg, state::PoolPairConfig, workarounds::mint_to_workaround};
 
+use self::shares::{lp_denom, LP_SUBDENOM};
 
-#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) struct OneOfPairResult {
-	pub amount: Uint128,
-	pub is_right: bool
-}
-pub(crate) fn must_pay_one_of_pair(
-	info: &MessageInfo,
-	pair: &CanonicalPoolPairIdentifier
-) -> Result<OneOfPairResult, PaymentError> {
-	if info.funds.is_empty() {
-        return Ok(OneOfPairResult::default());
-    }
-	if info.funds.len() > 1 {
-		return Err(PaymentError::MultipleDenoms {});
-	}
-	if info.funds[0].denom == pair.left {
-		Ok(
-			OneOfPairResult {
-				amount: info.funds[0].amount,
-				is_right: false
-			}
-		)
-	} else if info.funds[0].denom == pair.right {
-		Ok(
-			OneOfPairResult {
-				amount: info.funds[0].amount,
-				is_right: true
-			}
-		)
-	} else {
-		Err(PaymentError::ExtraDenom(info.funds[0].denom.clone()))
-	}
-}
+pub mod shares;
 
-pub (crate) fn must_pay_pair(
-	info: &MessageInfo,
-	pair: &CanonicalPoolPairIdentifier
-) -> Result<(Uint128, Uint128), PoolPairContractError> {
-	let [funds_left, funds_right] = info.funds.as_slice() else {
-		// The above let assignment only works if the vec is of length 2, this ain't JS/TS destructuring.
-		return Err(PoolPairContractError::MustPayPair);
+const CONTRACT_NAME: &str = "crownfi-pool-pair-contract";
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+#[inline]
+pub fn instantiate(
+	deps: DepsMut<SeiQueryWrapper>,
+	env: Env,
+	msg_info: MessageInfo,
+	msg: PoolPairInstantiateMsg,
+) -> Result<Response<SeiMsg>, PoolPairContractError> {
+	let [left_coin, right_coin] = two_coins(&msg_info)?;
+	set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+	PoolPairConfig::try_from(&msg.config)?.save(deps.storage)?;
+	let new_denom = lp_denom(&env);
+	// needs tokens and reply
+	let mut pool_id = PoolPairIdentifier {
+		left: left_coin.denom.clone(),
+		right: right_coin.denom.clone()
 	};
-	if funds_left.denom != pair.left || funds_right.denom != pair.right {
-		return Err(
-			PaymentError::ExtraDenom(
-				if pair.is_in_pair(&funds_left.denom) {
-					funds_right.denom.clone()
-				} else {
-					funds_left.denom.clone()
-				}
-			).into()
-		)
-	}
+
+	let mint_amount = 0; // FIX THIS FIX THIS FIX THIS
 	Ok(
-		(funds_left.amount, funds_right.amount)
+		mint_to_workaround(
+			Response::new()
+				.add_message(
+					SeiMsg::CreateDenom {
+						subdenom: LP_SUBDENOM.to_string()
+					}
+				),
+			deps.storage,
+			&new_denom,
+			&msg.shares_receiver,
+			mint_amount
+		)?
 	)
 }
