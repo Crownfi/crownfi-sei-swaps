@@ -2,8 +2,7 @@ use std::{cell::RefCell, num::NonZeroU8, rc::Rc};
 
 use bitflags::bitflags;
 use bytemuck::{Pod, Zeroable};
-use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, StdError, Storage, Timestamp, Uint128};
+use cosmwasm_std::{Addr, StdError, Storage, Timestamp};
 use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, extentions::timestamp::TimestampExtentions, impl_serializable_as_ref, storage::{item::StoredItem, queue::StoredVecDeque, MaybeMutableStorage, SerializableItem}};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -18,8 +17,10 @@ bitflags! {
 	#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Zeroable, Pod)]
 	#[repr(transparent)]
 	pub struct PoolPairConfigFlags: u8 {
+		/// If true, this is marketed as the inverse pair
+		const INVERSE = 0b00000001u8;
 		/// If true, this has been endorsed by the market maker (probably CrownFi)
-		const ENDORSED = 0b00000001u8;
+		const ENDORSED = 0b00000010u8;
 	}
 }
 
@@ -50,6 +51,8 @@ pub struct PoolPairConfigJsonable {
 	pub total_fee_bps: u16,
 	/// The amount of fees (in bps) collected by the Maker contract from this pair type
 	pub maker_fee_bps: u16,
+	/// If true, this is marketed as the inverse pair
+	pub inverse: bool,
 	/// If true, this has been endorsed by the market maker (probably CrownFi)
 	pub endorsed: bool
 }
@@ -105,6 +108,7 @@ impl TryFrom<&PoolPairConfig> for PoolPairConfigJsonable {
 				fee_receiver: value.fee_receiver.try_into()?,
 				total_fee_bps: value.total_fee_bps,
 				maker_fee_bps: value.maker_fee_bps,
+				inverse: value.flags.contains(PoolPairConfigFlags::INVERSE),
 				endorsed: value.flags.contains(PoolPairConfigFlags::ENDORSED)
 			}
 		)
@@ -116,12 +120,13 @@ const VOLUME_STATS_HOURLY_NAMESPACE: &[u8] = "volH".as_bytes();
 const VOLUME_STATS_DAILY_NAMESPACE: &[u8] = "volD".as_bytes();
 
 const MAX_HOURLY_RETENTION: u32 = 25;
-const MAX_DAILY_RETENTION: u32 = 15;
+const MAX_DAILY_RETENTION: u32 = 31;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Zeroable, Pod)]
 #[repr(C)]
 pub struct TradingVolume {
 	pub from_time: u64,
+	_unused: u64, // u128's require alignment to 16 bytes now.
 	pub amount_left: u128,
 	pub amount_right: u128
 }
@@ -171,7 +176,8 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 				&TradingVolume {
 					from_time: timestamp_hour,
 					amount_left,
-					amount_right
+					amount_right,
+					..Zeroable::zeroed()
 				}
 			)?;
 		} else {
@@ -181,7 +187,8 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 					&TradingVolume {
 						from_time: timestamp_hour,
 						amount_left,
-						amount_right
+						amount_right,
+						..Zeroable::zeroed()
 					}
 				)?;
 			} else {
@@ -198,7 +205,8 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 				&TradingVolume {
 					from_time: timestamp_day,
 					amount_left,
-					amount_right
+					amount_right,
+					..Zeroable::zeroed()
 				}
 			)?;
 		} else {
@@ -208,7 +216,8 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 					&TradingVolume {
 						from_time: timestamp_day,
 						amount_left,
-						amount_right
+						amount_right,
+						..Zeroable::zeroed()
 					}
 				)?;
 			} else {
@@ -234,7 +243,8 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 				TradingVolume {
 					from_time: timestamp_ms,
 					amount_left,
-					amount_right
+					amount_right,
+					..Zeroable::zeroed()
 				}.serialize_as_ref().unwrap()
 			);
 		}
@@ -424,6 +434,3 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 		)
 	}
 }
-// TODO: Rotating queue for:
-// Hourly volume with 24 hr retention
-// Daily volume with 7 day retention

@@ -1,26 +1,28 @@
-use cosmwasm_std::StdError;
+use cosmwasm_std::{Decimal, StdError};
 use crownfi_swaps_common::{error::CrownfiSwapsCommonError, impl_from_cosmwasm_std_error_common};
 use cw_utils::PaymentError;
 use thiserror::Error;
+
+use crate::contract::pool::{MAX_ALLOWED_TOLERANCE, MINIMUM_INITIAL_SHARES};
 
 #[derive(Error, Debug, PartialEq)]
 pub enum PoolPairContractError {
 	#[error("StdError: {0}")]
 	Std(#[from] StdError),
 	#[error("{0}")]
-	SwapsCommon(#[from] CrownfiSwapsCommonError),
+	SwapsCommonError(#[from] CrownfiSwapsCommonError),
 	#[error("Payment error: {0}")]
 	PaymentError(#[from] PaymentError),
-	#[error("This message requires both denoms in the trading pair")]
-	MustPayPair,
-	#[error("Nonzero payment required")]
-	PaymentIsZero,
-	#[error("Permission denied: {0}")]
-	Unauthorized(String),
-	#[error("This instruction expects no associated funds")]
-	MustBeUnfunded,
-	#[error("This instruction require a pair of coins to be supplied")]
-	NeedsTwoCoins
+	#[error("Initial shares minted must be at least {}", MINIMUM_INITIAL_SHARES)]
+    MinimumSharesAmountError,
+	#[error("This pool has no liquidity!")]
+	NoLiquidity,
+	#[error("Provided tolerance exceeds {}", MAX_ALLOWED_TOLERANCE)]
+    ToleranceTooHigh,
+	#[error("Deposit amount is excessively imbalanced")]
+	DepositTooImbalanced,
+	#[error("Swap slippage ({0}) exceeds tolerance")]
+	SlippageTooHigh(Decimal)
 }
 
 impl_from_cosmwasm_std_error_common!(PoolPairContractError);

@@ -7,8 +7,7 @@ use crate::state::PoolPairConfigJsonable;
 #[cw_serde]
 pub struct PoolPairInstantiateMsg {
 	pub shares_receiver: Addr,
-	pub config: PoolPairConfigJsonable,
-	pub pair_id_swapped: bool
+	pub config: PoolPairConfigJsonable
 }
 
 /// This structure describes the execute messages available in the contract.
@@ -34,15 +33,15 @@ pub enum PoolPairExecuteMsg {
 		/// The receiver of LP tokens
 		receiver: Option<Addr>,
 	},
-	/// Swap performs a swap in the pool
-	Swap {
-		belief_price: Option<Decimal>,
-		max_spread: Option<Decimal>,
-		to: Option<Addr>,
-	},
 	/// Withdraw liquidity from the pool
 	WithdrawLiquidity {
 		/// The receiver of the share value
+		receiver: Option<Addr>,
+	},
+	/// Swap performs a swap in the pool
+	Swap {
+		expected_result: Option<Uint128>,
+		slippage_tolerance: Option<Decimal>,
 		receiver: Option<Addr>,
 	}
 }
@@ -58,11 +57,17 @@ pub struct VolumeResponse {
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum PoolPairQueryMsg {
-	/// Returns the pair identifier as it's marketed.
+	/// Returns the pair denoms as they are marketed.
 	#[returns([String; 2])]
+	PairDenoms,
+	/// Returns the pair denoms as it's internally represented (Denoms are in lexicographical order).
+	#[returns([String; 2])]
+	CanonicalPairDenoms,
+	/// Returns the pair identifier as it's marketed.
+	#[returns(String)]
 	PairIdentifier,
 	/// Returns the pair identifier as it's internally represented (Denoms are in lexicographical order).
-	#[returns([String; 2])]
+	#[returns(String)]
 	CanonicalPairIdentifier,
 	/// Config returns contract settings specified in the custom [`ConfigResponse`] structure.
 	#[returns(PoolPairConfigJsonable)]
@@ -78,14 +83,21 @@ pub enum PoolPairQueryMsg {
 	/// If past_hours is non-zero, returns the total volume in the past specified hours.
 	/// (e.g. 24 means volume over the past 24 hours, updated every hour.)
 	/// 
+	/// Data older than 24 hours is not guaranteed.
 	#[returns(VolumeResponse)]
 	HourlyVolumeSum {
 		past_hours: Option<u8>
 	},
+	/// If past_days is 0/null/undefined, returns the amount of volume since this hour started (UTC).
+	/// If past_days is non-zero, returns the total volume in the past specified hours.
+	/// (e.g. 7 means volume over the past 7 days, updated every day.)
+	/// 
+	/// Data older than 24 hours is not guaranteed.
 	#[returns(VolumeResponse)]
 	DailyVolumeSum {
 		past_days: Option<u8>
 	},
+	/// Get the all time volume from since the first trade happened.
 	#[returns(VolumeResponse)]
 	TotalVolumeSum
 }

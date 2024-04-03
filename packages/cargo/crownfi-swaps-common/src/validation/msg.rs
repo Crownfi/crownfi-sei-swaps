@@ -3,6 +3,7 @@ use cw_utils::PaymentError;
 
 use crate::{data_types::pair_id::CanonicalPoolPairIdentifier, error::CrownfiSwapsCommonError};
 
+#[inline]
 pub fn two_coins<'msg>(
 	msg_info: &'msg MessageInfo
 ) -> Result<&'msg [Coin; 2], CrownfiSwapsCommonError> {
@@ -18,7 +19,7 @@ pub fn two_coins<'msg>(
 #[derive(Copy, Clone, Default, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct OneOfPairResult {
 	pub amount: Uint128,
-	pub is_right: bool
+	pub inverse: bool
 }
 pub fn must_pay_one_of_pair(
 	info: &MessageInfo,
@@ -34,14 +35,14 @@ pub fn must_pay_one_of_pair(
 		Ok(
 			OneOfPairResult {
 				amount: info.funds[0].amount,
-				is_right: false
+				inverse: false
 			}
 		)
 	} else if info.funds[0].denom == pair.right {
 		Ok(
 			OneOfPairResult {
 				amount: info.funds[0].amount,
-				is_right: true
+				inverse: true
 			}
 		)
 	} else {
@@ -49,10 +50,10 @@ pub fn must_pay_one_of_pair(
 	}
 }
 
-pub fn must_pay_pair(
-	info: &MessageInfo,
-	pair: &CanonicalPoolPairIdentifier
-) -> Result<(Uint128, Uint128), CrownfiSwapsCommonError> {
+pub fn must_pay_pair<'msg>(
+	info: &'msg MessageInfo,
+	pair: &'_ CanonicalPoolPairIdentifier
+) -> Result<[&'msg Coin; 2], CrownfiSwapsCommonError> {
 	let [funds_left, funds_right] = info.funds.as_slice() else {
 		// The above let assignment only works if the vec is of length 2, this ain't JS/TS destructuring.
 		return Err(CrownfiSwapsCommonError::MustPayPair);
@@ -69,6 +70,22 @@ pub fn must_pay_pair(
 		)
 	}
 	Ok(
-		(funds_left.amount, funds_right.amount)
+		[funds_left, funds_right]
 	)
+}
+
+#[inline]
+pub fn must_pay_non_zero(
+	info: &MessageInfo
+) -> Result<(), CrownfiSwapsCommonError> {
+	if info.funds.len() == 0 {
+		return Err(CrownfiSwapsCommonError::PaymentIsZero);
+	}
+	// TODO: Does this ever happen? Is this check useless?
+	for fund in info.funds.iter() {
+		if fund.amount.is_zero() {
+			return Err(CrownfiSwapsCommonError::PaymentIsZero);
+		}
+	}
+	Ok(())
 }

@@ -1,65 +1,59 @@
-use cosmwasm_std::{coin, Addr, BankMsg, Response, StdResult, Storage, Uint128};
+use cosmwasm_std::{coin, Addr, BankMsg, Coin, Response, StdResult, Storage, Uint128};
 use sei_cosmwasm::SeiMsg;
 
 // These workarounds exist because of this issue: https://github.com/sei-protocol/sei-wasmd/issues/38
 pub fn mint_to_workaround(
 	response: Response<SeiMsg>,
 	storage: &mut dyn Storage,
-	denom: &str,
 	addr: &Addr,
-	amount: u128
+	coin: Coin
 ) -> StdResult<Response<SeiMsg>> {
 	let cur_supply = total_supply_workaround(
 		storage,
-		denom
+		&coin.denom
 	);
 	storage.set(
-		denom.as_bytes(),
-		&cur_supply.checked_add(amount.into())?.u128().to_le_bytes()
+		coin.denom.as_bytes(),
+		&cur_supply.checked_add(coin.amount)?.u128().to_le_bytes()
 	);
 	Ok(
 		response.add_message(
 			SeiMsg::MintTokens {
-				amount: coin(
-					amount,
-					denom
-				)
+				amount: coin.clone()
 			}
 		)
 		.add_message(
 			BankMsg::Send {
 				to_address: addr.to_string(),
 				amount: vec![
-					coin(
-						amount,
-						denom
-					)
+					coin
 				]
 			}
 		)
 	)
 }
 
-pub fn mint_workaround(
+pub fn burn_token_workaround(
+	response: Response<SeiMsg>,
 	storage: &mut dyn Storage,
-	denom: &str,
-	amount: u128
-) -> StdResult<SeiMsg> {
+	coin: Coin
+) -> StdResult<Response<SeiMsg>> {
 	let cur_supply = total_supply_workaround(
 		storage,
-		denom
+		&coin.denom
 	);
 	storage.set(
-		denom.as_bytes(),
-		&cur_supply.checked_add(amount.into())?.u128().to_le_bytes()
+		coin.denom.as_bytes(),
+		&cur_supply.checked_sub(coin.amount)?.u128().to_le_bytes()
 	);
 	Ok(
-		SeiMsg::MintTokens {
-			amount: coin(
-				amount,
-				denom
-			)
-		}
+		response.add_message(
+			BankMsg::Burn {
+				amount: vec![
+					coin
+				]
+			}
+		)
 	)
 }
 

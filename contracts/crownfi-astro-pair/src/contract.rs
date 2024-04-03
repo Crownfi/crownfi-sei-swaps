@@ -1097,7 +1097,7 @@ pub fn query_asset_balances_at(
 /// * **offer_amount** amount of offer assets to swap.
 ///
 /// * **commission_rate** total amount of fees charged for the swap.
-pub fn compute_swap(
+pub fn compute_swap( // (return_amount, spread_amount, commission_amount)
     offer_pool: Uint128,
     ask_pool: Uint128,
     offer_amount: Uint128,

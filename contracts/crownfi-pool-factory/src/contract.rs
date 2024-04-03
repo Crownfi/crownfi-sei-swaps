@@ -1,11 +1,13 @@
+use std::{cell::RefCell, rc::Rc};
+
 use cosmwasm_std::{attr, Addr, Coin, DepsMut, Env, MessageInfo, Reply, Response, StdError};
-use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, env::ClonableEnvInfoMut, storage::item::StoredItem};
-use crownfi_swaps_common::{data_types::pair_id::PoolPairIdentifier, validation::msg::two_coins};
+use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, env::ClonableEnvInfoMut, storage::{item::StoredItem, MaybeMutableStorage}};
+use crownfi_swaps_common::{data_types::pair_id::{CanonicalPoolPairIdentifier, PoolPairIdentifier}, validation::msg::two_coins};
 use cw2::set_contract_version;
 use cw_utils::{nonpayable, parse_reply_instantiate_data, ParseReplyError};
 use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
 
-use crate::{error::PoolFactoryContractError, msg::{PoolFactoryExecuteMsg, PoolFactoryInstantiateMsg}, state::{PoolFactoryConfig, PoolFactoryConfigFlags}};
+use crate::{error::PoolFactoryContractError, msg::{PoolFactoryExecuteMsg, PoolFactoryInstantiateMsg}, state::{get_pool_addresses_store_mut, PoolFactoryConfig, PoolFactoryConfigFlags}};
 
 const CONTRACT_NAME: &str = "crownfi-pool-factory";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -66,16 +68,13 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, PoolFacto
 	match msg.id {
 		INSTANTIATE_PAIR_REPLY_ID => {
 			let msg = parse_reply_instantiate_data(msg)?;
-			let new_pair = PoolPairIdentifier::load_non_empty(deps.storage)?;
-			PoolPairIdentifier::remove(deps.storage);
+			let new_pair = CanonicalPoolPairIdentifier::load_non_empty(deps.storage)?;
+			CanonicalPoolPairIdentifier::remove(deps.storage);
 			// We shouldn't have to check if the pair created matches the one we expected as that's the only scenerio
 			// where we asked for a reply on anything.
 			let new_pair_addr = Addr::unchecked(msg.contract_address);
-			//deps.api.
-			PoolPairIdentifier::remove(deps.storage);
-			
-			//let 
-
+			let pool_map = get_pool_addresses_store_mut(Rc::new(RefCell::new(deps.storage)))?;
+			pool_map.set(&new_pair, &(&new_pair_addr).try_into()?)?;
 			Ok(Response::new().add_attributes(vec![
 				attr("action", "create_pair"),
 				attr("pair", new_pair.to_string()),

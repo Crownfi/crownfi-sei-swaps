@@ -5,7 +5,7 @@ use cosmwasm_std::{StdError, Storage};
 use crownfi_cw_common::{impl_serializable_borsh, storage::{item::StoredItem, SerializableItem}};
 
 const NEW_POOL_NAMESPACE: &str = "poolid";
-/// Represents a pool ID as it is marketed, not necessarily as it's referenced.
+/// Represents a pool ID as it is marketed, not necessarily as it's actually stored.
 #[derive(Debug, Clone, PartialEq, Eq, BorshDeserialize, BorshSerialize)]
 pub struct PoolPairIdentifier {
 	pub left: String,
@@ -13,14 +13,12 @@ pub struct PoolPairIdentifier {
 }
 impl_serializable_borsh!(PoolPairIdentifier);
 impl PoolPairIdentifier {
-	pub fn load_non_empty(storage: & dyn Storage) -> Result<Self, StdError> where Self: Sized {
-		match Self::load(storage)? {
-			Some(result) => {
-				Ok(result)
-			},
-			None => {
-				Err(StdError::NotFound { kind: "PoolPairIdentifier".into() })
-			}
+	#[inline]
+	pub fn denom(&self, right: bool) -> &str {
+		if right {
+			&self.right
+		} else {
+			&self.left
 		}
 	}
 
@@ -42,7 +40,8 @@ impl PoolPairIdentifier {
 		self.right >= self.left
 	}
 
-	/// Ensures that `self.left` and `self.right` are in lexicographical order.
+	/// Ensures that `self.left` and `self.right` are in lexicographical order by swapping the properties if they are
+	/// not.
 	#[inline]
 	pub fn make_canonical(&mut self) {
 		if !self.is_canonical() {
@@ -63,7 +62,7 @@ impl PoolPairIdentifier {
 		}
 	}
 
-	/// calls `self.make_canonical()` and also returns a reference to `self`` casted as `CanonicalPoolPairIdentifier`
+	/// calls `self.make_canonical()` and also returns a reference to `self` casted as `CanonicalPoolPairIdentifier`
 	/// without the need to clone or move.
 	#[inline]
 	pub fn as_canonical_forced(&mut self) -> &mut CanonicalPoolPairIdentifier {
@@ -72,10 +71,18 @@ impl PoolPairIdentifier {
 		// We also just checked if we're canonical
 		unsafe { std::mem::transmute(self) }
 	}
-}
-impl StoredItem for PoolPairIdentifier {
-	fn namespace() -> &'static [u8] {
-		NEW_POOL_NAMESPACE.as_bytes()
+
+
+	/// Casts `&self` as `&CanonicalPoolPairIdentifier` without the need to clone or move.
+	/// 
+	/// # Safty
+	/// 
+	/// You must be sure that the `left` and `right` properties of `self` are already in lexicographical order.
+	/// 
+	/// If you cannot guarantee this, use the `as_canonical_forced()` or `as_canonical()` methods instead.
+	#[inline]
+	pub unsafe fn as_canonical_unchecked(&self) -> &CanonicalPoolPairIdentifier {
+		std::mem::transmute(self)
 	}
 }
 impl From<(String, String)> for PoolPairIdentifier {
@@ -119,10 +126,12 @@ impl From<CanonicalPoolPairIdentifier> for PoolPairIdentifier {
 	}
 }
 
-/// Represents a pool ID as it is marketed, not necessarily as it's referenced.
+/// This is just a wrapper on-top of `PoolPairIdentifier`, except with a guarantee that the "left" and "right" portions
+/// are in lexicographical order. Thus representing the "real" Pool ID.
 /// 
-/// Note that while the `left` and `right` properties are still accessible, they aren't mutable. As that may break the
-/// guarantee that this struct has them in lexicographical order.
+/// All the properties and methods of the underlying `PoolPairIdentifier` can be used and accessed, and this type can
+/// even be used anywhere a `&PoolPairIdentifier` can, but only in a read-only fasion, as mutable access may break the
+/// guarantee provided by this type.
 #[repr(transparent)]
 #[derive(Debug, Clone, PartialEq, Eq, BorshSerialize)]
 pub struct CanonicalPoolPairIdentifier(PoolPairIdentifier);
@@ -132,6 +141,18 @@ impl BorshDeserialize for CanonicalPoolPairIdentifier {
 	}
 }
 impl_serializable_borsh!(CanonicalPoolPairIdentifier);
+impl CanonicalPoolPairIdentifier {
+	pub fn load_non_empty(storage: & dyn Storage) -> Result<Self, StdError> where Self: Sized {
+		match Self::load(storage)? {
+			Some(result) => {
+				Ok(result)
+			},
+			None => {
+				Err(StdError::NotFound { kind: "PoolPairIdentifier".into() })
+			}
+		}
+	}
+}
 impl StoredItem for CanonicalPoolPairIdentifier {
 	fn namespace() -> &'static [u8] {
 		NEW_POOL_NAMESPACE.as_bytes()
