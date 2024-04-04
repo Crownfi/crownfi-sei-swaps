@@ -1,0 +1,30 @@
+[package]
+name = "crownfi-swap-router-contract"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+backtraces = ["cosmwasm-std/backtraces", "crownfi-swaps-common/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[dependencies]
+cw-utils = {workspace = true}
+cw2 = {workspace = true}
+cosmwasm-std = {workspace = true}
+cw-storage-plus = {workspace = true}
+cosmwasm-schema = {workspace = true}
+thiserror = {workspace = true}
+borsh = {workspace = true}
+sei-cosmwasm = {workspace = true}
+crownfi-cw-common = {workspace = true}
+serde = {workspace = true}
+bytemuck = {workspace = true}
+bitflags = {workspace = true}
+schemars = {workspace = true}
+crownfi-swaps-common = { path = "../../packages/cargo/crownfi-swaps-common" }
+crownfi-pool-pair-contract = { path = "../crownfi-pool-pair", features = ["library"]}

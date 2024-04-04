@@ -544,6 +544,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "crownfi-swap-router-contract"
+version = "0.1.0"
+dependencies = [
+ "bitflags",
+ "borsh",
+ "bytemuck",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "crownfi-cw-common",
+ "crownfi-pool-pair-contract",
+ "crownfi-swaps-common",
+ "cw-storage-plus 1.2.0",
+ "cw-utils 1.0.3",
+ "cw2 1.1.2",
+ "schemars",
+ "sei-cosmwasm",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "crownfi-swaps-common"
 version = "0.1.0"
 dependencies = [
