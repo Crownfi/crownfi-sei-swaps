@@ -31,8 +31,9 @@ pub enum PoolFactoryExecuteMsg {
 	/// The pair is determined by the initial liquidity funds sent to this contract
 	CreatePool {
 		/// As funds must be given in alphabetical order, this is used to determine whether or not the pair should be
-		/// swapped when presented to the user
-		left_denom: String
+		/// inversed when presented to the user
+		left_denom: String,
+		initial_shares_receiver: Option<Addr>
 	},
 	UpdateFeesForPool {
 		pair: [String; 2],
@@ -40,8 +41,8 @@ pub enum PoolFactoryExecuteMsg {
 		maker_fee_bps: Option<u16>
 	},
 	UpdateGlobalConfigForPool {
-		index: u32,
-		limit: u32
+		after: Option<[String; 2]>,
+		limit: Option<u32>
 	}
 }
 
@@ -58,9 +59,15 @@ pub enum PoolFactoryQueryMsg {
 		pair: [String; 2]
 	},
 	/// Pairs returns an array of pairs and their information according to the specified parameters in `start_after` and `limit` variables.
-	#[returns(Vec<Addr>)]
+	#[returns(Vec<PoolFactoryCreatedPair>)]
 	Pairs {
-		start_after: Option<Addr>,
+		after: Option<[String; 2]>,
 		limit: Option<u32>
 	}
+}
+
+#[cw_serde]
+pub struct PoolFactoryCreatedPair {
+	pub canonical_pair: [String; 2],
+	pub address: Addr
 }

@@ -27,3 +27,4 @@ bytemuck = {workspace = true}
 bitflags = {workspace = true}
 schemars = {workspace = true}
 crownfi-swaps-common = { path = "../../packages/cargo/crownfi-swaps-common" }
+crownfi-pool-pair-contract = { path = "../crownfi-pool-pair", features = ["library"]}

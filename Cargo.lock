@@ -482,6 +482,7 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "crownfi-cw-common",
+ "crownfi-pool-pair-contract",
  "crownfi-swaps-common",
  "cw-storage-plus 1.2.0",
  "cw-utils 1.0.3",

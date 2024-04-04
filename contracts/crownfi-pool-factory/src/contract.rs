@@ -1,13 +1,14 @@
 use std::{cell::RefCell, rc::Rc};
 
-use cosmwasm_std::{attr, Addr, Coin, DepsMut, Env, MessageInfo, Reply, Response, StdError};
-use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, env::ClonableEnvInfoMut, storage::{item::StoredItem, MaybeMutableStorage}};
-use crownfi_swaps_common::{data_types::pair_id::{CanonicalPoolPairIdentifier, PoolPairIdentifier}, validation::msg::two_coins};
+use cosmwasm_std::{attr, to_json_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn, Response, StdError, SubMsg, WasmMsg};
+use crownfi_cw_common::storage::item::StoredItem;
+use crownfi_pool_pair_contract::{msg::{PoolPairExecuteMsg, PoolPairInstantiateMsg}, state::PoolPairConfigJsonable};
+use crownfi_swaps_common::{data_types::pair_id::CanonicalPoolPairIdentifier, error::CrownfiSwapsCommonError, validation::msg::two_coins};
 use cw2::set_contract_version;
 use cw_utils::{nonpayable, parse_reply_instantiate_data, ParseReplyError};
 use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
 
-use crate::{error::PoolFactoryContractError, msg::{PoolFactoryExecuteMsg, PoolFactoryInstantiateMsg}, state::{get_pool_addresses_store_mut, PoolFactoryConfig, PoolFactoryConfigFlags}};
+use crate::{error::PoolFactoryContractError, msg::{PoolFactoryCreatedPair, PoolFactoryExecuteMsg, PoolFactoryInstantiateMsg, PoolFactoryQueryMsg}, state::{get_pool_addresses_store, get_pool_addresses_store_mut, PoolFactoryConfig, PoolFactoryConfigFlags, PoolFactoryConfigJsonable}};
 
 const CONTRACT_NAME: &str = "crownfi-pool-factory";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -36,35 +37,58 @@ pub fn execute(
 	msg_info: MessageInfo,
 	msg: PoolFactoryExecuteMsg,
 ) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
-	Ok(
-		match msg {
-			PoolFactoryExecuteMsg::UpdateConfig {
+	match msg {
+		PoolFactoryExecuteMsg::UpdateConfig {
+			admin,
+			fee_receiver,
+			pair_code_id,
+			default_total_fee_bps,
+			default_maker_fee_bps,
+			permissionless_pool_cration
+		} => {
+			process_update_config(
+				deps,
+				msg_info,
 				admin,
 				fee_receiver,
 				pair_code_id,
 				default_total_fee_bps,
 				default_maker_fee_bps,
 				permissionless_pool_cration
-			} => {
-				todo!()
-			},
-			PoolFactoryExecuteMsg::CreatePool { left_denom } => {
-				let env_info = ClonableEnvInfoMut::new(deps, env);
-				todo!()
-			},
-			PoolFactoryExecuteMsg::UpdateFeesForPool { pair, total_fee_bps, maker_fee_bps } => {
-				todo!();
-			}
-			PoolFactoryExecuteMsg::UpdateGlobalConfigForPool { index, limit } => {
-				todo!()
-			},
+			)
+		},
+		PoolFactoryExecuteMsg::CreatePool { left_denom, initial_shares_receiver } => {
+			process_create_pool(
+				deps,
+				env,
+				msg_info,
+				left_denom,
+				initial_shares_receiver
+			)
+		},
+		PoolFactoryExecuteMsg::UpdateFeesForPool { pair, total_fee_bps, maker_fee_bps } => {
+			process_update_fees_for_pool(
+				deps,
+				msg_info,
+				pair,
+				total_fee_bps,
+				maker_fee_bps
+			)
 		}
-	)
+		PoolFactoryExecuteMsg::UpdateGlobalConfigForPool { after, limit } => {
+			process_update_global_config_for_pool(
+				deps,
+				msg_info,
+				after,
+				limit
+			)
+		},
+	}
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 #[inline]
-pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, PoolFactoryContractError> {
+pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
 	match msg.id {
 		INSTANTIATE_PAIR_REPLY_ID => {
 			let msg = parse_reply_instantiate_data(msg)?;
@@ -90,7 +114,7 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, PoolFacto
 }
 
 fn process_update_config(
-	deps: DepsMut,
+	deps: DepsMut<SeiQueryWrapper>,
 	msg_info: MessageInfo,
 	admin: Option<Addr>,
 	fee_receiver: Option<Addr>,
@@ -102,7 +126,7 @@ fn process_update_config(
 	nonpayable(&msg_info)?;
 	let mut config = PoolFactoryConfig::load_non_empty(deps.storage)?;
 	if config.admin != msg_info.sender.try_into()? {
-		return Err(PoolFactoryContractError::Unauthorized("Sender is not the currently configured admin".into()));
+		return Err(CrownfiSwapsCommonError::Unauthorized("Sender is not the currently configured admin".into()).into());
 	}
 	if let Some(admin) = admin {
 		config.admin = admin.try_into()?;
@@ -131,17 +155,168 @@ fn process_update_config(
 }
 
 fn process_create_pool(
-	deps: DepsMut,
+	deps: DepsMut<SeiQueryWrapper>,
+	env: Env,
 	msg_info: MessageInfo,
-	left_denom: String
+	left_denom: String,
+	initial_shares_receiver: Option<Addr>
 ) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
-	let [token0, token1] = two_coins(&msg_info)?;
-	todo!("impl this after pair contract is created");
+	let pool_coins = two_coins(&msg_info)?;
+	let new_pool_id = CanonicalPoolPairIdentifier::from(
+		[pool_coins[0].denom.clone(), pool_coins[1].denom.clone()]
+	);
+	if get_pool_addresses_store(deps.storage)?.has(&new_pool_id) {
+		return Err(PoolFactoryContractError::PairAlreadyExists);
+	}
+	let config = PoolFactoryConfig::load_non_empty(deps.storage)?;
+	let is_admin = config.admin == (&msg_info.sender).try_into()?;
+	if
+		!is_admin &&
+		!config.flags.contains(PoolFactoryConfigFlags::PERMISSIONLESS_POOL_CRATION)
+	{
+		return Err(CrownfiSwapsCommonError::Unauthorized("Permissionless pool creation is disabled".into()).into());
+	}
+	// This later gets referenced in the reply.
+	new_pool_id.save(deps.storage)?;
+	Ok(
+		Response::new().add_submessage(
+			SubMsg {
+				id: INSTANTIATE_PAIR_REPLY_ID,
+				msg: CosmosMsg::from(
+					WasmMsg::Instantiate {
+						admin: Some(env.contract.address.clone().into_string()),
+						code_id: config.pair_code_id,
+						msg: to_json_binary(
+							&PoolPairInstantiateMsg {
+								shares_receiver: initial_shares_receiver.unwrap_or(msg_info.sender.clone()),
+								config: PoolPairConfigJsonable {
+									admin: env.contract.address.clone(),
+									fee_receiver: config.fee_receiver.try_into()?,
+									total_fee_bps: config.default_total_fee_bps,
+									maker_fee_bps: config.default_maker_fee_bps,
+									inverse: left_denom == new_pool_id.right,
+									endorsed: is_admin,
+								},
+							}
+						)?,
+						funds: pool_coins.into(),
+						label: format!("CrownFi Sei Swap Pool {}", &new_pool_id)
+					}
+				),
+				gas_limit: None,
+				reply_on: ReplyOn::Success
+			}
+		)
+	)
+}
+
+fn process_update_fees_for_pool(
+	deps: DepsMut<SeiQueryWrapper>,
+	msg_info: MessageInfo,
+	pair: [String; 2],
+	total_fee_bps: Option<u16>,
+	maker_fee_bps: Option<u16>
+) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
+	nonpayable(&msg_info)?;
+	let config = PoolFactoryConfig::load_non_empty(deps.storage)?;
+	if config.admin != msg_info.sender.try_into()? {
+		return Err(CrownfiSwapsCommonError::Unauthorized("Sender is not the currently configured admin".into()).into());
+	}
+	let pool_addr = get_pool_addresses_store(deps.storage)?
+		.get(&pair.into())?
+		.ok_or(StdError::not_found("pair address"))?;
+
+	Ok(
+		Response::new().add_message(
+			WasmMsg::Execute {
+				contract_addr: pool_addr.to_string(),
+				msg: to_json_binary(
+					&PoolPairExecuteMsg::UpdateConfig {
+						admin: None,
+						fee_receiver: None,
+						total_fee_bps,
+						maker_fee_bps,
+						endorsed: None
+					}
+				)?,
+				funds: Vec::new()
+			}
+		)
+	)
 }
 
 fn process_update_global_config_for_pool(
-	env_info: ClonableEnvInfoMut<SeiQueryWrapper>,
+	deps: DepsMut<SeiQueryWrapper>,
 	msg_info: MessageInfo,
+	after: Option<[String; 2]>,
+	limit: Option<u32>
 ) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
-	todo!("impl this after pair contract is created");
+	nonpayable(&msg_info)?;
+	let config = PoolFactoryConfig::load_non_empty(deps.storage)?;
+	Ok(
+		Response::new().add_messages(
+			get_pool_addresses_store(deps.storage)?
+				.iter_range(after.map(|v| {v.into()}), None)?
+				.map(|(_, addr)| {
+					WasmMsg::Execute {
+						contract_addr: addr.to_string(),
+						msg: to_json_binary(
+							&PoolPairExecuteMsg::UpdateConfig {
+								admin: None,
+								fee_receiver: Some(
+									config.fee_receiver.try_into().expect("address stringification shouldn't fail")
+								),
+								total_fee_bps: None,
+								maker_fee_bps: None,
+								endorsed: None
+							}
+						).expect("serialization shouldn't fail"),
+						funds: Vec::new()
+					}
+				})
+				.take(limit.unwrap_or(u32::MAX) as usize)
+		)
+	)
+}
+
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+pub fn query(
+	deps: Deps<SeiQueryWrapper>,
+	_env: Env,
+	msg: PoolFactoryQueryMsg
+) -> Result<Binary, PoolFactoryContractError> {
+	Ok(
+		match msg {
+			PoolFactoryQueryMsg::Config => {
+				to_json_binary(
+					&PoolFactoryConfigJsonable::try_from(
+						&PoolFactoryConfig::load_non_empty(deps.storage)?
+					)?
+				)?
+			},
+			PoolFactoryQueryMsg::PairAddr { pair } => {
+				to_json_binary(
+					&get_pool_addresses_store(deps.storage)?
+						.get(&pair.into())?
+						.map(|addr| {Addr::try_from(addr)})
+						.transpose()?
+				)?
+			},
+			PoolFactoryQueryMsg::Pairs { after, limit } => {
+				let pair_addr_store = get_pool_addresses_store(deps.storage)?;
+				to_json_binary(
+					&pair_addr_store.iter_range(
+						after.map(|after| {after.into()}),
+						None
+					)?.map(|(pair, address)| {
+						PoolFactoryCreatedPair {
+							canonical_pair: pair.into(),
+							address: address.try_into().expect("address stringification shouldn't fail")
+						}
+					}).take(limit.unwrap_or(u32::MAX) as usize)
+					.collect::<Vec<_>>()
+				)?
+			},
+		}
+	)
 }

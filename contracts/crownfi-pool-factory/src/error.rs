@@ -13,10 +13,8 @@ pub enum PoolFactoryContractError {
 	PaymentError(#[from] PaymentError),
 	#[error("Failed reply: {0}")]
 	FailedReply(#[from] ParseReplyError),
-	#[error("Permission denied: {0}")]
-	Unauthorized(String),
-	#[error("This instruction require a pair of coins to be supplied")]
-	NeedsTwoCoins
+	#[error("Pair already exists")]
+	PairAlreadyExists
 }
 
 impl_from_cosmwasm_std_error_common!(PoolFactoryContractError);
