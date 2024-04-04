@@ -22,7 +22,9 @@ pub enum PoolPairContractError {
 	#[error("Deposit amount is excessively imbalanced")]
 	DepositTooImbalanced,
 	#[error("Swap slippage ({0}) exceeds tolerance")]
-	SlippageTooHigh(Decimal)
+	SlippageTooHigh(Decimal),
+	#[error("The denoms of the coins provided must match that which was returned by \"canonical_pair_denoms\"")]
+	DepositQueryDenomMismatch
 }
 
 impl_from_cosmwasm_std_error_common!(PoolPairContractError);

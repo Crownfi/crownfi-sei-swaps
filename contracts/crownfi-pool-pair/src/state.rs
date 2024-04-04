@@ -7,7 +7,7 @@ use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, extentions
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::msg::VolumeResponse;
+use crate::msg::VolumeQueryResponse;
 
 const MAX_TOTAL_FEE_BPS: u16 = 10_000;
 
@@ -253,13 +253,13 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 	pub fn get_volume_all_time(
 		&self,
 		current_timestamp: Timestamp
-	) -> Result<VolumeResponse, StdError> {
+	) -> Result<VolumeQueryResponse, StdError> {
 		let timestamp_ms = current_timestamp.millis();
 		if let Some(all_time) = self.storage.get(VOLUME_STATS_ALL_TIME_NAMESPACE).map(|all_time_bytes| {
 			TradingVolume::deserialize(&all_time_bytes)
 		}).transpose()? {
 			Ok(
-				VolumeResponse {
+				VolumeQueryResponse {
 					volume: [all_time.amount_left.into(), all_time.amount_right.into()],
 					from_timestamp_ms: all_time.from_time,
 					to_timestamp_ms: timestamp_ms
@@ -267,7 +267,7 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 			)
 		} else {
 			Ok(
-				VolumeResponse {
+				VolumeQueryResponse {
 					to_timestamp_ms: timestamp_ms,
 					.. Default::default()
 				}
@@ -277,13 +277,13 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 	pub fn get_volume_since_hour_start(
 		&self,
 		current_timestamp: Timestamp
-	) -> Result<VolumeResponse, StdError> {
+	) -> Result<VolumeQueryResponse, StdError> {
 		let timestamp_ms = current_timestamp.millis();
 		let timestamp_hour = timestamp_ms / MILLISECONDS_IN_AN_HOUR;
 		// FIXME: use get().unwrap_or_default() instead of checking is_empty when StoredVecDeque is fixed.
 		if self.hourly.is_empty() {
 			Ok(
-				VolumeResponse {
+				VolumeQueryResponse {
 					volume: [0u128.into(), 0u128.into()],
 					from_timestamp_ms: timestamp_hour * MILLISECONDS_IN_AN_HOUR,
 					to_timestamp_ms: timestamp_ms
@@ -292,7 +292,7 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 		} else {
 			let latest_record = self.hourly.get_back()?.expect("is empty was checked");
 			Ok(
-				VolumeResponse {
+				VolumeQueryResponse {
 					volume: if latest_record.from_time < timestamp_hour {
 						[0u128.into(), 0u128.into()]
 					} else {
@@ -308,7 +308,7 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 		&self,
 		current_timestamp: Timestamp,
 		hours: NonZeroU8
-	) -> Result<VolumeResponse, StdError> {
+	) -> Result<VolumeQueryResponse, StdError> {
 		let current_timestamp_ms = current_timestamp.millis();
 		let current_timestamp_hour = current_timestamp_ms / MILLISECONDS_IN_AN_HOUR;
 		
@@ -320,7 +320,7 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 
 		if self.hourly.is_empty() {
 			return Ok(
-				VolumeResponse {
+				VolumeQueryResponse {
 					volume: [0u128.into(), 0u128.into()],
 					from_timestamp_ms,
 					to_timestamp_ms
@@ -346,7 +346,7 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 			right_total = right_total.saturating_add(record.amount_right);
 		}
 		Ok(
-			VolumeResponse {
+			VolumeQueryResponse {
 				volume: [left_total.into(), right_total.into()],
 				from_timestamp_ms,
 				to_timestamp_ms
@@ -357,13 +357,13 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 	pub fn get_volume_since_day_start(
 		&self,
 		current_timestamp: Timestamp
-	) -> Result<VolumeResponse, StdError> {
+	) -> Result<VolumeQueryResponse, StdError> {
 		let timestamp_ms = current_timestamp.millis();
 		let timestamp_day = timestamp_ms / MILLISECONDS_IN_AN_HOUR;
 		// FIXME: use get().unwrap_or_default() instead of checking is_empty when StoredVecDeque is fixed.
 		if self.daily.is_empty() {
 			Ok(
-				VolumeResponse {
+				VolumeQueryResponse {
 					volume: [0u128.into(), 0u128.into()],
 					from_timestamp_ms: timestamp_day * MILLISECONDS_IN_AN_HOUR,
 					to_timestamp_ms: timestamp_ms
@@ -372,7 +372,7 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 		} else {
 			let latest_record = self.daily.get_back()?.expect("is empty was checked");
 			Ok(
-				VolumeResponse {
+				VolumeQueryResponse {
 					volume: if latest_record.from_time < timestamp_day {
 						[0u128.into(), 0u128.into()]
 					} else {
@@ -388,7 +388,7 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 		&self,
 		current_timestamp: Timestamp,
 		days: NonZeroU8
-	) -> Result<VolumeResponse, StdError> {
+	) -> Result<VolumeQueryResponse, StdError> {
 		let current_timestamp_ms = current_timestamp.millis();
 		let current_timestamp_day = current_timestamp_ms / MILLISECONDS_IN_AN_HOUR;
 		
@@ -400,7 +400,7 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 
 		if self.daily.is_empty() {
 			return Ok(
-				VolumeResponse {
+				VolumeQueryResponse {
 					volume: [0u128.into(), 0u128.into()],
 					from_timestamp_ms,
 					to_timestamp_ms
@@ -426,7 +426,7 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 			right_total = right_total.saturating_add(record.amount_right);
 		}
 		Ok(
-			VolumeResponse {
+			VolumeQueryResponse {
 				volume: [left_total.into(), right_total.into()],
 				from_timestamp_ms,
 				to_timestamp_ms

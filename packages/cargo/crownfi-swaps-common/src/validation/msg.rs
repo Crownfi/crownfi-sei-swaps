@@ -12,6 +12,9 @@ pub fn two_coins<'msg>(
 			CrownfiSwapsCommonError::NeedsTwoCoins
 		);
 	}
+	if msg_info.funds[0].amount.is_zero() || msg_info.funds[1].amount.is_zero() {
+		return Err(CrownfiSwapsCommonError::PaymentIsZero);
+	}
 	Ok(msg_info.funds.as_slice().try_into().expect("length was already checked"))
 }
 
@@ -69,23 +72,10 @@ pub fn must_pay_pair<'msg>(
 			).into()
 		)
 	}
+	if funds_left.amount.is_zero() || funds_right.amount.is_zero() {
+		return Err(CrownfiSwapsCommonError::PaymentIsZero);
+	}
 	Ok(
 		[funds_left, funds_right]
 	)
-}
-
-#[inline]
-pub fn must_pay_non_zero(
-	info: &MessageInfo
-) -> Result<(), CrownfiSwapsCommonError> {
-	if info.funds.len() == 0 {
-		return Err(CrownfiSwapsCommonError::PaymentIsZero);
-	}
-	// TODO: Does this ever happen? Is this check useless?
-	for fund in info.funds.iter() {
-		if fund.amount.is_zero() {
-			return Err(CrownfiSwapsCommonError::PaymentIsZero);
-		}
-	}
-	Ok(())
 }

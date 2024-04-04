@@ -79,9 +79,13 @@ pub fn calc_shares_to_mint(
 
 #[cw_serde]
 pub struct CalcSwapResult {
+	/// The amount of coin after the swap, minus the `total_fee_amount`.
 	pub result_amount: Uint128,
+	/// The discrepancy between `result_amount + total_fee_amount` and `incoming_amount * exchange_rate`
 	pub spread_amount: Uint128,
+	/// `maker_fee_amount + liquidity_provider_fee_amount`
 	pub total_fee_amount: Uint128,
+	/// How much CrownFi is skimming off the top
 	pub maker_fee_amount: Uint128
 }
 

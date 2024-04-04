@@ -2,10 +2,9 @@ use cosmwasm_std::{coin, Addr, BankMsg, Coin, Response, StdResult, Storage, Uint
 use sei_cosmwasm::SeiMsg;
 
 // These workarounds exist because of this issue: https://github.com/sei-protocol/sei-wasmd/issues/38
-pub fn mint_to_workaround(
+pub fn mint_workaround(
 	response: Response<SeiMsg>,
 	storage: &mut dyn Storage,
-	addr: &Addr,
 	coin: Coin
 ) -> StdResult<Response<SeiMsg>> {
 	let cur_supply = total_supply_workaround(
@@ -20,14 +19,6 @@ pub fn mint_to_workaround(
 		response.add_message(
 			SeiMsg::MintTokens {
 				amount: coin.clone()
-			}
-		)
-		.add_message(
-			BankMsg::Send {
-				to_address: addr.to_string(),
-				amount: vec![
-					coin
-				]
 			}
 		)
 	)
