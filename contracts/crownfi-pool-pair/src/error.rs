@@ -14,17 +14,17 @@ pub enum PoolPairContractError {
 	#[error("Payment error: {0}")]
 	PaymentError(#[from] PaymentError),
 	#[error("Initial shares minted must be at least {}", MINIMUM_INITIAL_SHARES)]
-    MinimumSharesAmountError,
+	MinimumSharesAmountError,
 	#[error("This pool has no liquidity!")]
 	NoLiquidity,
 	#[error("Provided tolerance exceeds {}", MAX_ALLOWED_TOLERANCE)]
-    ToleranceTooHigh,
+	ToleranceTooHigh,
 	#[error("Deposit amount is excessively imbalanced")]
 	DepositTooImbalanced,
 	#[error("Swap slippage ({0}) exceeds tolerance")]
 	SlippageTooHigh(Decimal),
 	#[error("The denoms of the coins provided must match that which was returned by \"canonical_pair_denoms\"")]
-	DepositQueryDenomMismatch
+	DepositQueryDenomMismatch,
 }
 
 impl_from_cosmwasm_std_error_common!(PoolPairContractError);

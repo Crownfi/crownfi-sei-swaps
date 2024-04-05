@@ -13,6 +13,18 @@ pub enum SwapRouterContractError {
 	PaymentError(#[from] PaymentError),
 	#[error("Failed reply: {0}")]
 	FailedReply(#[from] ParseReplyError),
+	#[error("Cannot execute a swap route while the previous one is incomplete")]
+	AlreadyRoutingSwaps,
+	#[error("Route cannot be empty")]
+	RouteEmpty,
+	#[error("Refusing to execute a trade where it's expected to lose everything")]
+	ExpectingNothing,
+	#[error("Swap route slippage exceeded tolerance")]
+	SlippageTooHigh,
+	#[error("Swap route was not fully executed")]
+	IncompleteRoute,
+	#[error("Swap route contains a contract which didn't accept the provided funds")]
+	FundsIncompatibleWithSwapRoute,
 }
 
 impl_from_cosmwasm_std_error_common!(SwapRouterContractError);

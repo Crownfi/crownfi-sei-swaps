@@ -14,5 +14,5 @@ pub enum CrownfiSwapsCommonError {
 	#[error("This instruction require a pair of coins to be supplied")]
 	NeedsTwoCoins,
 	#[error("This action would result in a 0 payout")]
-	PayoutIsZero
+	PayoutIsZero,
 }

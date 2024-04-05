@@ -6,7 +6,7 @@ use crate::state::PoolFactoryConfigJsonable;
 /// This structure stores the basic settings for creating a new factory contract.
 #[cw_serde]
 pub struct PoolFactoryInstantiateMsg {
-	pub config: PoolFactoryConfigJsonable
+	pub config: PoolFactoryConfigJsonable,
 }
 
 /// This structure describes the execute messages of the contract.
@@ -25,7 +25,7 @@ pub enum PoolFactoryExecuteMsg {
 		/// The amount of fees (in bps) collected by the Maker contract from this pair type
 		default_maker_fee_bps: Option<u16>,
 		/// If true, everyone will be able to create new trading pairs
-		permissionless_pool_cration: Option<bool>
+		permissionless_pool_cration: Option<bool>,
 	},
 	/// CreatePool instantiates a new pair pool contract.
 	/// The pair is determined by the initial liquidity funds sent to this contract
@@ -33,17 +33,17 @@ pub enum PoolFactoryExecuteMsg {
 		/// As funds must be given in alphabetical order, this is used to determine whether or not the pair should be
 		/// inversed when presented to the user
 		left_denom: String,
-		initial_shares_receiver: Option<Addr>
+		initial_shares_receiver: Option<Addr>,
 	},
 	UpdateFeesForPool {
 		pair: [String; 2],
 		total_fee_bps: Option<u16>,
-		maker_fee_bps: Option<u16>
+		maker_fee_bps: Option<u16>,
 	},
 	UpdateGlobalConfigForPool {
 		after: Option<[String; 2]>,
-		limit: Option<u32>
-	}
+		limit: Option<u32>,
+	},
 }
 
 /// This structure describes the available query messages for the factory contract.
@@ -55,19 +55,17 @@ pub enum PoolFactoryQueryMsg {
 	Config,
 	/// Gets the contract address for a pair. The result may include the inverse pair if it exists.
 	#[returns(Option<Addr>)]
-	PairAddr {
-		pair: [String; 2]
-	},
+	PairAddr { pair: [String; 2] },
 	/// Pairs returns an array of pairs and their information according to the specified parameters in `start_after` and `limit` variables.
 	#[returns(Vec<PoolFactoryCreatedPair>)]
 	Pairs {
 		after: Option<[String; 2]>,
-		limit: Option<u32>
-	}
+		limit: Option<u32>,
+	},
 }
 
 #[cw_serde]
 pub struct PoolFactoryCreatedPair {
 	pub canonical_pair: [String; 2],
-	pub address: Addr
+	pub address: Addr,
 }

@@ -1,13 +1,16 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Binary, Coin, Decimal, Uint128};
 
-use crate::{contract::pool::CalcSwapResult, state::PoolPairConfigJsonable};
+use crate::{
+	contract::pool::{PoolPairCalcNaiveSwapResult, PoolPairCalcSwapResult},
+	state::PoolPairConfigJsonable,
+};
 
 /// This structure stores the basic settings for creating a new factory contract.
 #[cw_serde]
 pub struct PoolPairInstantiateMsg {
 	pub shares_receiver: Addr,
-	pub config: PoolPairConfigJsonable
+	pub config: PoolPairConfigJsonable,
 }
 
 /// This structure describes the execute messages available in the contract.
@@ -24,7 +27,7 @@ pub enum PoolPairExecuteMsg {
 		/// The amount of fees (in bps) collected by the Maker contract from this pair type
 		maker_fee_bps: Option<u16>,
 		/// If true, this has been endorsed by the admin.
-		endorsed: Option<bool>
+		endorsed: Option<bool>,
 	},
 	/// ProvideLiquidity allows someone to provide liquidity in the pool
 	ProvideLiquidity {
@@ -33,28 +36,40 @@ pub enum PoolPairExecuteMsg {
 		/// The receiver of pool share
 		receiver: Option<Addr>,
 		/// If the receiver is a contract, you can execute it by passing the encoded message here verbatim.
-		receiver_payload: Option<Binary>
+		receiver_payload: Option<Binary>,
 	},
 	/// Withdraw liquidity from the pool
 	WithdrawLiquidity {
 		/// The receiver of the share value
 		receiver: Option<Addr>,
 		/// If the receiver is a contract, you can execute it by passing the encoded message here verbatim.
-		receiver_payload: Option<Binary>
+		receiver_payload: Option<Binary>,
+	},
+	/// Withdraw liquidity from the pool, but also allows you to specify different destinations for both tokens. Note
+	/// That the "left" and "right" coins correspond to the denoms in canonical, that is, lexicographical order.
+	WithdrawAndSplitLiquidity {
+		/// The receiver of the share value
+		left_coin_receiver: Option<Addr>,
+		/// If the receiver is a contract, you can execute it by passing the encoded message here verbatim.
+		left_coin_receiver_payload: Option<Binary>,
+		/// The receiver of the share value
+		right_coin_receiver: Option<Addr>,
+		/// If the receiver is a contract, you can execute it by passing the encoded message here verbatim.
+		right_coin_receiver_payload: Option<Binary>,
 	},
 	/// Swap performs a swap in the pool
 	Swap {
 		/// The expected amount after swap, before fees are taken. By default this will be `incoming_coin *
 		/// exchange_rate`
 		expected_result: Option<Uint128>,
-		/// A value between 0 and 1 determining the difference tolerance between `expected_result` and the amount
-		/// fees. e.g. 0.1 means a 10% slippage tolerance.
+		/// A value between 0 and 1 determining the difference tolerance between `expected_result` and the actual
+		/// result of the swap before fees. e.g. 0.1 means a 10% slippage tolerance. By default this will be to 0.5%.
 		slippage_tolerance: Option<Decimal>,
-		///
+		/// The account receiving the payout
 		receiver: Option<Addr>,
 		/// If the receiver is a contract, you can execute it by passing the encoded message here verbatim.
-		receiver_payload: Option<Binary>
-	}
+		receiver_payload: Option<Binary>,
+	},
 }
 
 #[cw_serde]
@@ -62,7 +77,7 @@ pub enum PoolPairExecuteMsg {
 pub struct VolumeQueryResponse {
 	pub volume: [Uint128; 2],
 	pub from_timestamp_ms: u64,
-	pub to_timestamp_ms: u64
+	pub to_timestamp_ms: u64,
 }
 
 #[cw_serde]
@@ -88,41 +103,36 @@ pub enum PoolPairQueryMsg {
 	ShareValue { amount: Uint128 },
 	/// Simulates a deposit and tells you how many pool shares you'd recieve, along with their value.
 	#[returns(PoolPairQuerySimulateDepositResponse)]
-	SimulateProvideLiquidity {
-		offer: [Coin; 2]
-	},
+	SimulateProvideLiquidity { offer: [Coin; 2] },
 	/// Simulates a swap and tells you how much you'd get in return, the spread, and the fees involved.
-	#[returns(CalcSwapResult)]
-	SimulateSwap {
-		offer: Coin,
-	},
+	#[returns(PoolPairCalcSwapResult)]
+	SimulateSwap { offer: Coin },
+	/// Simulates a swap assuming infinite liquidity, i.e. having no effect on the exchange rate.
+	#[returns(PoolPairCalcNaiveSwapResult)]
+	SimulateNaiveSwap { offer: Coin },
 	/// If past_hours is specified and is greater than 0, returns the total volume in the past specified hours.
 	/// e.g. 24 means volume over the past 24 hours, updated every hour (UTC).
-	/// 
+	///
 	/// Otherwise, returns the amount of volume since this hour started (UTC).
-	/// 
+	///
 	/// Data older than 24 hours is not guaranteed.
 	#[returns(VolumeQueryResponse)]
-	HourlyVolumeSum {
-		past_hours: Option<u8>
-	},
+	HourlyVolumeSum { past_hours: Option<u8> },
 	/// If past_days is specified and is greater than 0, returns the total volume in the past specified days.
 	/// e.g. 7 means volume over the past 7 days, updated every midnight (UTC).
-	/// 
+	///
 	/// Otherwise, returns the amount of volume since midnight (UTC).
-	/// 
+	///
 	/// Data older than 30 days is not guaranteed.
 	#[returns(VolumeQueryResponse)]
-	DailyVolumeSum {
-		past_days: Option<u8>
-	},
+	DailyVolumeSum { past_days: Option<u8> },
 	/// Get the all time volume from since the first trade happened.
 	#[returns(VolumeQueryResponse)]
-	TotalVolumeSum
+	TotalVolumeSum,
 }
 
 #[cw_serde]
 pub struct PoolPairQuerySimulateDepositResponse {
 	pub share_amount: Uint128,
-	pub share_value: [Coin; 2]
+	pub share_value: [Coin; 2],
 }

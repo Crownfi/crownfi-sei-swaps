@@ -1,10 +1,18 @@
-use std::{cell::RefCell, fmt::{Display, Write}, rc::Rc};
+use std::{
+	cell::RefCell,
+	fmt::{Display, Write},
+	rc::Rc,
+};
 
 use bitflags::bitflags;
 use borsh::{BorshDeserialize, BorshSerialize};
 use bytemuck::{Pod, Zeroable};
 use cosmwasm_std::{Addr, Api, StdError, Storage};
-use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, impl_serializable_as_ref, impl_serializable_borsh, storage::{item::StoredItem, map::StoredMap, vec::StoredVec, MaybeMutableStorage, SerializableItem}};
+use crownfi_cw_common::{
+	data_types::canonical_addr::SeiCanonicalAddr,
+	impl_serializable_as_ref, impl_serializable_borsh,
+	storage::{item::StoredItem, map::StoredMap, vec::StoredVec, MaybeMutableStorage, SerializableItem},
+};
 use crownfi_swaps_common::data_types::pair_id::{CanonicalPoolPairIdentifier, PoolPairIdentifier};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -36,7 +44,7 @@ pub struct PoolFactoryConfig {
 	pub default_total_fee_bps: u16,
 	/// The amount of fees (in bps) collected by the Maker contract from this pair type
 	pub default_maker_fee_bps: u16,
-	_unused_2: [u8; 4], // Possible lower-bound fees 
+	_unused_2: [u8; 4], // Possible lower-bound fees
 	/// Collection of boolean values
 	pub flags: PoolFactoryConfigFlags, // Possible lower-bound fees
 	_unused_3: [u8; 7], // bit flags may be extended upon (plus we need the padding)
@@ -55,7 +63,7 @@ pub struct PoolFactoryConfigJsonable {
 	/// The amount of fees (in bps) collected by the Maker contract from this pair type
 	pub default_maker_fee_bps: u16,
 	/// If true, everyone will be able to create new trading pairs
-	pub permissionless_pool_cration: bool
+	pub permissionless_pool_cration: bool,
 }
 
 impl_serializable_as_ref!(PoolFactoryConfig);
@@ -65,19 +73,19 @@ impl StoredItem for PoolFactoryConfig {
 	}
 }
 impl PoolFactoryConfig {
-	pub fn load_non_empty(storage: & dyn Storage) -> Result<Self, StdError> where Self: Sized {
+	pub fn load_non_empty(storage: &dyn Storage) -> Result<Self, StdError>
+	where
+		Self: Sized,
+	{
 		match Self::load(storage)? {
-			Some(result) => {
-				Ok(result)
-			},
-			None => {
-				Err(StdError::NotFound { kind: "PoolFactoryConfig".into() })
-			}
+			Some(result) => Ok(result),
+			None => Err(StdError::NotFound {
+				kind: "PoolFactoryConfig".into(),
+			}),
 		}
 	}
 	pub fn valid_fee_bps(&self) -> bool {
-		self.default_total_fee_bps <= MAX_TOTAL_FEE_BPS &&
-		self.default_maker_fee_bps <= self.default_total_fee_bps
+		self.default_total_fee_bps <= MAX_TOTAL_FEE_BPS && self.default_maker_fee_bps <= self.default_total_fee_bps
 	}
 }
 impl TryFrom<&PoolFactoryConfigJsonable> for PoolFactoryConfig {
@@ -87,45 +95,49 @@ impl TryFrom<&PoolFactoryConfigJsonable> for PoolFactoryConfig {
 		if value.permissionless_pool_cration {
 			flags = flags.union(PoolFactoryConfigFlags::PERMISSIONLESS_POOL_CRATION);
 		}
-		Ok(
-			PoolFactoryConfig {
-				admin: (&value.admin).try_into()?,
-				fee_receiver: (&value.fee_receiver).try_into()?,
-				pair_code_id: value.pair_code_id,
-				default_total_fee_bps: value.default_total_fee_bps,
-				default_maker_fee_bps: value.default_maker_fee_bps,
-				flags,
-				.. Zeroable::zeroed()
-			 }
-		)
+		Ok(PoolFactoryConfig {
+			admin: (&value.admin).try_into()?,
+			fee_receiver: (&value.fee_receiver).try_into()?,
+			pair_code_id: value.pair_code_id,
+			default_total_fee_bps: value.default_total_fee_bps,
+			default_maker_fee_bps: value.default_maker_fee_bps,
+			flags,
+			..Zeroable::zeroed()
+		})
 	}
 }
 impl TryFrom<&PoolFactoryConfig> for PoolFactoryConfigJsonable {
 	type Error = StdError;
 
 	fn try_from(value: &PoolFactoryConfig) -> Result<Self, Self::Error> {
-		Ok(
-			PoolFactoryConfigJsonable {
-				admin: value.admin.try_into()?,
-				fee_receiver: value.fee_receiver.try_into()?,
-				pair_code_id: value.pair_code_id,
-				default_total_fee_bps: value.default_total_fee_bps,
-				default_maker_fee_bps: value.default_maker_fee_bps,
-				permissionless_pool_cration: value.flags.contains(PoolFactoryConfigFlags::PERMISSIONLESS_POOL_CRATION)
-			}
-		)
+		Ok(PoolFactoryConfigJsonable {
+			admin: value.admin.try_into()?,
+			fee_receiver: value.fee_receiver.try_into()?,
+			pair_code_id: value.pair_code_id,
+			default_total_fee_bps: value.default_total_fee_bps,
+			default_maker_fee_bps: value.default_maker_fee_bps,
+			permissionless_pool_cration: value
+				.flags
+				.contains(PoolFactoryConfigFlags::PERMISSIONLESS_POOL_CRATION),
+		})
 	}
 }
 
 const POOL_ADDRESSES_NAMESPACE: &str = "pools";
 
 pub fn get_pool_addresses_store<'a>(
-	storage: &'a dyn Storage
+	storage: &'a dyn Storage,
 ) -> Result<StoredMap<'a, CanonicalPoolPairIdentifier, SeiCanonicalAddr>, StdError> {
-	Ok(StoredMap::new(POOL_ADDRESSES_NAMESPACE.as_ref(), MaybeMutableStorage::Immutable(storage)))
+	Ok(StoredMap::new(
+		POOL_ADDRESSES_NAMESPACE.as_ref(),
+		MaybeMutableStorage::Immutable(storage),
+	))
 }
 pub fn get_pool_addresses_store_mut<'a>(
-	storage: Rc<RefCell<&'a mut dyn Storage>>
+	storage: Rc<RefCell<&'a mut dyn Storage>>,
 ) -> Result<StoredMap<'a, CanonicalPoolPairIdentifier, SeiCanonicalAddr>, StdError> {
-	Ok(StoredMap::new(POOL_ADDRESSES_NAMESPACE.as_ref(), MaybeMutableStorage::MutableShared(storage)))
+	Ok(StoredMap::new(
+		POOL_ADDRESSES_NAMESPACE.as_ref(),
+		MaybeMutableStorage::MutableShared(storage),
+	))
 }

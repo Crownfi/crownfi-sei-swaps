@@ -3,7 +3,12 @@ use std::{cell::RefCell, num::NonZeroU8, rc::Rc};
 use bitflags::bitflags;
 use bytemuck::{Pod, Zeroable};
 use cosmwasm_std::{Addr, StdError, Storage, Timestamp};
-use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, extentions::timestamp::TimestampExtentions, impl_serializable_as_ref, storage::{item::StoredItem, queue::StoredVecDeque, MaybeMutableStorage, SerializableItem}};
+use crownfi_cw_common::{
+	data_types::canonical_addr::SeiCanonicalAddr,
+	extentions::timestamp::TimestampExtentions,
+	impl_serializable_as_ref,
+	storage::{item::StoredItem, queue::StoredVecDeque, MaybeMutableStorage, SerializableItem},
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -35,7 +40,7 @@ pub struct PoolPairConfig {
 	pub total_fee_bps: u16,
 	/// The amount of fees (in bps) collected by the Maker contract from this pair type
 	pub maker_fee_bps: u16,
-	_unused_1: [u8; 4], // Possible lower-bound fees 
+	_unused_1: [u8; 4], // Possible lower-bound fees
 	/// Collection of boolean values
 	pub flags: PoolPairConfigFlags, // Possible lower-bound fees
 	_unused_3: [u8; 7], // bit flags may be extended upon (plus we need the padding)
@@ -54,7 +59,7 @@ pub struct PoolPairConfigJsonable {
 	/// If true, this is marketed as the inverse pair
 	pub inverse: bool,
 	/// If true, this has been endorsed by the market maker (probably CrownFi)
-	pub endorsed: bool
+	pub endorsed: bool,
 }
 
 impl_serializable_as_ref!(PoolPairConfig);
@@ -64,20 +69,20 @@ impl StoredItem for PoolPairConfig {
 	}
 }
 impl PoolPairConfig {
-	pub fn load_non_empty(storage: & dyn Storage) -> Result<Self, StdError> where Self: Sized {
+	pub fn load_non_empty(storage: &dyn Storage) -> Result<Self, StdError>
+	where
+		Self: Sized,
+	{
 		match Self::load(storage)? {
-			Some(result) => {
-				Ok(result)
-			},
-			None => {
-				Err(StdError::NotFound { kind: "PoolPairConfig".into() })
-			}
+			Some(result) => Ok(result),
+			None => Err(StdError::NotFound {
+				kind: "PoolPairConfig".into(),
+			}),
 		}
 	}
 
 	pub fn valid_fee_bps(&self) -> bool {
-		self.total_fee_bps <= MAX_TOTAL_FEE_BPS &&
-		self.maker_fee_bps <= self.total_fee_bps
+		self.total_fee_bps <= MAX_TOTAL_FEE_BPS && self.maker_fee_bps <= self.total_fee_bps
 	}
 }
 impl TryFrom<&PoolPairConfigJsonable> for PoolPairConfig {
@@ -87,31 +92,27 @@ impl TryFrom<&PoolPairConfigJsonable> for PoolPairConfig {
 		if value.endorsed {
 			flags = flags.union(PoolPairConfigFlags::ENDORSED);
 		}
-		Ok(
-			PoolPairConfig {
-				admin: (&value.admin).try_into()?,
-				fee_receiver: (&value.fee_receiver).try_into()?,
-				total_fee_bps: value.total_fee_bps,
-				maker_fee_bps: value.maker_fee_bps,
-				flags,
-				.. Zeroable::zeroed()
-			 }
-		)
+		Ok(PoolPairConfig {
+			admin: (&value.admin).try_into()?,
+			fee_receiver: (&value.fee_receiver).try_into()?,
+			total_fee_bps: value.total_fee_bps,
+			maker_fee_bps: value.maker_fee_bps,
+			flags,
+			..Zeroable::zeroed()
+		})
 	}
 }
 impl TryFrom<&PoolPairConfig> for PoolPairConfigJsonable {
 	type Error = StdError;
 	fn try_from(value: &PoolPairConfig) -> Result<Self, Self::Error> {
-		Ok(
-			PoolPairConfigJsonable {
-				admin: value.admin.try_into()?,
-				fee_receiver: value.fee_receiver.try_into()?,
-				total_fee_bps: value.total_fee_bps,
-				maker_fee_bps: value.maker_fee_bps,
-				inverse: value.flags.contains(PoolPairConfigFlags::INVERSE),
-				endorsed: value.flags.contains(PoolPairConfigFlags::ENDORSED)
-			}
-		)
+		Ok(PoolPairConfigJsonable {
+			admin: value.admin.try_into()?,
+			fee_receiver: value.fee_receiver.try_into()?,
+			total_fee_bps: value.total_fee_bps,
+			maker_fee_bps: value.maker_fee_bps,
+			inverse: value.flags.contains(PoolPairConfigFlags::INVERSE),
+			endorsed: value.flags.contains(PoolPairConfigFlags::ENDORSED),
+		})
 	}
 }
 
@@ -128,10 +129,9 @@ pub struct TradingVolume {
 	pub from_time: u64,
 	_unused: u64, // u128's require alignment to 16 bytes now.
 	pub amount_left: u128,
-	pub amount_right: u128
+	pub amount_right: u128,
 }
 impl_serializable_as_ref!(TradingVolume);
-
 
 const MILLISECONDS_IN_AN_HOUR: u64 = 1000 * 60 * 60;
 const MILLISECONDS_IN_A_DAY: u64 = MILLISECONDS_IN_AN_HOUR * 24;
@@ -139,58 +139,50 @@ const MILLISECONDS_IN_A_DAY: u64 = MILLISECONDS_IN_AN_HOUR * 24;
 pub struct VolumeStatisticsCounter<'exec> {
 	storage: MaybeMutableStorage<'exec>,
 	hourly: StoredVecDeque<'exec, TradingVolume>,
-	daily: StoredVecDeque<'exec, TradingVolume>
+	daily: StoredVecDeque<'exec, TradingVolume>,
 }
 impl<'exec> VolumeStatisticsCounter<'exec> {
 	pub fn new(storage: &'exec dyn Storage) -> Result<Self, StdError> {
 		let storage = MaybeMutableStorage::Immutable(storage);
-		Ok(
-			Self {
-				hourly: StoredVecDeque::new(VOLUME_STATS_HOURLY_NAMESPACE, storage.clone()),
-				daily: StoredVecDeque::new(VOLUME_STATS_DAILY_NAMESPACE, storage.clone()),
-				storage
-			}
-		)
+		Ok(Self {
+			hourly: StoredVecDeque::new(VOLUME_STATS_HOURLY_NAMESPACE, storage.clone()),
+			daily: StoredVecDeque::new(VOLUME_STATS_DAILY_NAMESPACE, storage.clone()),
+			storage,
+		})
 	}
 	pub fn new_mut(storage: Rc<RefCell<&'exec mut dyn Storage>>) -> Result<Self, StdError> {
 		let storage = MaybeMutableStorage::MutableShared(storage);
-		Ok(
-			Self {
-				hourly: StoredVecDeque::new(VOLUME_STATS_HOURLY_NAMESPACE, storage.clone()),
-				daily: StoredVecDeque::new(VOLUME_STATS_DAILY_NAMESPACE, storage.clone()),
-				storage
-			}
-		)
+		Ok(Self {
+			hourly: StoredVecDeque::new(VOLUME_STATS_HOURLY_NAMESPACE, storage.clone()),
+			daily: StoredVecDeque::new(VOLUME_STATS_DAILY_NAMESPACE, storage.clone()),
+			storage,
+		})
 	}
 	pub fn update_volumes(
 		&mut self,
 		current_timestamp: Timestamp,
 		amount_left: u128,
-		amount_right: u128
+		amount_right: u128,
 	) -> Result<(), StdError> {
 		let timestamp_ms = current_timestamp.millis();
 		let timestamp_hour = timestamp_ms / MILLISECONDS_IN_AN_HOUR;
 		let timestamp_day = timestamp_ms / MILLISECONDS_IN_A_DAY;
 		if self.hourly.is_empty() {
-			self.hourly.push_back(
-				&TradingVolume {
+			self.hourly.push_back(&TradingVolume {
+				from_time: timestamp_hour,
+				amount_left,
+				amount_right,
+				..Zeroable::zeroed()
+			})?;
+		} else {
+			let mut latest_record = self.hourly.get_back()?.expect("is empty was checked");
+			if latest_record.from_time < timestamp_hour {
+				self.hourly.push_back(&TradingVolume {
 					from_time: timestamp_hour,
 					amount_left,
 					amount_right,
 					..Zeroable::zeroed()
-				}
-			)?;
-		} else {
-			let mut latest_record = self.hourly.get_back()?.expect("is empty was checked");
-			if latest_record.from_time < timestamp_hour {
-				self.hourly.push_back(
-					&TradingVolume {
-						from_time: timestamp_hour,
-						amount_left,
-						amount_right,
-						..Zeroable::zeroed()
-					}
-				)?;
+				})?;
 			} else {
 				latest_record.amount_left = latest_record.amount_left.saturating_add(amount_left);
 				latest_record.amount_right = latest_record.amount_right.saturating_add(amount_right);
@@ -201,25 +193,21 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 			}
 		}
 		if self.daily.is_empty() {
-			self.daily.push_back(
-				&TradingVolume {
+			self.daily.push_back(&TradingVolume {
+				from_time: timestamp_day,
+				amount_left,
+				amount_right,
+				..Zeroable::zeroed()
+			})?;
+		} else {
+			let mut latest_record = self.daily.get_back()?.expect("is empty was checked");
+			if latest_record.from_time < timestamp_day {
+				self.daily.push_back(&TradingVolume {
 					from_time: timestamp_day,
 					amount_left,
 					amount_right,
 					..Zeroable::zeroed()
-				}
-			)?;
-		} else {
-			let mut latest_record = self.daily.get_back()?.expect("is empty was checked");
-			if latest_record.from_time < timestamp_day {
-				self.daily.push_back(
-					&TradingVolume {
-						from_time: timestamp_day,
-						amount_left,
-						amount_right,
-						..Zeroable::zeroed()
-					}
-				)?;
+				})?;
 			} else {
 				latest_record.amount_left = latest_record.amount_left.saturating_add(amount_left);
 				latest_record.amount_right = latest_record.amount_right.saturating_add(amount_right);
@@ -233,10 +221,8 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 			let mut all_time = TradingVolume::deserialize(&all_time_bytes)?;
 			all_time.amount_left = all_time.amount_left.saturating_add(amount_left);
 			all_time.amount_right = all_time.amount_right.saturating_add(amount_right);
-			self.storage.set(
-				VOLUME_STATS_ALL_TIME_NAMESPACE,
-				all_time.serialize_as_ref().unwrap()
-			);
+			self.storage
+				.set(VOLUME_STATS_ALL_TIME_NAMESPACE, all_time.serialize_as_ref().unwrap());
 		} else {
 			self.storage.set(
 				VOLUME_STATS_ALL_TIME_NAMESPACE,
@@ -245,73 +231,64 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 					amount_left,
 					amount_right,
 					..Zeroable::zeroed()
-				}.serialize_as_ref().unwrap()
+				}
+				.serialize_as_ref()
+				.unwrap(),
 			);
 		}
 		Ok(())
 	}
-	pub fn get_volume_all_time(
-		&self,
-		current_timestamp: Timestamp
-	) -> Result<VolumeQueryResponse, StdError> {
+	pub fn get_volume_all_time(&self, current_timestamp: Timestamp) -> Result<VolumeQueryResponse, StdError> {
 		let timestamp_ms = current_timestamp.millis();
-		if let Some(all_time) = self.storage.get(VOLUME_STATS_ALL_TIME_NAMESPACE).map(|all_time_bytes| {
-			TradingVolume::deserialize(&all_time_bytes)
-		}).transpose()? {
-			Ok(
-				VolumeQueryResponse {
-					volume: [all_time.amount_left.into(), all_time.amount_right.into()],
-					from_timestamp_ms: all_time.from_time,
-					to_timestamp_ms: timestamp_ms
-				}
-			)
+		if let Some(all_time) = self
+			.storage
+			.get(VOLUME_STATS_ALL_TIME_NAMESPACE)
+			.map(|all_time_bytes| TradingVolume::deserialize(&all_time_bytes))
+			.transpose()?
+		{
+			Ok(VolumeQueryResponse {
+				volume: [all_time.amount_left.into(), all_time.amount_right.into()],
+				from_timestamp_ms: all_time.from_time,
+				to_timestamp_ms: timestamp_ms,
+			})
 		} else {
-			Ok(
-				VolumeQueryResponse {
-					to_timestamp_ms: timestamp_ms,
-					.. Default::default()
-				}
-			)
+			Ok(VolumeQueryResponse {
+				to_timestamp_ms: timestamp_ms,
+				..Default::default()
+			})
 		}
 	}
-	pub fn get_volume_since_hour_start(
-		&self,
-		current_timestamp: Timestamp
-	) -> Result<VolumeQueryResponse, StdError> {
+	pub fn get_volume_since_hour_start(&self, current_timestamp: Timestamp) -> Result<VolumeQueryResponse, StdError> {
 		let timestamp_ms = current_timestamp.millis();
 		let timestamp_hour = timestamp_ms / MILLISECONDS_IN_AN_HOUR;
 		// FIXME: use get().unwrap_or_default() instead of checking is_empty when StoredVecDeque is fixed.
 		if self.hourly.is_empty() {
-			Ok(
-				VolumeQueryResponse {
-					volume: [0u128.into(), 0u128.into()],
-					from_timestamp_ms: timestamp_hour * MILLISECONDS_IN_AN_HOUR,
-					to_timestamp_ms: timestamp_ms
-				}
-			)
+			Ok(VolumeQueryResponse {
+				volume: [0u128.into(), 0u128.into()],
+				from_timestamp_ms: timestamp_hour * MILLISECONDS_IN_AN_HOUR,
+				to_timestamp_ms: timestamp_ms,
+			})
 		} else {
 			let latest_record = self.hourly.get_back()?.expect("is empty was checked");
-			Ok(
-				VolumeQueryResponse {
-					volume: if latest_record.from_time < timestamp_hour {
-						[0u128.into(), 0u128.into()]
-					} else {
-						[latest_record.amount_left.into(), latest_record.amount_right.into()]
-					},
-					from_timestamp_ms: timestamp_hour * MILLISECONDS_IN_AN_HOUR,
-					to_timestamp_ms: timestamp_ms
-				}
-			)
+			Ok(VolumeQueryResponse {
+				volume: if latest_record.from_time < timestamp_hour {
+					[0u128.into(), 0u128.into()]
+				} else {
+					[latest_record.amount_left.into(), latest_record.amount_right.into()]
+				},
+				from_timestamp_ms: timestamp_hour * MILLISECONDS_IN_AN_HOUR,
+				to_timestamp_ms: timestamp_ms,
+			})
 		}
 	}
 	pub fn get_volume_per_hours(
 		&self,
 		current_timestamp: Timestamp,
-		hours: NonZeroU8
+		hours: NonZeroU8,
 	) -> Result<VolumeQueryResponse, StdError> {
 		let current_timestamp_ms = current_timestamp.millis();
 		let current_timestamp_hour = current_timestamp_ms / MILLISECONDS_IN_AN_HOUR;
-		
+
 		// there has been more than 255 hours since jan 1 1970. We'll be fine.
 		let from_timestamp_hour = current_timestamp_hour - hours.get() as u64;
 
@@ -319,18 +296,16 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 		let to_timestamp_ms = current_timestamp_hour * MILLISECONDS_IN_AN_HOUR;
 
 		if self.hourly.is_empty() {
-			return Ok(
-				VolumeQueryResponse {
-					volume: [0u128.into(), 0u128.into()],
-					from_timestamp_ms,
-					to_timestamp_ms
-				}
-			);
+			return Ok(VolumeQueryResponse {
+				volume: [0u128.into(), 0u128.into()],
+				from_timestamp_ms,
+				to_timestamp_ms,
+			});
 		}
 		let mut left_total = 0u128;
 		let mut right_total = 0u128;
 		let mut record_iter = self.hourly.iter().rev();
-		
+
 		let first_record = record_iter.next().expect("is empty was checked")?;
 		if first_record.from_time < current_timestamp_hour && first_record.from_time >= from_timestamp_hour {
 			left_total = first_record.amount_left;
@@ -345,53 +320,44 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 			left_total = left_total.saturating_add(record.amount_left);
 			right_total = right_total.saturating_add(record.amount_right);
 		}
-		Ok(
-			VolumeQueryResponse {
-				volume: [left_total.into(), right_total.into()],
-				from_timestamp_ms,
-				to_timestamp_ms
-			}
-		)
+		Ok(VolumeQueryResponse {
+			volume: [left_total.into(), right_total.into()],
+			from_timestamp_ms,
+			to_timestamp_ms,
+		})
 	}
 
-	pub fn get_volume_since_day_start(
-		&self,
-		current_timestamp: Timestamp
-	) -> Result<VolumeQueryResponse, StdError> {
+	pub fn get_volume_since_day_start(&self, current_timestamp: Timestamp) -> Result<VolumeQueryResponse, StdError> {
 		let timestamp_ms = current_timestamp.millis();
 		let timestamp_day = timestamp_ms / MILLISECONDS_IN_AN_HOUR;
 		// FIXME: use get().unwrap_or_default() instead of checking is_empty when StoredVecDeque is fixed.
 		if self.daily.is_empty() {
-			Ok(
-				VolumeQueryResponse {
-					volume: [0u128.into(), 0u128.into()],
-					from_timestamp_ms: timestamp_day * MILLISECONDS_IN_AN_HOUR,
-					to_timestamp_ms: timestamp_ms
-				}
-			)
+			Ok(VolumeQueryResponse {
+				volume: [0u128.into(), 0u128.into()],
+				from_timestamp_ms: timestamp_day * MILLISECONDS_IN_AN_HOUR,
+				to_timestamp_ms: timestamp_ms,
+			})
 		} else {
 			let latest_record = self.daily.get_back()?.expect("is empty was checked");
-			Ok(
-				VolumeQueryResponse {
-					volume: if latest_record.from_time < timestamp_day {
-						[0u128.into(), 0u128.into()]
-					} else {
-						[latest_record.amount_left.into(), latest_record.amount_right.into()]
-					},
-					from_timestamp_ms: timestamp_day * MILLISECONDS_IN_AN_HOUR,
-					to_timestamp_ms: timestamp_ms
-				}
-			)
+			Ok(VolumeQueryResponse {
+				volume: if latest_record.from_time < timestamp_day {
+					[0u128.into(), 0u128.into()]
+				} else {
+					[latest_record.amount_left.into(), latest_record.amount_right.into()]
+				},
+				from_timestamp_ms: timestamp_day * MILLISECONDS_IN_AN_HOUR,
+				to_timestamp_ms: timestamp_ms,
+			})
 		}
 	}
 	pub fn get_volume_per_days(
 		&self,
 		current_timestamp: Timestamp,
-		days: NonZeroU8
+		days: NonZeroU8,
 	) -> Result<VolumeQueryResponse, StdError> {
 		let current_timestamp_ms = current_timestamp.millis();
 		let current_timestamp_day = current_timestamp_ms / MILLISECONDS_IN_AN_HOUR;
-		
+
 		// there has been more than 255 days since jan 1 1970. We'll be fine.
 		let from_timestamp_day = current_timestamp_day - days.get() as u64;
 
@@ -399,18 +365,16 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 		let to_timestamp_ms = current_timestamp_day * MILLISECONDS_IN_AN_HOUR;
 
 		if self.daily.is_empty() {
-			return Ok(
-				VolumeQueryResponse {
-					volume: [0u128.into(), 0u128.into()],
-					from_timestamp_ms,
-					to_timestamp_ms
-				}
-			);
+			return Ok(VolumeQueryResponse {
+				volume: [0u128.into(), 0u128.into()],
+				from_timestamp_ms,
+				to_timestamp_ms,
+			});
 		}
 		let mut left_total = 0u128;
 		let mut right_total = 0u128;
 		let mut record_iter = self.daily.iter().rev();
-		
+
 		let first_record = record_iter.next().expect("is empty was checked")?;
 		if first_record.from_time < current_timestamp_day && first_record.from_time >= from_timestamp_day {
 			left_total = first_record.amount_left;
@@ -425,12 +389,10 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 			left_total = left_total.saturating_add(record.amount_left);
 			right_total = right_total.saturating_add(record.amount_right);
 		}
-		Ok(
-			VolumeQueryResponse {
-				volume: [left_total.into(), right_total.into()],
-				from_timestamp_ms,
-				to_timestamp_ms
-			}
-		)
+		Ok(VolumeQueryResponse {
+			volume: [left_total.into(), right_total.into()],
+			from_timestamp_ms,
+			to_timestamp_ms,
+		})
 	}
 }

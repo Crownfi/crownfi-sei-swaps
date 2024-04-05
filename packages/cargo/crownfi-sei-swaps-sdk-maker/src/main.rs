@@ -1,7 +1,15 @@
 use std::path::PathBuf;
 
 use bpaf::Bpaf;
-use crownfi_astro_common::{factory::{AstroFactoryInstantiateMsg, AstroFactoryExecuteMsg, AstroFactoryQueryMsg, AstroFactoryMigrateMsg}, pair::{AstroPairInstantiateMsg, AstroPairExecuteMsg, AstroPairQueryMsg, AstroPairMigrateMsg, AstroPairCw20HookMsg}, router::{AstroRouteInstantiateMsg, AstroRouteExecuteMsg, AstroRouteQueryMsg, AstroRouteMigrateMsg, AstroRouteCw20HookMsg}};
+use crownfi_astro_common::{
+	factory::{AstroFactoryExecuteMsg, AstroFactoryInstantiateMsg, AstroFactoryMigrateMsg, AstroFactoryQueryMsg},
+	pair::{
+		AstroPairCw20HookMsg, AstroPairExecuteMsg, AstroPairInstantiateMsg, AstroPairMigrateMsg, AstroPairQueryMsg,
+	},
+	router::{
+		AstroRouteCw20HookMsg, AstroRouteExecuteMsg, AstroRouteInstantiateMsg, AstroRouteMigrateMsg, AstroRouteQueryMsg,
+	},
+};
 use crownfi_sei_sdk_autogen::CrownfiSdkMaker;
 type Void = ();
 
@@ -10,7 +18,7 @@ type Void = ();
 struct MakeSdkOptions {
 	#[bpaf(positional("OUT_DIR"))]
 	/// The path to save the auto-generated typescript to
-	out_dir: PathBuf
+	out_dir: PathBuf,
 }
 
 fn main() -> color_eyre::Result<()> {
@@ -42,6 +50,6 @@ fn main() -> color_eyre::Result<()> {
 			AstroRouteCw20HookMsg
 		>("astro_router")?
 		.generate_code(args.out_dir)?;
-	
+
 	Ok(())
 }

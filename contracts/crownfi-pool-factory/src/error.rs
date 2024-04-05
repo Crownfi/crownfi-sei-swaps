@@ -14,7 +14,7 @@ pub enum PoolFactoryContractError {
 	#[error("Failed reply: {0}")]
 	FailedReply(#[from] ParseReplyError),
 	#[error("Pair already exists")]
-	PairAlreadyExists
+	PairAlreadyExists,
 }
 
 impl_from_cosmwasm_std_error_common!(PoolFactoryContractError);
