@@ -1,19 +1,12 @@
-use std::{
-	cell::RefCell,
-	fmt::{Display, Write},
-	rc::Rc,
-};
-
 use bitflags::bitflags;
-use borsh::{BorshDeserialize, BorshSerialize};
 use bytemuck::{Pod, Zeroable};
-use cosmwasm_std::{Addr, Api, StdError, Storage};
+use cosmwasm_std::{Addr, StdError};
 use crownfi_cw_common::{
 	data_types::canonical_addr::SeiCanonicalAddr,
-	impl_serializable_as_ref, impl_serializable_borsh,
-	storage::{item::StoredItem, map::StoredMap, vec::StoredVec, MaybeMutableStorage, SerializableItem},
+	impl_serializable_as_ref,
+	storage::{item::StoredItem, map::StoredMap, OZeroCopy, SerializableItem},
 };
-use crownfi_swaps_common::data_types::pair_id::{CanonicalPoolPairIdentifier, PoolPairIdentifier};
+use crownfi_swaps_common::data_types::pair_id::CanonicalPoolPairIdentifier;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -73,11 +66,11 @@ impl StoredItem for PoolFactoryConfig {
 	}
 }
 impl PoolFactoryConfig {
-	pub fn load_non_empty(storage: &dyn Storage) -> Result<Self, StdError>
+	pub fn load_non_empty() -> Result<OZeroCopy<Self>, StdError>
 	where
 		Self: Sized,
 	{
-		match Self::load(storage)? {
+		match Self::load()? {
 			Some(result) => Ok(result),
 			None => Err(StdError::NotFound {
 				kind: "PoolFactoryConfig".into(),
@@ -125,19 +118,6 @@ impl TryFrom<&PoolFactoryConfig> for PoolFactoryConfigJsonable {
 
 const POOL_ADDRESSES_NAMESPACE: &str = "pools";
 
-pub fn get_pool_addresses_store<'a>(
-	storage: &'a dyn Storage,
-) -> Result<StoredMap<'a, CanonicalPoolPairIdentifier, SeiCanonicalAddr>, StdError> {
-	Ok(StoredMap::new(
-		POOL_ADDRESSES_NAMESPACE.as_ref(),
-		MaybeMutableStorage::Immutable(storage),
-	))
-}
-pub fn get_pool_addresses_store_mut<'a>(
-	storage: Rc<RefCell<&'a mut dyn Storage>>,
-) -> Result<StoredMap<'a, CanonicalPoolPairIdentifier, SeiCanonicalAddr>, StdError> {
-	Ok(StoredMap::new(
-		POOL_ADDRESSES_NAMESPACE.as_ref(),
-		MaybeMutableStorage::MutableShared(storage),
-	))
+pub fn get_pool_addresses_store() -> StoredMap<CanonicalPoolPairIdentifier, SeiCanonicalAddr> {
+	StoredMap::new(POOL_ADDRESSES_NAMESPACE.as_ref())
 }

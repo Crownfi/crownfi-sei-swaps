@@ -25,7 +25,7 @@ cw-utils = "1.0.3" # DO NOT update to 2.0 unless sei-cosmwasm and crownfi-cw-com
 cw2 = "1.1.2" # DO NOT update to 2.0 unless sei-cosmwasm and crownfi-cw-common are also updated!!
 cw-storage-plus = "1.2.0" # DO NOT update to 2.0 unless sei-cosmwasm and crownfi-cw-common are also updated!!
 cosmwasm-schema = "1.5.3" # DO NOT update to 2.0 unless sei-cosmwasm and crownfi-cw-common are also updated!!
-crownfi-sei-sdk-autogen = { git = "ssh://git@github.com/Crownfi/crownfi-sei-common.git", branch = "main" }
+crownfi-sei-sdk-autogen = { git = "ssh://git@github.com/Crownfi/crownfi-sei-common.git", branch = "aritzcracker-less-inefficient-cosmwasm-api" }
 crownfi-cw-common = { git = "ssh://git@github.com/Crownfi/crownfi-sei-common.git", branch = "aritzcracker-less-inefficient-cosmwasm-api" }
 sei-cosmwasm = "0.4"
 
@@ -34,7 +34,7 @@ uint = "0.9" # cosmwasm-std already provides U256/U512 types?
 integer-sqrt = "0.1" # cosmwasm-std already provides this?
 
 # CLI tools
-bpaf = "0.9"
+bpaf = {version = "0.9", features = ["bpaf_derive"]}
 color-eyre = "0.6" 
 
 # Testing stuff

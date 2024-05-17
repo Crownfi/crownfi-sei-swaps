@@ -1,5 +1,3 @@
-use std::{cell::RefCell, rc::Rc};
-
 use cosmwasm_std::{
 	attr, to_json_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn, Response, StdError,
 	SubMsg, WasmMsg,
@@ -20,7 +18,7 @@ use crate::{
 	error::PoolFactoryContractError,
 	msg::{PoolFactoryCreatedPair, PoolFactoryExecuteMsg, PoolFactoryInstantiateMsg, PoolFactoryQueryMsg},
 	state::{
-		get_pool_addresses_store, get_pool_addresses_store_mut, PoolFactoryConfig, PoolFactoryConfigFlags,
+		get_pool_addresses_store, PoolFactoryConfig, PoolFactoryConfigFlags,
 		PoolFactoryConfigJsonable,
 	},
 };
@@ -41,7 +39,7 @@ pub fn instantiate(
 ) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
 	nonpayable(&msg_info)?;
 	set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-	PoolFactoryConfig::try_from(&msg.config)?.save(deps.storage)?;
+	PoolFactoryConfig::try_from(&msg.config)?.save()?;
 	Ok(Response::new())
 }
 
@@ -88,16 +86,16 @@ pub fn execute(
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 #[inline]
-pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
+pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
 	match msg.id {
 		INSTANTIATE_PAIR_REPLY_ID => {
 			let msg = parse_reply_instantiate_data(msg)?;
-			let new_pair = CanonicalPoolPairIdentifier::load_non_empty(deps.storage)?;
-			CanonicalPoolPairIdentifier::remove(deps.storage);
+			let new_pair = CanonicalPoolPairIdentifier::load_non_empty()?;
+			CanonicalPoolPairIdentifier::remove();
 			// We shouldn't have to check if the pair created matches the one we expected as that's the only scenerio
 			// where we asked for a reply on anything.
 			let new_pair_addr = Addr::unchecked(msg.contract_address);
-			let pool_map = get_pool_addresses_store_mut(Rc::new(RefCell::new(deps.storage)))?;
+			let pool_map = get_pool_addresses_store();
 			pool_map.set(&new_pair, &(&new_pair_addr).try_into()?)?;
 			Ok(Response::new().add_attributes(vec![
 				attr("action", "create_pair"),
@@ -112,7 +110,7 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>, P
 }
 
 fn process_update_config(
-	deps: DepsMut<SeiQueryWrapper>,
+	_deps: DepsMut<SeiQueryWrapper>,
 	msg_info: MessageInfo,
 	admin: Option<Addr>,
 	fee_receiver: Option<Addr>,
@@ -122,7 +120,7 @@ fn process_update_config(
 	permissionless_pool_cration: Option<bool>,
 ) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
 	nonpayable(&msg_info)?;
-	let mut config = PoolFactoryConfig::load_non_empty(deps.storage)?;
+	let mut config = PoolFactoryConfig::load_non_empty()?;
 	if config.admin != msg_info.sender.try_into()? {
 		return Err(
 			CrownfiSwapsCommonError::Unauthorized("Sender is not the currently configured admin".into()).into(),
@@ -150,12 +148,12 @@ fn process_update_config(
 			config.flags &= !PoolFactoryConfigFlags::PERMISSIONLESS_POOL_CRATION;
 		}
 	}
-	config.save(deps.storage)?;
+	config.save()?;
 	Ok(Response::new().add_attribute("action", "update_config"))
 }
 
 fn process_create_pool(
-	deps: DepsMut<SeiQueryWrapper>,
+	_deps: DepsMut<SeiQueryWrapper>,
 	env: Env,
 	msg_info: MessageInfo,
 	left_denom: String,
@@ -163,10 +161,10 @@ fn process_create_pool(
 ) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
 	let pool_coins = two_coins(&msg_info)?;
 	let new_pool_id = CanonicalPoolPairIdentifier::from([pool_coins[0].denom.clone(), pool_coins[1].denom.clone()]);
-	if get_pool_addresses_store(deps.storage)?.has(&new_pool_id) {
+	if get_pool_addresses_store().has(&new_pool_id) {
 		return Err(PoolFactoryContractError::PairAlreadyExists);
 	}
-	let config = PoolFactoryConfig::load_non_empty(deps.storage)?;
+	let config = PoolFactoryConfig::load_non_empty()?;
 	let is_admin = config.admin == (&msg_info.sender).try_into()?;
 	if !is_admin
 		&& !config
@@ -176,7 +174,7 @@ fn process_create_pool(
 		return Err(CrownfiSwapsCommonError::Unauthorized("Permissionless pool creation is disabled".into()).into());
 	}
 	// This later gets referenced in the reply.
-	new_pool_id.save(deps.storage)?;
+	new_pool_id.save()?;
 	Ok(Response::new().add_submessage(SubMsg {
 		id: INSTANTIATE_PAIR_REPLY_ID,
 		msg: CosmosMsg::from(WasmMsg::Instantiate {
@@ -202,20 +200,20 @@ fn process_create_pool(
 }
 
 fn process_update_fees_for_pool(
-	deps: DepsMut<SeiQueryWrapper>,
+	_deps: DepsMut<SeiQueryWrapper>,
 	msg_info: MessageInfo,
 	pair: [String; 2],
 	total_fee_bps: Option<u16>,
 	maker_fee_bps: Option<u16>,
 ) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
 	nonpayable(&msg_info)?;
-	let config = PoolFactoryConfig::load_non_empty(deps.storage)?;
+	let config = PoolFactoryConfig::load_non_empty()?;
 	if config.admin != msg_info.sender.try_into()? {
 		return Err(
 			CrownfiSwapsCommonError::Unauthorized("Sender is not the currently configured admin".into()).into(),
 		);
 	}
-	let pool_addr = get_pool_addresses_store(deps.storage)?
+	let pool_addr = get_pool_addresses_store()
 		.get(&pair.into())?
 		.ok_or(StdError::not_found("pair address"))?;
 
@@ -233,15 +231,15 @@ fn process_update_fees_for_pool(
 }
 
 fn process_update_global_config_for_pool(
-	deps: DepsMut<SeiQueryWrapper>,
+	_deps: DepsMut<SeiQueryWrapper>,
 	msg_info: MessageInfo,
 	after: Option<[String; 2]>,
 	limit: Option<u32>,
 ) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
 	nonpayable(&msg_info)?;
-	let config = PoolFactoryConfig::load_non_empty(deps.storage)?;
+	let config = PoolFactoryConfig::load_non_empty()?;
 	Ok(Response::new().add_messages(
-		get_pool_addresses_store(deps.storage)?
+		get_pool_addresses_store()
 			.iter_range(after.map(|v| v.into()), None)?
 			.map(|(_, addr)| WasmMsg::Execute {
 				contract_addr: addr.to_string(),
@@ -266,28 +264,28 @@ fn process_update_global_config_for_pool(
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn query(
-	deps: Deps<SeiQueryWrapper>,
+	_deps: Deps<SeiQueryWrapper>,
 	_env: Env,
 	msg: PoolFactoryQueryMsg,
 ) -> Result<Binary, PoolFactoryContractError> {
 	Ok(match msg {
 		PoolFactoryQueryMsg::Config => to_json_binary(&PoolFactoryConfigJsonable::try_from(
-			&PoolFactoryConfig::load_non_empty(deps.storage)?,
+			PoolFactoryConfig::load_non_empty()?.as_ref(),
 		)?)?,
 		PoolFactoryQueryMsg::PairAddr { pair } => to_json_binary(
-			&get_pool_addresses_store(deps.storage)?
+			&get_pool_addresses_store()
 				.get(&pair.into())?
-				.map(|addr| Addr::try_from(addr))
+				.map(|addr| Addr::try_from(addr.as_ref()))
 				.transpose()?,
 		)?,
 		PoolFactoryQueryMsg::Pairs { after, limit } => {
-			let pair_addr_store = get_pool_addresses_store(deps.storage)?;
+			let pair_addr_store = get_pool_addresses_store();
 			to_json_binary(
 				&pair_addr_store
 					.iter_range(after.map(|after| after.into()), None)?
 					.map(|(pair, address)| PoolFactoryCreatedPair {
 						canonical_pair: pair.into(),
-						address: address.try_into().expect("address stringification shouldn't fail"),
+						address: address.as_ref().try_into().expect("address stringification shouldn't fail"),
 					})
 					.take(limit.unwrap_or(u32::MAX) as usize)
 					.collect::<Vec<_>>(),

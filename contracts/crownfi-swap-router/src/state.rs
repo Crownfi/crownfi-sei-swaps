@@ -1,11 +1,9 @@
-use std::{cell::RefCell, rc::Rc};
-
 use bytemuck::{Pod, Zeroable};
-use cosmwasm_std::{StdError, Storage};
+use cosmwasm_std::StdError;
 use crownfi_cw_common::{
 	data_types::canonical_addr::SeiCanonicalAddr,
 	impl_serializable_as_ref,
-	storage::{item::StoredItem, vec::StoredVec, MaybeMutableStorage, SerializableItem},
+	storage::{item::StoredItem, vec::StoredVec, OZeroCopy, SerializableItem},
 };
 
 pub const STATE_NAMESPACE: &str = "state";
@@ -33,11 +31,11 @@ impl StoredItem for SwapRouterState {
 	}
 }
 impl SwapRouterState {
-	pub fn load_non_empty(storage: &dyn Storage) -> Result<Self, StdError>
+	pub fn load_non_empty() -> Result<OZeroCopy<Self>, StdError>
 	where
 		Self: Sized,
 	{
-		match Self::load(storage)? {
+		match Self::load()? {
 			Some(result) => Ok(result),
 			None => Err(StdError::NotFound {
 				kind: "SwapRouterState".into(),
@@ -48,17 +46,8 @@ impl SwapRouterState {
 
 const SWAPPER_ADDRESSES_NAMESPACE: &str = "swaps";
 
-pub fn get_swapper_addresses<'a>(storage: &'a dyn Storage) -> Result<StoredVec<'a, SeiCanonicalAddr>, StdError> {
-	Ok(StoredVec::new(
+pub fn get_swapper_addresses<'a>() -> StoredVec<SeiCanonicalAddr> {
+	StoredVec::new(
 		SWAPPER_ADDRESSES_NAMESPACE.as_ref(),
-		MaybeMutableStorage::Immutable(storage),
-	))
-}
-pub fn get_swapper_addresses_mut<'a>(
-	storage: Rc<RefCell<&'a mut dyn Storage>>,
-) -> Result<StoredVec<'a, SeiCanonicalAddr>, StdError> {
-	Ok(StoredVec::new(
-		SWAPPER_ADDRESSES_NAMESPACE.as_ref(),
-		MaybeMutableStorage::MutableShared(storage),
-	))
+	)
 }
