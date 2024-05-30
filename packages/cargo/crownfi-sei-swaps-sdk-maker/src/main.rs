@@ -9,6 +9,7 @@ use crownfi_astro_common::{
 	router::{
 		AstroRouteCw20HookMsg, AstroRouteExecuteMsg, AstroRouteInstantiateMsg, AstroRouteMigrateMsg, AstroRouteQueryMsg,
 	},
+	wrapper::{TokenWrapperExecMsg, TokenWrapperQueryMsg},
 };
 use crownfi_sei_sdk_autogen::CrownfiSdkMaker;
 type Void = ();
@@ -49,6 +50,14 @@ fn main() -> color_eyre::Result<()> {
 			Void,
 			AstroRouteCw20HookMsg
 		>("astro_router")?
+		.add_contract::<
+			Void,
+			TokenWrapperExecMsg,
+			TokenWrapperQueryMsg,
+			Void,
+			Void,
+			Void
+		>("token_wrapper")?
 		.generate_code(args.out_dir)?;
 
 	Ok(())

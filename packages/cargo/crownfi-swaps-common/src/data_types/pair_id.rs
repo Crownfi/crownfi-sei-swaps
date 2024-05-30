@@ -1,7 +1,7 @@
 use std::{fmt::Display, ops::Deref};
 
 use borsh::{BorshDeserialize, BorshSerialize};
-use cosmwasm_std::{StdError, Storage};
+use cosmwasm_std::StdError;
 use crownfi_cw_common::{
 	impl_serializable_borsh,
 	storage::{item::StoredItem, SerializableItem},
@@ -154,12 +154,12 @@ impl BorshDeserialize for CanonicalPoolPairIdentifier {
 }
 impl_serializable_borsh!(CanonicalPoolPairIdentifier);
 impl CanonicalPoolPairIdentifier {
-	pub fn load_non_empty(storage: &dyn Storage) -> Result<Self, StdError>
+	pub fn load_non_empty() -> Result<Self, StdError>
 	where
 		Self: Sized,
 	{
-		match Self::load(storage)? {
-			Some(result) => Ok(result),
+		match Self::load()? {
+			Some(result) => Ok(result.into_inner()),
 			None => Err(StdError::NotFound {
 				kind: "PoolPairIdentifier".into(),
 			}),

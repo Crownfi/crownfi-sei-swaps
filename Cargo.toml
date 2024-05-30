@@ -34,7 +34,7 @@ uint = "0.9" # cosmwasm-std already provides U256/U512 types?
 integer-sqrt = "0.1" # cosmwasm-std already provides this?
 
 # CLI tools
-bpaf = "0.9"
+bpaf = { version = "0.9", features = ["bpaf_derive"] }
 color-eyre = "0.6" 
 
 # Testing stuff

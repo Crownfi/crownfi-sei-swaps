@@ -7,6 +7,7 @@ pub mod querier;
 pub mod restricted_vector;
 pub mod router;
 pub mod token;
+pub mod wrapper;
 
 #[cfg(test)]
 mod mock_querier;
