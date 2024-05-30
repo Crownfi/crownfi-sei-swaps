@@ -1,21 +1,21 @@
 use anyhow::Result;
-use base64::prelude::*;
-use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Response, SubMsg};
-use crownfi_cw_common::{
-	data_types::canonical_addr::SeiCanonicalAddr,
-	storage::{map::StoredMap, MaybeMutableStorage},
+use base32::Alphabet;
+use cosmwasm_std::{
+	to_json_binary, BankMsg, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Response, SubMsg, Uint128, WasmMsg,
 };
+use crownfi_astro_common::wrapper::TokenWrapperExecMsg;
+use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, storage::map::StoredMap};
 use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+const BASE32_ALGORITHM: Alphabet = Alphabet::Rfc4648Lower { padding: false };
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
-#[inline]
 pub fn instantiate(
 	deps: DepsMut<SeiQueryWrapper>,
 	_env: Env,
-	_msg_info: MessageInfo,
+	_info: MessageInfo,
 	_msg: Empty,
 ) -> Result<Response<SeiMsg>> {
 	cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
@@ -23,29 +23,36 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
-#[inline]
-pub fn execute(deps: DepsMut<SeiQueryWrapper>, env: Env, info: MessageInfo, msg: ExecMsg) -> Result<Response<SeiMsg>> {
+pub fn execute(
+	deps: DepsMut<SeiQueryWrapper>,
+	env: Env,
+	info: MessageInfo,
+	msg: TokenWrapperExecMsg,
+) -> Result<Response<SeiMsg>> {
 	let make_native_denom = |subdenom: &str| format!("factory/{}/{subdenom}", env.contract.address);
 
-	let storage = std::cell::RefCell::new(deps.storage);
-	let storage = MaybeMutableStorage::new_mutable_shared(storage.into());
-	let known_tokens = StoredMap::<SeiCanonicalAddr, ()>::new(b"known_tokens", storage);
+	let known_tokens = StoredMap::<String, SeiCanonicalAddr>::new(b"known_tokens");
 
 	let response = match msg {
-		ExecMsg::Receive(cw20_meta) => {
+		TokenWrapperExecMsg::Receive(cw20_meta) => {
+			if cw20_meta.amount == Uint128::zero() {
+				return Err(Error::UnfundedCall.into());
+			}
+
 			let mut response = Response::new();
 			let receiver = SeiCanonicalAddr::try_from(cw20_meta.msg.as_slice())
-				.unwrap_or_else(|_| SeiCanonicalAddr::try_from(info.sender).unwrap());
+				.unwrap_or_else(|_| SeiCanonicalAddr::try_from(cw20_meta.sender.as_str()).unwrap());
 
-			let token_contract = cw20::Cw20Contract(Addr::unchecked(&cw20_meta.sender));
+			let token_contract = cw20::Cw20Contract(info.sender);
 
 			let canon_addr = SeiCanonicalAddr::try_from(token_contract.addr())?;
-			let subdenom = BASE64_URL_SAFE_NO_PAD.encode(canon_addr.as_slice());
+			let mut subdenom = base32::encode(BASE32_ALGORITHM, canon_addr.as_slice());
+			subdenom.truncate(44);
 			let denom = make_native_denom(&subdenom);
 
-			if !known_tokens.has(&canon_addr) {
+			if !known_tokens.has(&subdenom) {
 				token_contract.meta(&deps.querier)?;
-				known_tokens.set(&canon_addr, &())?;
+				known_tokens.set(&subdenom, &canon_addr)?;
 				response.messages.push(SubMsg::new(SeiMsg::CreateDenom { subdenom }));
 			}
 
@@ -61,25 +68,37 @@ pub fn execute(deps: DepsMut<SeiQueryWrapper>, env: Env, info: MessageInfo, msg:
 					to_address: receiver.to_string(),
 				})))
 		}
-		ExecMsg::Unwrap { receiver } => {
+		TokenWrapperExecMsg::Unwrap { receiver } => {
+			let funds_len = info.funds.len();
+			if funds_len == 0 {
+				return Err(Error::UnfundedCall.into());
+			}
+
 			let receiver = receiver.unwrap_or(info.sender);
-			let mut messages = Vec::<SeiMsg>::with_capacity(info.funds.len());
-			let mut submessages = Vec::with_capacity(info.funds.len());
+			let mut messages = Vec::<SeiMsg>::with_capacity(funds_len);
+			let mut submessages = Vec::with_capacity(funds_len);
 
 			for fund in info.funds {
-				let addr = decode_addr_from_denom(&fund.denom)?;
-				if !known_tokens.has(&addr) {
+				let subdenom = fund
+					.denom
+					.split('/')
+					.last()
+					.ok_or(Error::TokenDoesntBelongToContract)?
+					.to_owned();
+
+				let Some(addr) = known_tokens.get(&subdenom)? else {
 					return Err(Error::TokenDoesntBelongToContract.into());
-				}
+				};
 
 				messages.push(SeiMsg::BurnTokens { amount: fund.clone() });
-				submessages.push(SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
-					amount: vec![Coin {
+				submessages.push(SubMsg::new(WasmMsg::Execute {
+					contract_addr: addr.to_string(),
+					msg: to_json_binary(&cw20::Cw20ExecuteMsg::Transfer {
 						amount: fund.amount,
-						denom: addr.to_string(),
-					}],
-					to_address: receiver.to_string(),
-				})));
+						recipient: receiver.to_string(),
+					})?,
+					funds: vec![],
+				}));
 			}
 
 			Response::new().add_messages(messages).add_submessages(submessages)
@@ -89,35 +108,43 @@ pub fn execute(deps: DepsMut<SeiQueryWrapper>, env: Env, info: MessageInfo, msg:
 	Ok(response)
 }
 
-fn decode_addr_from_denom(denom: &str) -> Result<SeiCanonicalAddr> {
-	let subdenom = denom.split('/').last().unwrap();
-	let decoded = BASE64_URL_SAFE_NO_PAD.decode(subdenom)?;
-
-	let ret = match decoded.len() {
-		20 => {
-			let subdenom = unsafe { (decoded.as_ptr() as *const [u8; 20]).read() };
-			SeiCanonicalAddr::from(subdenom)
-		}
-		32 => {
-			let subdenom = unsafe { (decoded.as_ptr() as *const [u8; 32]).read() };
-			SeiCanonicalAddr::from(subdenom)
-		}
-		_ => unreachable!(),
-	};
-
-	Ok(ret)
-}
-
-#[cosmwasm_schema::cw_serde]
-pub enum ExecMsg {
-	Receive(cw20::Cw20ReceiveMsg),
-	Unwrap { receiver: Option<Addr> },
-}
-
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-	#[error("You can't wrap native tokens")]
-	UnexpectedNativeFunds,
 	#[error("The tokens received were not created by this contract")]
 	TokenDoesntBelongToContract,
+	#[error("No tokens were sent to this contract")]
+	UnfundedCall,
+}
+
+#[cfg(test)]
+mod tests {
+	use std::marker::PhantomData;
+
+	use cosmwasm_std::{testing::*, Addr, OwnedDeps};
+
+	use super::*;
+
+	const RANDOM_ADDRESS: &str = "sei1zgfgerl8qt9uldlr0y9w7qe97p7zyv5kwg2pge";
+	const RANDOM_ADDRESS2: &str = "sei19rl4cm2hmr8afy4kldpxz3fka4jguq0a3vute5";
+
+	type ContractDeps = OwnedDeps<MockStorage, MockApi, MockQuerier, SeiQueryWrapper>;
+
+	#[test]
+	fn encode_decode_addr() -> Result<()> {
+		crownfi_cw_common::storage::base::set_global_storage(Box::new(MockStorage::new()));
+		let known_tokens = crownfi_cw_common::storage::map::StoredMap::new(b"banana");
+
+		let addr = Addr::unchecked(RANDOM_ADDRESS);
+		let canon_addr = SeiCanonicalAddr::try_from(&addr)?;
+		let subdenom = base32::encode(BASE32_ALGORITHM, canon_addr.as_slice());
+
+		known_tokens.set(&subdenom, &canon_addr)?;
+
+		let canon_addr2 = known_tokens.get(&subdenom)?.unwrap();
+
+		assert_eq!(canon_addr, *canon_addr2);
+		// assert_eq!(decoded_addr.to_string(), RANDOM_ADDRESS);
+
+		Ok(())
+	}
 }
