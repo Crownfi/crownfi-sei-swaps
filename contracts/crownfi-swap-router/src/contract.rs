@@ -1,5 +1,3 @@
-use std::{cell::RefCell, rc::Rc};
-
 use bytemuck::Zeroable;
 use cosmwasm_std::{
 	coin, to_json_binary, Addr, BankMsg, Binary, CosmosMsg, Decimal, Deps, DepsMut, Env, Fraction, MessageInfo, Reply,
@@ -73,7 +71,7 @@ pub fn execute(
 }
 
 fn process_execute_swaps(
-	deps: DepsMut<SeiQueryWrapper>,
+	_deps: DepsMut<SeiQueryWrapper>,
 	msg_info: MessageInfo,
 	swappers: Vec<Addr>,
 	intermediate_slippage_tolerance: Option<Decimal>,
@@ -81,7 +79,7 @@ fn process_execute_swaps(
 	unwrapper: Option<Addr>,
 	receiver: Option<Addr>,
 ) -> Result<Response<SeiMsg>, SwapRouterContractError> {
-	if SwapRouterState::load(deps.storage)?.is_some() {
+	if SwapRouterState::load()?.is_some() {
 		return Err(SwapRouterContractError::AlreadyRoutingSwaps);
 	}
 	if expectation.as_ref().is_some_and(|e| e.expected_amount.is_zero()) {
@@ -105,11 +103,11 @@ fn process_execute_swaps(
 			.map(|expectation| expectation.slippage_tolerance.numerator().u128())
 			.unwrap_or(u128::MAX),
 	};
-	let mut stored_swappers = get_swapper_addresses_mut(Rc::new(RefCell::new(deps.storage)))?;
+	let mut stored_swappers = get_swapper_addresses_mut()?;
 	for swapper in swappers.iter().skip(1).rev() {
 		stored_swappers.push(&swapper.try_into()?)?;
 	}
-	new_state.save(deps.storage)?;
+	new_state.save()?;
 
 	let Some(first_swapper) = swappers.first() else {
 		return Err(SwapRouterContractError::RouteEmpty);
@@ -132,11 +130,11 @@ fn process_execute_swaps(
 }
 
 fn process_execute_next_step(
-	deps: DepsMut<SeiQueryWrapper>,
+	_deps: DepsMut<SeiQueryWrapper>,
 	msg_info: MessageInfo,
 ) -> Result<Response<SeiMsg>, SwapRouterContractError> {
-	let router_state = SwapRouterState::load_non_empty(deps.storage)?;
-	let mut stored_swappers = get_swapper_addresses_mut(Rc::new(RefCell::new(deps.storage)))?;
+	let router_state = SwapRouterState::load_non_empty()?;
+	let mut stored_swappers = get_swapper_addresses_mut()?;
 
 	if let Some(swapper) = stored_swappers.pop()? {
 		let slippage_tolerance = if router_state.intermediate_slippage_tolerance == u128::MAX {
@@ -145,7 +143,7 @@ fn process_execute_next_step(
 			Some(Decimal::new(router_state.intermediate_slippage_tolerance.into()))
 		};
 		Ok(Response::new().add_message(WasmMsg::Execute {
-			contract_addr: Addr::try_from(swapper)?.into_string(),
+			contract_addr: Addr::try_from(*swapper)?.into_string(),
 			msg: to_json_binary(&PoolPairExecuteMsg::Swap {
 				expected_result: None,
 				slippage_tolerance,
@@ -168,7 +166,7 @@ fn process_execute_next_step(
 		{
 			return Err(SwapRouterContractError::SlippageTooHigh);
 		}
-		SwapRouterState::remove(deps.storage);
+		SwapRouterState::remove();
 
 		if let Some(unwrapper) = unwrapper {
 			Ok(Response::new().add_message(WasmMsg::Execute {
@@ -190,11 +188,11 @@ fn process_execute_next_step(
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 #[inline]
-pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>, SwapRouterContractError> {
+pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>, SwapRouterContractError> {
 	match msg.id {
 		SWAP_COMPLETE_REPLY_ID => {
 			let _ = parse_reply_instantiate_data(msg)?;
-			if SwapRouterState::load(deps.storage)?.is_some() || get_swapper_addresses(deps.storage)?.len() > 0 {
+			if SwapRouterState::load()?.is_some() || get_swapper_addresses()?.len() > 0 {
 				return Err(SwapRouterContractError::IncompleteRoute);
 			}
 			Ok(Response::new())
@@ -217,7 +215,7 @@ pub fn query(
 			let mut current_naive_amount = offer.amount;
 			let mut current_actual_amount = offer.amount;
 			for swapper_addr in swappers.into_iter() {
-				let pool_pair = CanonicalPoolPairIdentifier::deserialize(
+				let pool_pair = CanonicalPoolPairIdentifier::deserialize_to_owned(
 					&deps
 						.querier
 						.query_wasm_raw(swapper_addr.clone(), CanonicalPoolPairIdentifier::namespace())?

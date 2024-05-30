@@ -1,6 +1,6 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Coin, Decimal, Env, Isqrt, QuerierWrapper, StdError, Uint128, Uint256};
-use crownfi_swaps_common::data_types::pair_id::{CanonicalPoolPairIdentifier, PoolPairIdentifier};
+use crownfi_swaps_common::data_types::pair_id::PoolPairIdentifier;
 use sei_cosmwasm::SeiQueryWrapper;
 
 use crate::error::PoolPairContractError;

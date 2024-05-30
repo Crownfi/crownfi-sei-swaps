@@ -1,13 +1,13 @@
-use std::{cell::RefCell, num::NonZeroU8, rc::Rc};
+use std::num::NonZeroU8;
 
 use bitflags::bitflags;
 use bytemuck::{Pod, Zeroable};
-use cosmwasm_std::{Addr, StdError, Storage, Timestamp};
+use cosmwasm_std::{Addr, StdError, Timestamp};
 use crownfi_cw_common::{
 	data_types::canonical_addr::SeiCanonicalAddr,
 	extentions::timestamp::TimestampExtentions,
 	impl_serializable_as_ref,
-	storage::{item::StoredItem, queue::StoredVecDeque, MaybeMutableStorage, SerializableItem},
+	storage::{base::*, item::StoredItem, queue::StoredVecDeque, SerializableItem},
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -69,12 +69,12 @@ impl StoredItem for PoolPairConfig {
 	}
 }
 impl PoolPairConfig {
-	pub fn load_non_empty(storage: &dyn Storage) -> Result<Self, StdError>
+	pub fn load_non_empty() -> Result<Self, StdError>
 	where
 		Self: Sized,
 	{
-		match Self::load(storage)? {
-			Some(result) => Ok(result),
+		match Self::load()? {
+			Some(result) => Ok(result.into_inner()),
 			None => Err(StdError::NotFound {
 				kind: "PoolPairConfig".into(),
 			}),
@@ -136,26 +136,22 @@ impl_serializable_as_ref!(TradingVolume);
 const MILLISECONDS_IN_AN_HOUR: u64 = 1000 * 60 * 60;
 const MILLISECONDS_IN_A_DAY: u64 = MILLISECONDS_IN_AN_HOUR * 24;
 
-pub struct VolumeStatisticsCounter<'exec> {
-	storage: MaybeMutableStorage<'exec>,
-	hourly: StoredVecDeque<'exec, TradingVolume>,
-	daily: StoredVecDeque<'exec, TradingVolume>,
+pub struct VolumeStatisticsCounter {
+	// storage: MaybeMutableStorage<'exec>,
+	hourly: StoredVecDeque<TradingVolume>,
+	daily: StoredVecDeque<TradingVolume>,
 }
-impl<'exec> VolumeStatisticsCounter<'exec> {
-	pub fn new(storage: &'exec dyn Storage) -> Result<Self, StdError> {
-		let storage = MaybeMutableStorage::Immutable(storage);
+impl VolumeStatisticsCounter {
+	pub fn new() -> Result<Self, StdError> {
 		Ok(Self {
-			hourly: StoredVecDeque::new(VOLUME_STATS_HOURLY_NAMESPACE, storage.clone()),
-			daily: StoredVecDeque::new(VOLUME_STATS_DAILY_NAMESPACE, storage.clone()),
-			storage,
+			hourly: StoredVecDeque::new(VOLUME_STATS_HOURLY_NAMESPACE),
+			daily: StoredVecDeque::new(VOLUME_STATS_DAILY_NAMESPACE),
 		})
 	}
-	pub fn new_mut(storage: Rc<RefCell<&'exec mut dyn Storage>>) -> Result<Self, StdError> {
-		let storage = MaybeMutableStorage::MutableShared(storage);
+	pub fn new_mut() -> Result<Self, StdError> {
 		Ok(Self {
-			hourly: StoredVecDeque::new(VOLUME_STATS_HOURLY_NAMESPACE, storage.clone()),
-			daily: StoredVecDeque::new(VOLUME_STATS_DAILY_NAMESPACE, storage.clone()),
-			storage,
+			hourly: StoredVecDeque::new(VOLUME_STATS_HOURLY_NAMESPACE),
+			daily: StoredVecDeque::new(VOLUME_STATS_DAILY_NAMESPACE),
 		})
 	}
 	pub fn update_volumes(
@@ -217,14 +213,12 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 				self.daily.pop_front()?;
 			}
 		}
-		if let Some(all_time_bytes) = self.storage.get(VOLUME_STATS_ALL_TIME_NAMESPACE) {
-			let mut all_time = TradingVolume::deserialize(&all_time_bytes)?;
+		if let Some(mut all_time) = storage_read_item::<TradingVolume>(VOLUME_STATS_ALL_TIME_NAMESPACE)? {
 			all_time.amount_left = all_time.amount_left.saturating_add(amount_left);
 			all_time.amount_right = all_time.amount_right.saturating_add(amount_right);
-			self.storage
-				.set(VOLUME_STATS_ALL_TIME_NAMESPACE, all_time.serialize_as_ref().unwrap());
+			storage_write(VOLUME_STATS_ALL_TIME_NAMESPACE, all_time.serialize_as_ref().unwrap());
 		} else {
-			self.storage.set(
+			storage_write(
 				VOLUME_STATS_ALL_TIME_NAMESPACE,
 				TradingVolume {
 					from_time: timestamp_ms,
@@ -240,12 +234,7 @@ impl<'exec> VolumeStatisticsCounter<'exec> {
 	}
 	pub fn get_volume_all_time(&self, current_timestamp: Timestamp) -> Result<VolumeQueryResponse, StdError> {
 		let timestamp_ms = current_timestamp.millis();
-		if let Some(all_time) = self
-			.storage
-			.get(VOLUME_STATS_ALL_TIME_NAMESPACE)
-			.map(|all_time_bytes| TradingVolume::deserialize(&all_time_bytes))
-			.transpose()?
-		{
+		if let Some(all_time) = storage_read_item::<TradingVolume>(VOLUME_STATS_ALL_TIME_NAMESPACE)? {
 			Ok(VolumeQueryResponse {
 				volume: [all_time.amount_left.into(), all_time.amount_right.into()],
 				from_timestamp_ms: all_time.from_time,

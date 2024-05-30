@@ -1,4 +1,4 @@
-use cosmwasm_std::{coin, Addr, BankMsg, Coin, Response, StdResult, Storage, Uint128};
+use cosmwasm_std::{BankMsg, Coin, Response, StdResult, Storage, Uint128};
 use sei_cosmwasm::SeiMsg;
 
 // These workarounds exist because of this issue: https://github.com/sei-protocol/sei-wasmd/issues/38

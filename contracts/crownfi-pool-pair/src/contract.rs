@@ -47,7 +47,7 @@ pub fn instantiate(
 ) -> Result<Response<SeiMsg>, PoolPairContractError> {
 	let [left_coin, right_coin] = two_coins(&msg_info)?;
 
-	PoolPairConfig::try_from(&msg.config)?.save(deps.storage)?;
+	PoolPairConfig::try_from(&msg.config)?.save()?;
 	let new_denom = lp_denom(&env);
 
 	let pool_id = PoolPairIdentifier {
@@ -57,7 +57,7 @@ pub fn instantiate(
 	pool_id
 		.as_canonical()
 		.expect("incoming coins should already be canonical")
-		.save(deps.storage)?;
+		.save()?;
 
 	set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 	let mint_amount = calc_shares_to_mint(
@@ -135,7 +135,7 @@ pub fn execute(
 }
 
 fn process_update_config(
-	deps: DepsMut<impl cosmwasm_std::CustomQuery>,
+	_deps: DepsMut<impl cosmwasm_std::CustomQuery>,
 	msg_info: MessageInfo,
 	admin: Option<Addr>,
 	fee_receiver: Option<Addr>,
@@ -144,7 +144,7 @@ fn process_update_config(
 	endorsed: Option<bool>,
 ) -> Result<Response<SeiMsg>, PoolPairContractError> {
 	nonpayable(&msg_info)?;
-	let mut config = PoolPairConfig::load_non_empty(deps.storage)?;
+	let mut config = PoolPairConfig::load_non_empty()?;
 	if config.admin != msg_info.sender.try_into()? {
 		return Err(
 			CrownfiSwapsCommonError::Unauthorized("Sender is not the currently configured admin".into()).into(),
@@ -169,7 +169,7 @@ fn process_update_config(
 			config.flags &= !PoolPairConfigFlags::ENDORSED;
 		}
 	}
-	config.save(deps.storage)?;
+	config.save()?;
 	Ok(Response::new().add_attribute("action", "update_config"))
 }
 
@@ -186,7 +186,7 @@ pub fn process_provide_liquidity(
 		return Err(PoolPairContractError::ToleranceTooHigh);
 	}
 	let receiver = receiver.unwrap_or(msg_info.sender.clone());
-	let pool_id = CanonicalPoolPairIdentifier::load_non_empty(deps.storage)?;
+	let pool_id = CanonicalPoolPairIdentifier::load_non_empty()?;
 	let pool_lp_denom = lp_denom(&env);
 
 	// The balance has been added before this function is called.
@@ -238,7 +238,7 @@ pub fn process_withdraw_liquidity(
 	receiver_payload: Option<Binary>,
 ) -> Result<Response<SeiMsg>, PoolPairContractError> {
 	let receiver = receiver.unwrap_or(msg_info.sender.clone());
-	let pool_id = CanonicalPoolPairIdentifier::load_non_empty(deps.storage)?;
+	let pool_id = CanonicalPoolPairIdentifier::load_non_empty()?;
 	let pool_lp_denom = lp_denom(&env);
 
 	let withdrawn_share_amount = must_pay(&msg_info, &pool_lp_denom)?;
@@ -287,7 +287,7 @@ pub fn process_withdraw_and_split_liquidity(
 ) -> Result<Response<SeiMsg>, PoolPairContractError> {
 	let left_receiver = left_receiver.unwrap_or(msg_info.sender.clone());
 	let right_receiver = right_receiver.unwrap_or(msg_info.sender.clone());
-	let pool_id = CanonicalPoolPairIdentifier::load_non_empty(deps.storage)?;
+	let pool_id = CanonicalPoolPairIdentifier::load_non_empty()?;
 	let pool_lp_denom = lp_denom(&env);
 
 	let withdrawn_share_amount = must_pay(&msg_info, &pool_lp_denom)?;
@@ -351,8 +351,8 @@ pub fn process_swap(
 		return Err(PoolPairContractError::ToleranceTooHigh);
 	}
 	let receiver = receiver.unwrap_or(msg_info.sender.clone());
-	let pool_id = CanonicalPoolPairIdentifier::load_non_empty(deps.storage)?;
-	let pool_config = PoolPairConfig::load_non_empty(deps.storage)?;
+	let pool_id = CanonicalPoolPairIdentifier::load_non_empty()?;
+	let pool_config = PoolPairConfig::load_non_empty()?;
 	let payment = must_pay_one_of_pair(&msg_info, &pool_id)?;
 
 	let mut pool_balances = get_pool_balance(&deps.querier, &env, &pool_id)?;
@@ -418,39 +418,39 @@ pub fn process_swap(
 pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Result<Binary, PoolPairContractError> {
 	Ok(match msg {
 		PoolPairQueryMsg::PairDenoms => {
-			let config = PoolPairConfig::load_non_empty(deps.storage)?;
-			let mut pool_id: PoolPairIdentifier = CanonicalPoolPairIdentifier::load_non_empty(deps.storage)?.into();
+			let config = PoolPairConfig::load_non_empty()?;
+			let mut pool_id: PoolPairIdentifier = CanonicalPoolPairIdentifier::load_non_empty()?.into();
 			if config.flags.contains(PoolPairConfigFlags::INVERSE) {
 				pool_id.swap();
 			}
 			to_json_binary(&<[String; 2]>::from(pool_id))?
 		}
-		PoolPairQueryMsg::CanonicalPairDenoms => to_json_binary(&<[String; 2]>::from(
-			CanonicalPoolPairIdentifier::load_non_empty(deps.storage)?,
-		))?,
+		PoolPairQueryMsg::CanonicalPairDenoms => {
+			to_json_binary(&<[String; 2]>::from(CanonicalPoolPairIdentifier::load_non_empty()?))?
+		}
 		PoolPairQueryMsg::PairIdentifier => {
-			let config = PoolPairConfig::load_non_empty(deps.storage)?;
-			let mut pool_id: PoolPairIdentifier = CanonicalPoolPairIdentifier::load_non_empty(deps.storage)?.into();
+			let config = PoolPairConfig::load_non_empty()?;
+			let mut pool_id: PoolPairIdentifier = CanonicalPoolPairIdentifier::load_non_empty()?.into();
 			if config.flags.contains(PoolPairConfigFlags::INVERSE) {
 				pool_id.swap();
 			}
 			to_json_binary(&pool_id.to_string())?
 		}
 		PoolPairQueryMsg::CanonicalPairIdentifier => {
-			to_json_binary(&CanonicalPoolPairIdentifier::load_non_empty(deps.storage)?.to_string())?
+			to_json_binary(&CanonicalPoolPairIdentifier::load_non_empty()?.to_string())?
 		}
-		PoolPairQueryMsg::Config => to_json_binary(&PoolPairConfigJsonable::try_from(
-			&PoolPairConfig::load_non_empty(deps.storage)?,
-		)?)?,
+		PoolPairQueryMsg::Config => {
+			to_json_binary(&PoolPairConfigJsonable::try_from(&PoolPairConfig::load_non_empty()?)?)?
+		}
 
 		PoolPairQueryMsg::ShareValue { amount } => {
-			let pool_id = CanonicalPoolPairIdentifier::load_non_empty(deps.storage)?;
+			let pool_id = CanonicalPoolPairIdentifier::load_non_empty()?;
 			let share_supply = total_supply_workaround(deps.storage, &lp_denom(&env));
 			let pool_balances = get_pool_balance(&deps.querier, &env, &pool_id)?;
 			to_json_binary(&balances_into_share_value(amount, share_supply, pool_balances))?
 		}
 		PoolPairQueryMsg::SimulateProvideLiquidity { offer } => {
-			let pool_id = CanonicalPoolPairIdentifier::load_non_empty(deps.storage)?;
+			let pool_id = CanonicalPoolPairIdentifier::load_non_empty()?;
 			if offer[0].denom != pool_id.left || offer[1].denom != pool_id.right {
 				return Err(PoolPairContractError::DepositQueryDenomMismatch);
 			}
@@ -472,11 +472,11 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 			})?
 		}
 		PoolPairQueryMsg::SimulateSwap { offer } => {
-			let pool_id = CanonicalPoolPairIdentifier::load_non_empty(deps.storage)?;
+			let pool_id = CanonicalPoolPairIdentifier::load_non_empty()?;
 			if !pool_id.is_in_pair(&offer.denom) {
 				return Err(PaymentError::ExtraDenom(offer.denom).into());
 			}
-			let config = PoolPairConfig::load_non_empty(deps.storage)?;
+			let config = PoolPairConfig::load_non_empty()?;
 			let pool_balances = get_pool_balance(&deps.querier, &env, &pool_id)?;
 			to_json_binary(&calc_swap(
 				&pool_balances.map(|coin| coin.amount),
@@ -489,11 +489,11 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 			)?)?
 		}
 		PoolPairQueryMsg::SimulateNaiveSwap { offer } => {
-			let pool_id = CanonicalPoolPairIdentifier::load_non_empty(deps.storage)?;
+			let pool_id = CanonicalPoolPairIdentifier::load_non_empty()?;
 			if !pool_id.is_in_pair(&offer.denom) {
 				return Err(PaymentError::ExtraDenom(offer.denom).into());
 			}
-			let config = PoolPairConfig::load_non_empty(deps.storage)?;
+			let config = PoolPairConfig::load_non_empty()?;
 			let pool_balances = get_pool_balance(&deps.querier, &env, &pool_id)?;
 			to_json_binary(&calc_naive_swap(
 				&pool_balances.map(|coin| coin.amount),
@@ -504,7 +504,7 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 			)?)?
 		}
 		PoolPairQueryMsg::HourlyVolumeSum { past_hours } => {
-			let volume_stats = VolumeStatisticsCounter::new(deps.storage)?;
+			let volume_stats = VolumeStatisticsCounter::new()?;
 			to_json_binary(
 				&if let Some(past_hours) = NonZeroU8::new(past_hours.unwrap_or_default()) {
 					volume_stats.get_volume_per_hours(env.block.time, past_hours)?
@@ -514,7 +514,7 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 			)?
 		}
 		PoolPairQueryMsg::DailyVolumeSum { past_days } => {
-			let volume_stats = VolumeStatisticsCounter::new(deps.storage)?;
+			let volume_stats = VolumeStatisticsCounter::new()?;
 			to_json_binary(
 				&if let Some(past_days) = NonZeroU8::new(past_days.unwrap_or_default()) {
 					volume_stats.get_volume_per_days(env.block.time, past_days)?
@@ -524,7 +524,7 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 			)?
 		}
 		PoolPairQueryMsg::TotalVolumeSum => {
-			let volume_stats = VolumeStatisticsCounter::new(deps.storage)?;
+			let volume_stats = VolumeStatisticsCounter::new()?;
 			to_json_binary(&volume_stats.get_volume_all_time(env.block.time)?)?
 		}
 	})
