@@ -19,9 +19,11 @@
     "@cosmjs/cosmwasm-stargate": "^0.32.1",
     "@cosmjs/proto-signing": "^0.32.1",
     "@cosmjs/stargate": "^0.32.1",
-    "@crownfi/sei-js-core": "^4.0.0-beta.0",
+    "@crownfi/sei-js-core": "^5.2",
+    "@crownfi/sei-utils": "^0.3",
     "@types/wtfnode": "^0.7.0",
     "dotenv": "^8.2.0",
+    "hi-base32": "^0.5.1",
     "isomorphic-fetch": "^3.0.0",
     "promisify-child-process": "^4.1.2",
     "wtfnode": "^0.9.1"
