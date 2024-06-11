@@ -7,7 +7,7 @@ use crownfi_cw_common::{
 	data_types::canonical_addr::SeiCanonicalAddr,
 	extentions::timestamp::TimestampExtentions,
 	impl_serializable_as_ref,
-	storage::{base::*, item::StoredItem, queue::StoredVecDeque, SerializableItem},
+	storage::{base::{storage_read_item, storage_write_item}, item::StoredItem, queue::StoredVecDeque, OZeroCopy, SerializableItem},
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -69,12 +69,12 @@ impl StoredItem for PoolPairConfig {
 	}
 }
 impl PoolPairConfig {
-	pub fn load_non_empty() -> Result<Self, StdError>
+	pub fn load_non_empty() -> Result<OZeroCopy<Self>, StdError>
 	where
 		Self: Sized,
 	{
 		match Self::load()? {
-			Some(result) => Ok(result.into_inner()),
+			Some(result) => Ok(result),
 			None => Err(StdError::NotFound {
 				kind: "PoolPairConfig".into(),
 			}),
@@ -137,18 +137,11 @@ const MILLISECONDS_IN_AN_HOUR: u64 = 1000 * 60 * 60;
 const MILLISECONDS_IN_A_DAY: u64 = MILLISECONDS_IN_AN_HOUR * 24;
 
 pub struct VolumeStatisticsCounter {
-	// storage: MaybeMutableStorage<'exec>,
 	hourly: StoredVecDeque<TradingVolume>,
 	daily: StoredVecDeque<TradingVolume>,
 }
 impl VolumeStatisticsCounter {
 	pub fn new() -> Result<Self, StdError> {
-		Ok(Self {
-			hourly: StoredVecDeque::new(VOLUME_STATS_HOURLY_NAMESPACE),
-			daily: StoredVecDeque::new(VOLUME_STATS_DAILY_NAMESPACE),
-		})
-	}
-	pub fn new_mut() -> Result<Self, StdError> {
 		Ok(Self {
 			hourly: StoredVecDeque::new(VOLUME_STATS_HOURLY_NAMESPACE),
 			daily: StoredVecDeque::new(VOLUME_STATS_DAILY_NAMESPACE),
@@ -216,19 +209,14 @@ impl VolumeStatisticsCounter {
 		if let Some(mut all_time) = storage_read_item::<TradingVolume>(VOLUME_STATS_ALL_TIME_NAMESPACE)? {
 			all_time.amount_left = all_time.amount_left.saturating_add(amount_left);
 			all_time.amount_right = all_time.amount_right.saturating_add(amount_right);
-			storage_write(VOLUME_STATS_ALL_TIME_NAMESPACE, all_time.serialize_as_ref().unwrap());
+			storage_write_item(VOLUME_STATS_ALL_TIME_NAMESPACE, all_time.as_ref())?;
 		} else {
-			storage_write(
-				VOLUME_STATS_ALL_TIME_NAMESPACE,
-				TradingVolume {
-					from_time: timestamp_ms,
-					amount_left,
-					amount_right,
-					..Zeroable::zeroed()
-				}
-				.serialize_as_ref()
-				.unwrap(),
-			);
+			storage_write_item(VOLUME_STATS_ALL_TIME_NAMESPACE, &TradingVolume {
+				from_time: timestamp_ms,
+				amount_left,
+				amount_right,
+				..Zeroable::zeroed()
+			})?;
 		}
 		Ok(())
 	}

@@ -4,7 +4,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use cosmwasm_std::StdError;
 use crownfi_cw_common::{
 	impl_serializable_borsh,
-	storage::{item::StoredItem, SerializableItem},
+	storage::{item::StoredItem, OZeroCopy, SerializableItem},
 };
 
 const NEW_POOL_NAMESPACE: &str = "poolid";
@@ -154,12 +154,12 @@ impl BorshDeserialize for CanonicalPoolPairIdentifier {
 }
 impl_serializable_borsh!(CanonicalPoolPairIdentifier);
 impl CanonicalPoolPairIdentifier {
-	pub fn load_non_empty() -> Result<Self, StdError>
+	pub fn load_non_empty() -> Result<OZeroCopy<Self>, StdError>
 	where
 		Self: Sized,
 	{
 		match Self::load()? {
-			Some(result) => Ok(result.into_inner()),
+			Some(result) => Ok(result),
 			None => Err(StdError::NotFound {
 				kind: "PoolPairIdentifier".into(),
 			}),

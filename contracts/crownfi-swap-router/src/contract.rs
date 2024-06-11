@@ -19,7 +19,7 @@ use crate::{
 		SwapRouterExecuteMsg, SwapRouterExpectation, SwapRouterInstantiateMsg, SwapRouterQueryMsg,
 		SwapRouterSimulateSwapsResponse,
 	},
-	state::{get_swapper_addresses, get_swapper_addresses_mut, SwapRouterState},
+	state::{get_swapper_addresses, SwapRouterState},
 };
 
 const CONTRACT_NAME: &str = "crownfi-swap-router";
@@ -103,7 +103,7 @@ fn process_execute_swaps(
 			.map(|expectation| expectation.slippage_tolerance.numerator().u128())
 			.unwrap_or(u128::MAX),
 	};
-	let mut stored_swappers = get_swapper_addresses_mut()?;
+	let mut stored_swappers = get_swapper_addresses();
 	for swapper in swappers.iter().skip(1).rev() {
 		stored_swappers.push(&swapper.try_into()?)?;
 	}
@@ -134,7 +134,7 @@ fn process_execute_next_step(
 	msg_info: MessageInfo,
 ) -> Result<Response<SeiMsg>, SwapRouterContractError> {
 	let router_state = SwapRouterState::load_non_empty()?;
-	let mut stored_swappers = get_swapper_addresses_mut()?;
+	let mut stored_swappers = get_swapper_addresses();
 
 	if let Some(swapper) = stored_swappers.pop()? {
 		let slippage_tolerance = if router_state.intermediate_slippage_tolerance == u128::MAX {
@@ -143,7 +143,7 @@ fn process_execute_next_step(
 			Some(Decimal::new(router_state.intermediate_slippage_tolerance.into()))
 		};
 		Ok(Response::new().add_message(WasmMsg::Execute {
-			contract_addr: Addr::try_from(*swapper)?.into_string(),
+			contract_addr: Addr::try_from(swapper.as_ref())?.into_string(),
 			msg: to_json_binary(&PoolPairExecuteMsg::Swap {
 				expected_result: None,
 				slippage_tolerance,
@@ -192,7 +192,7 @@ pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>, 
 	match msg.id {
 		SWAP_COMPLETE_REPLY_ID => {
 			let _ = parse_reply_instantiate_data(msg)?;
-			if SwapRouterState::load()?.is_some() || get_swapper_addresses()?.len() > 0 {
+			if SwapRouterState::load()?.is_some() || get_swapper_addresses().len() > 0 {
 				return Err(SwapRouterContractError::IncompleteRoute);
 			}
 			Ok(Response::new())

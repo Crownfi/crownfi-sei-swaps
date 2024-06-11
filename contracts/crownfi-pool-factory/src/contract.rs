@@ -18,7 +18,7 @@ use crate::{
 	error::PoolFactoryContractError,
 	msg::{PoolFactoryCreatedPair, PoolFactoryExecuteMsg, PoolFactoryInstantiateMsg, PoolFactoryQueryMsg},
 	state::{
-		get_pool_addresses_store, get_pool_addresses_store_mut, PoolFactoryConfig, PoolFactoryConfigFlags,
+		get_pool_addresses_store, PoolFactoryConfig, PoolFactoryConfigFlags,
 		PoolFactoryConfigJsonable,
 	},
 };
@@ -95,7 +95,7 @@ pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>, 
 			// We shouldn't have to check if the pair created matches the one we expected as that's the only scenerio
 			// where we asked for a reply on anything.
 			let new_pair_addr = Addr::unchecked(msg.contract_address);
-			let pool_map = get_pool_addresses_store_mut()?;
+			let pool_map = get_pool_addresses_store();
 			pool_map.set(&new_pair, &(&new_pair_addr).try_into()?)?;
 			Ok(Response::new().add_attributes(vec![
 				attr("action", "create_pair"),
@@ -161,7 +161,7 @@ fn process_create_pool(
 ) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
 	let pool_coins = two_coins(&msg_info)?;
 	let new_pool_id = CanonicalPoolPairIdentifier::from([pool_coins[0].denom.clone(), pool_coins[1].denom.clone()]);
-	if get_pool_addresses_store()?.has(&new_pool_id) {
+	if get_pool_addresses_store().has(&new_pool_id) {
 		return Err(PoolFactoryContractError::PairAlreadyExists);
 	}
 	let config = PoolFactoryConfig::load_non_empty()?;
@@ -213,7 +213,7 @@ fn process_update_fees_for_pool(
 			CrownfiSwapsCommonError::Unauthorized("Sender is not the currently configured admin".into()).into(),
 		);
 	}
-	let pool_addr = get_pool_addresses_store()?
+	let pool_addr = get_pool_addresses_store()
 		.get(&pair.into())?
 		.ok_or(StdError::not_found("pair address"))?;
 
@@ -239,7 +239,7 @@ fn process_update_global_config_for_pool(
 	nonpayable(&msg_info)?;
 	let config = PoolFactoryConfig::load_non_empty()?;
 	Ok(Response::new().add_messages(
-		get_pool_addresses_store()?
+		get_pool_addresses_store()
 			.iter_range(after.map(|v| v.into()), None)?
 			.map(|(_, addr)| WasmMsg::Execute {
 				contract_addr: addr.to_string(),
@@ -270,22 +270,22 @@ pub fn query(
 ) -> Result<Binary, PoolFactoryContractError> {
 	Ok(match msg {
 		PoolFactoryQueryMsg::Config => to_json_binary(&PoolFactoryConfigJsonable::try_from(
-			&PoolFactoryConfig::load_non_empty()?,
+			PoolFactoryConfig::load_non_empty()?.as_ref(),
 		)?)?,
 		PoolFactoryQueryMsg::PairAddr { pair } => to_json_binary(
-			&get_pool_addresses_store()?
+			&get_pool_addresses_store()
 				.get(&pair.into())?
-				.map(|addr| Addr::try_from(*addr))
+				.map(|addr| Addr::try_from(addr.as_ref()))
 				.transpose()?,
 		)?,
 		PoolFactoryQueryMsg::Pairs { after, limit } => {
-			let pair_addr_store = get_pool_addresses_store()?;
+			let pair_addr_store = get_pool_addresses_store();
 			to_json_binary(
 				&pair_addr_store
 					.iter_range(after.map(|after| after.into()), None)?
 					.map(|(pair, address)| PoolFactoryCreatedPair {
 						canonical_pair: pair.into(),
-						address: (*address).try_into().expect("address stringification shouldn't fail"),
+						address: address.as_ref().try_into().expect("address stringification shouldn't fail"),
 					})
 					.take(limit.unwrap_or(u32::MAX) as usize)
 					.collect::<Vec<_>>(),

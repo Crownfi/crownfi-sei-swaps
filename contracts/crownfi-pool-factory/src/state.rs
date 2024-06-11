@@ -4,7 +4,7 @@ use cosmwasm_std::{Addr, StdError};
 use crownfi_cw_common::{
 	data_types::canonical_addr::SeiCanonicalAddr,
 	impl_serializable_as_ref,
-	storage::{item::StoredItem, map::StoredMap, SerializableItem},
+	storage::{item::StoredItem, map::StoredMap, OZeroCopy, SerializableItem},
 };
 use crownfi_swaps_common::data_types::pair_id::CanonicalPoolPairIdentifier;
 use schemars::JsonSchema;
@@ -66,12 +66,12 @@ impl StoredItem for PoolFactoryConfig {
 	}
 }
 impl PoolFactoryConfig {
-	pub fn load_non_empty() -> Result<Self, StdError>
+	pub fn load_non_empty() -> Result<OZeroCopy<Self>, StdError>
 	where
 		Self: Sized,
 	{
 		match Self::load()? {
-			Some(result) => Ok(result.into_inner()),
+			Some(result) => Ok(result),
 			None => Err(StdError::NotFound {
 				kind: "PoolFactoryConfig".into(),
 			}),
@@ -117,10 +117,6 @@ impl TryFrom<&PoolFactoryConfig> for PoolFactoryConfigJsonable {
 }
 
 const POOL_ADDRESSES_NAMESPACE: &str = "pools";
-
-pub fn get_pool_addresses_store() -> Result<StoredMap<CanonicalPoolPairIdentifier, SeiCanonicalAddr>, StdError> {
-	Ok(StoredMap::new(POOL_ADDRESSES_NAMESPACE.as_ref()))
-}
-pub fn get_pool_addresses_store_mut() -> Result<StoredMap<CanonicalPoolPairIdentifier, SeiCanonicalAddr>, StdError> {
-	Ok(StoredMap::new(POOL_ADDRESSES_NAMESPACE.as_ref()))
+pub fn get_pool_addresses_store() -> StoredMap<CanonicalPoolPairIdentifier, SeiCanonicalAddr> {
+	StoredMap::new(POOL_ADDRESSES_NAMESPACE.as_ref())
 }

@@ -70,7 +70,6 @@ pub fn instantiate(
 		Response::new().add_message(SeiMsg::CreateDenom {
 			subdenom: LP_SUBDENOM.to_string(),
 		}),
-		deps.storage,
 		coin(mint_amount.u128(), new_denom.clone()),
 	)?
 	.add_message(BankMsg::Send {
@@ -135,7 +134,7 @@ pub fn execute(
 }
 
 fn process_update_config(
-	_deps: DepsMut<impl cosmwasm_std::CustomQuery>,
+	_deps: DepsMut<SeiQueryWrapper>,
 	msg_info: MessageInfo,
 	admin: Option<Addr>,
 	fee_receiver: Option<Addr>,
@@ -194,7 +193,7 @@ pub fn process_provide_liquidity(
 	let incoming_assets = must_pay_pair(&msg_info, &pool_id)?;
 
 	let mint_amount = calc_shares_to_mint(
-		total_supply_workaround(deps.storage, &pool_lp_denom),
+		total_supply_workaround(&pool_lp_denom),
 		&[
 			current_balances[0].amount - incoming_assets[0].amount,
 			current_balances[1].amount - incoming_assets[1].amount,
@@ -207,7 +206,6 @@ pub fn process_provide_liquidity(
 	}
 	Ok(mint_workaround(
 		Response::new(),
-		deps.storage,
 		coin(mint_amount.u128(), pool_lp_denom.clone()),
 	)?
 	.add_attributes(attr_provide_liquidity(
@@ -242,7 +240,7 @@ pub fn process_withdraw_liquidity(
 	let pool_lp_denom = lp_denom(&env);
 
 	let withdrawn_share_amount = must_pay(&msg_info, &pool_lp_denom)?;
-	let total_share_supply = total_supply_workaround(deps.storage, &pool_lp_denom);
+	let total_share_supply = total_supply_workaround(&pool_lp_denom);
 
 	// The balance has been added before this function is called.
 	let refund_assets = balances_into_share_value(
@@ -254,7 +252,7 @@ pub fn process_withdraw_liquidity(
 		return Err(CrownfiSwapsCommonError::PayoutIsZero.into());
 	}
 	Ok(
-		burn_token_workaround(Response::new(), deps.storage, msg_info.funds[0].clone())?
+		burn_token_workaround(Response::new(), msg_info.funds[0].clone())?
 			.add_attributes(attr_withdraw_liquidity(
 				msg_info.sender,
 				receiver.clone(),
@@ -291,7 +289,7 @@ pub fn process_withdraw_and_split_liquidity(
 	let pool_lp_denom = lp_denom(&env);
 
 	let withdrawn_share_amount = must_pay(&msg_info, &pool_lp_denom)?;
-	let total_share_supply = total_supply_workaround(deps.storage, &pool_lp_denom);
+	let total_share_supply = total_supply_workaround(&pool_lp_denom);
 
 	// The balance has been added before this function is called.
 	let refund_assets = balances_into_share_value(
@@ -303,7 +301,7 @@ pub fn process_withdraw_and_split_liquidity(
 		return Err(CrownfiSwapsCommonError::PayoutIsZero.into());
 	}
 	Ok(
-		burn_token_workaround(Response::new(), deps.storage, msg_info.funds[0].clone())?
+		burn_token_workaround(Response::new(), msg_info.funds[0].clone())?
 			.add_attributes(attr_withdraw_and_split_liquidity(
 				msg_info.sender,
 				[&left_receiver, &right_receiver],
@@ -419,18 +417,18 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 	Ok(match msg {
 		PoolPairQueryMsg::PairDenoms => {
 			let config = PoolPairConfig::load_non_empty()?;
-			let mut pool_id: PoolPairIdentifier = CanonicalPoolPairIdentifier::load_non_empty()?.into();
+			let mut pool_id: PoolPairIdentifier = CanonicalPoolPairIdentifier::load_non_empty()?.into_inner().into();
 			if config.flags.contains(PoolPairConfigFlags::INVERSE) {
 				pool_id.swap();
 			}
 			to_json_binary(&<[String; 2]>::from(pool_id))?
 		}
-		PoolPairQueryMsg::CanonicalPairDenoms => {
-			to_json_binary(&<[String; 2]>::from(CanonicalPoolPairIdentifier::load_non_empty()?))?
-		}
+		PoolPairQueryMsg::CanonicalPairDenoms => to_json_binary(&<[String; 2]>::from(
+			CanonicalPoolPairIdentifier::load_non_empty()?.into_inner(),
+		))?,
 		PoolPairQueryMsg::PairIdentifier => {
 			let config = PoolPairConfig::load_non_empty()?;
-			let mut pool_id: PoolPairIdentifier = CanonicalPoolPairIdentifier::load_non_empty()?.into();
+			let mut pool_id: PoolPairIdentifier = CanonicalPoolPairIdentifier::load_non_empty()?.into_inner().into();
 			if config.flags.contains(PoolPairConfigFlags::INVERSE) {
 				pool_id.swap();
 			}
@@ -439,13 +437,13 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 		PoolPairQueryMsg::CanonicalPairIdentifier => {
 			to_json_binary(&CanonicalPoolPairIdentifier::load_non_empty()?.to_string())?
 		}
-		PoolPairQueryMsg::Config => {
-			to_json_binary(&PoolPairConfigJsonable::try_from(&PoolPairConfig::load_non_empty()?)?)?
-		}
+		PoolPairQueryMsg::Config => to_json_binary(&PoolPairConfigJsonable::try_from(
+			PoolPairConfig::load_non_empty()?.as_ref()
+		)?)?,
 
 		PoolPairQueryMsg::ShareValue { amount } => {
 			let pool_id = CanonicalPoolPairIdentifier::load_non_empty()?;
-			let share_supply = total_supply_workaround(deps.storage, &lp_denom(&env));
+			let share_supply = total_supply_workaround(&lp_denom(&env));
 			let pool_balances = get_pool_balance(&deps.querier, &env, &pool_id)?;
 			to_json_binary(&balances_into_share_value(amount, share_supply, pool_balances))?
 		}
@@ -454,7 +452,7 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 			if offer[0].denom != pool_id.left || offer[1].denom != pool_id.right {
 				return Err(PoolPairContractError::DepositQueryDenomMismatch);
 			}
-			let mut share_supply = total_supply_workaround(deps.storage, &lp_denom(&env));
+			let mut share_supply = total_supply_workaround(&lp_denom(&env));
 			let mut pool_balances = get_pool_balance(&deps.querier, &env, &pool_id)?;
 			let new_shares = calc_shares_to_mint(
 				share_supply,
