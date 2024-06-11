@@ -23,7 +23,7 @@ const get_arg = (): string => {
 	return response
 }
 
-const priv_key = get_env_or_bail("PRIV_KEY")
+const priv_key = get_env_or_bail("MNEMONIC")
 const wallet = await seicore.restoreWallet(priv_key, 0, 60)
 
 const sei_rpc = get_env_or_bail("RPC_ENDPOINT")
@@ -60,7 +60,7 @@ console.log({ token, contractAddress })
 
 const amt = get_arg()
 
-const contract = new TokenWrapperContract(client, contractAddress)
+const contract = new TokenWrapperContract(client["forceGetQueryClient"](), contractAddress)
 const acc_canonical_addr = seicore.stringToCanonicalAddr(acc.address)
 const cw20msg = contract.executeIxCw20(Buffer.from(acc_canonical_addr), token, amt)
 

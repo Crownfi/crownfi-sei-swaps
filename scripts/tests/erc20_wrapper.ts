@@ -100,7 +100,7 @@ const recipient = Buffer.from(evm_address.substring(2), "hex").toString("base64"
 await sei_client.execute(
 	sei_acc.address,
 	wrapper_contract.contractAddress,
-	{ wrap: { amount: "10", token_addr: erc20_contract_address, recipient } } satisfies ERC20WrapperExecMsg,
+	{ wrap: { amount: "10", token_addr: erc20_contract_address, evm_sender: recipient } } satisfies ERC20WrapperExecMsg,
 	"auto"
 )
 
@@ -116,7 +116,7 @@ await sei_client.execute(
 	wrapper_contract.contractAddress,
 	{
 		unwrap: {
-			recipient
+			evm_recipient: recipient
 		}
 	} satisfies ERC20WrapperExecMsg,
 	"auto",
