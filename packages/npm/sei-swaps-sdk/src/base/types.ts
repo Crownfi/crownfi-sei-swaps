@@ -92,6 +92,10 @@ export type AstroFactoryExecuteMsg =
          */
         fee_address?: string | null;
         /**
+         * Whether to prevent the public from creating pairs
+         */
+        permissioned?: boolean | null;
+        /**
          * CW20 token contract code identifier
          */
         token_code_id?: number | null;
@@ -461,9 +465,46 @@ export type AstroRouteQueryMsg =
     };
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
+ * via the `definition` "CW20WrapperExecMsg".
+ */
+export type CW20WrapperExecMsg =
+  | {
+      receive: Cw20ReceiveMsg;
+    }
+  | {
+      unwrap: {
+        receiver?: Addr | null;
+      };
+    };
+/**
+ * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
+ * via the `definition` "ERC20WrapperExecMsg".
+ */
+export type ERC20WrapperExecMsg =
+  | {
+      wrap: {
+        amount: Uint128;
+        recipient: string;
+        token_addr: string;
+      };
+    }
+  | {
+      unwrap: {
+        recipient?: Addr | null;
+      };
+    };
+/**
+ * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "Nullable_Uint128".
  */
 export type Nullable_Uint128 = Uint128 | null;
+/**
+ * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
+ * via the `definition` "TokenWrapperQueryMsg".
+ */
+export type TokenWrapperQueryMsg = {
+  empty: {};
+};
 
 export interface CrownfiSdkMakerAutogen {
   [k: string]: unknown;
@@ -535,6 +576,10 @@ export interface AstroFactoryPairConfig {
    * The pair type (provided in a [`PairType`])
    */
   pair_type: AstroPairType;
+  /**
+   * If pool type is permissioned, only factory owner can create pairs of this type. Default is false.
+   */
+  permissioned?: boolean;
   /**
    * The total fees (in bps) charged by a pair of this type
    */
@@ -817,4 +862,15 @@ export interface AstroRouteSimulateSwapOperationsResponse {
    * The amount of tokens received in a swap simulation
    */
   amount: Uint128;
+}
+/**
+ * An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.
+ *
+ * It is designed to be expressable in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)
+ *
+ * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
+ * via the `definition` "Empty".
+ */
+export interface Empty {
+  [k: string]: unknown;
 }

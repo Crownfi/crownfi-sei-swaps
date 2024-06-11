@@ -29,7 +29,7 @@ export class AstroFactoryContract extends ContractBase {
 		const msg = {"blacklisted_pair_types": {}} satisfies AstroFactoryQueryMsg;
 		return this.query(msg);
 	}
-	buildUpdateConfigIx(args: {"fee_address"?: string | null, "token_code_id"?: number | null} = {}, funds?: Coin[]): ExecuteInstruction {
+	buildUpdateConfigIx(args: {"fee_address"?: string | null, "permissioned"?: boolean | null, "token_code_id"?: number | null} = {}, funds?: Coin[]): ExecuteInstruction {
 		const msg = {"update_config": args} satisfies AstroFactoryExecuteMsg;
 		return this.executeIx(msg, funds);
 	}

@@ -15,7 +15,7 @@
 		"@cosmjs/amino": "^0.32.2",
 		"@cosmjs/stargate": "^0.32.2",
 		"@crownfi/sei-js-core": "^4.0.0-beta.1",
-		"@crownfi/sei-utils": "^0.2.12",
+		"@crownfi/sei-utils": "^0.3.3",
 		"math-bigint": "^1.0.0"
 	},
 	"devDependencies": {

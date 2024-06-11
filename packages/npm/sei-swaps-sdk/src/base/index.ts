@@ -8,3 +8,5 @@ export * from "./types.js";
 export * from "./astro_factory.js";
 export * from "./astro_pair.js";
 export * from "./astro_router.js";
+export * from "./cw_20_wrapper.js";
+export * from "./erc_20_wrapper.js";

@@ -9,7 +9,7 @@ use crownfi_astro_common::{
 	router::{
 		AstroRouteCw20HookMsg, AstroRouteExecuteMsg, AstroRouteInstantiateMsg, AstroRouteMigrateMsg, AstroRouteQueryMsg,
 	},
-	wrapper::{TokenWrapperExecMsg, TokenWrapperQueryMsg},
+	wrapper::{CW20WrapperExecMsg, ERC20WrapperExecMsg, TokenWrapperQueryMsg},
 };
 use crownfi_sei_sdk_autogen::CrownfiSdkMaker;
 type Void = ();
@@ -52,12 +52,20 @@ fn main() -> color_eyre::Result<()> {
 		>("astro_router")?
 		.add_contract::<
 			Void,
-			TokenWrapperExecMsg,
+			CW20WrapperExecMsg,
 			TokenWrapperQueryMsg,
 			Void,
 			Void,
 			Void
-		>("token_wrapper")?
+		>("cw_20_wrapper")?
+		.add_contract::<
+			Void,
+			ERC20WrapperExecMsg,
+			TokenWrapperQueryMsg,
+			Void,
+			Void,
+			Void
+		>("erc_20_wrapper")?
 		.generate_code(args.out_dir)?;
 
 	Ok(())
