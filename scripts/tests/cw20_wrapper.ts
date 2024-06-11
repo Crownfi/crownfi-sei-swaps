@@ -5,7 +5,7 @@ import fs from "node:fs/promises"
 import * as seicore from "@crownfi/sei-js-core"
 import * as base32 from "hi-base32"
 import { TokenWrapperContract } from "../../packages/npm/sei-swaps-sdk/src/base/token_wrapper.js"
-import { TokenWrapperExecMsg } from "../../packages/npm/sei-swaps-sdk/src/base/types.js"
+import { CW20WrapperExecMsg } from "../../packages/npm/sei-swaps-sdk/src/base/types.js"
 import { GasPrice } from "@cosmjs/stargate"
 
 const bail = (message: string): never => {
@@ -24,7 +24,7 @@ const get_arg = (): string => {
 }
 
 const priv_key = get_env_or_bail("PRIV_KEY")
-const wallet = await seicore.restoreWallet(priv_key)
+const wallet = await seicore.restoreWallet(priv_key, 0, 60)
 
 const sei_rpc = get_env_or_bail("RPC_ENDPOINT")
 const client = await seicore.getSigningCosmWasmClient(
@@ -51,7 +51,7 @@ const msg = {
 }
 
 const curr_path = process.argv[1].split(/(.*?csswap-mvp\/)/g)[1]
-const wrapper_contract = await client.upload(acc.address, await fs.readFile(curr_path + "target/wasm32-unknown-unknown/release/crownfi_token_wrapper.wasm"), "auto")
+const wrapper_contract = await client.upload(acc.address, await fs.readFile(curr_path + "target/wasm32-unknown-unknown/release/crownfi_cw20_wrapper.wasm"), "auto")
 const cw20_contract = await client.upload(acc.address, await fs.readFile(curr_path + "target/wasm32-unknown-unknown/release/crownfi_astro_token.wasm"), "auto")
 
 const { contractAddress } = await client.instantiate(acc.address, wrapper_contract.codeId, {}, "banana", "auto")
@@ -71,7 +71,7 @@ await client.execute(acc.address, token, cw20msg.msg, "auto")
 await client.execute(
 	acc.address,
 	contractAddress,
-	{ unwrap: {} } satisfies TokenWrapperExecMsg,
+	{ unwrap: {} } satisfies CW20WrapperExecMsg,
 	"auto",
 	undefined,
 	[{ amount: Math.floor(Number(amt) / 2).toString(), denom: native_denom }]

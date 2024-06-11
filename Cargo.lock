@@ -83,12 +83,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
 
 [[package]]
-name = "base64"
-version = "0.22.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
-
-[[package]]
 name = "base64ct"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -338,7 +332,7 @@ version = "1.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78c1556156fdf892a55cced6115968b961eaaadd6f724a2c2cb7d1e168e32dd3"
 dependencies = [
- "base64 0.21.7",
+ "base64",
  "bech32",
  "bnum",
  "cosmwasm-crypto",
@@ -475,11 +469,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "crownfi-cw20-wrapper"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "base32",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "crownfi-astro-common",
+ "crownfi-cw-common",
+ "cw-multi-test 0.20.1",
+ "cw-storage-plus 1.2.0",
+ "cw2 1.1.2",
+ "cw20",
+ "schemars",
+ "sei-cosmwasm",
+ "thiserror",
+]
+
+[[package]]
 name = "crownfi-erc20-wrapper"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "base64 0.22.1",
  "cosmwasm-schema",
  "cosmwasm-std",
  "crownfi-astro-common",
@@ -487,6 +499,7 @@ dependencies = [
  "cw-storage-plus 1.2.0",
  "cw2 1.1.2",
  "cw20",
+ "hex",
  "schemars",
  "sei-cosmwasm",
  "thiserror",
@@ -597,25 +610,6 @@ dependencies = [
  "cw2 1.1.2",
  "schemars",
  "serde",
- "thiserror",
-]
-
-[[package]]
-name = "crownfi-token-wrapper"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "base32",
- "cosmwasm-schema",
- "cosmwasm-std",
- "crownfi-astro-common",
- "crownfi-cw-common",
- "cw-multi-test 0.20.1",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "cw20",
- "schemars",
- "sei-cosmwasm",
  "thiserror",
 ]
 
