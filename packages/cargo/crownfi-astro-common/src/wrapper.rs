@@ -15,7 +15,7 @@ pub enum ERC20WrapperExecMsg {
 		amount: Uint128,
 	},
 	Unwrap {
-		recipient: Option<Addr>,
+		recipient: Binary,
 	},
 }
 

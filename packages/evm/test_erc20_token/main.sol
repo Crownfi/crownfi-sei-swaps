@@ -55,7 +55,6 @@ contract ERC20 is IERC20 {
         external
         returns (bool)
     {
-		revert("nobody likes pineapple");
         allowance[sender][msg.sender] -= amount;
         balanceOf[sender] -= amount;
         balanceOf[recipient] += amount;

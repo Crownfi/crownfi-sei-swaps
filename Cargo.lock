@@ -497,6 +497,7 @@ dependencies = [
  "crownfi-astro-common",
  "crownfi-cw-common",
  "cw-storage-plus 1.2.0",
+ "cw-utils 1.0.3",
  "cw2 1.1.2",
  "cw20",
  "hex",

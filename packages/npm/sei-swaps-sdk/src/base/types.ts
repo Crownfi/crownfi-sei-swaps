@@ -484,13 +484,13 @@ export type ERC20WrapperExecMsg =
   | {
       wrap: {
         amount: Uint128;
-        recipient: string;
+        recipient: Binary;
         token_addr: string;
       };
     }
   | {
       unwrap: {
-        recipient?: Addr | null;
+        recipient: Binary;
       };
     };
 /**

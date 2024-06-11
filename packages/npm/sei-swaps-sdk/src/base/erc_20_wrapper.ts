@@ -4,7 +4,7 @@
  * DO NOT MODIFY IT BY HAND.
  * The Rust definition of the associated structs is the source of truth!!
  */
-import {Addr, ERC20WrapperExecMsg, Empty, TokenWrapperQueryMsg, Uint128} from "./types.js";
+import {Binary, ERC20WrapperExecMsg, Empty, TokenWrapperQueryMsg, Uint128} from "./types.js";
 import {Coin} from "@cosmjs/amino";
 import {ExecuteInstruction} from "@cosmjs/cosmwasm-stargate";
 import {ContractBase} from "@crownfi/sei-utils";
@@ -13,11 +13,11 @@ export class Erc20WrapperContract extends ContractBase {
 		const msg = {"empty": {}} satisfies TokenWrapperQueryMsg;
 		return this.query(msg);
 	}
-	buildWrapIx(args: {"amount": Uint128, "recipient": string, "token_addr": string}, funds?: Coin[]): ExecuteInstruction {
+	buildWrapIx(args: {"amount": Uint128, "recipient": Binary, "token_addr": string}, funds?: Coin[]): ExecuteInstruction {
 		const msg = {"wrap": args} satisfies ERC20WrapperExecMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildUnwrapIx(args: {"recipient"?: Addr | null} = {}, funds?: Coin[]): ExecuteInstruction {
+	buildUnwrapIx(args: {"recipient": Binary}, funds?: Coin[]): ExecuteInstruction {
 		const msg = {"unwrap": args} satisfies ERC20WrapperExecMsg;
 		return this.executeIx(msg, funds);
 	}

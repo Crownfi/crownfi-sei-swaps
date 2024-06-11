@@ -45,7 +45,7 @@ await new Promise((resolve, reject) => {
 })
 
 const evm_contract_bin = await fs.readFile(contract_path + "/out/main_sol_TestToken.bin")
-const evm_contract_abi = JSON.parse((await fs.readFile(contract_path + "/out/main_sol_TestToken.abi")).toString())
+// const evm_contract_abi = JSON.parse((await fs.readFile(contract_path + "/out/main_sol_TestToken.abi")).toString())
 
 const provider = new ethers.JsonRpcProvider(get_env_or_bail("EVM_RPC"))
 const evm_wallet = ethers.Wallet.fromPhrase(seed, provider)
@@ -70,32 +70,19 @@ await evm_deploy_t.wait()
 const evm_contract_recepit = await provider.getTransactionReceipt(evm_deploy_t.hash)
 if (!evm_contract_recepit || !evm_contract_recepit.contractAddress) bail(JSON.stringify(evm_contract_recepit, undefined, 2))
 const erc20_contract_address = evm_contract_recepit!.contractAddress!
-const erc20_contract = new ethers.Contract(erc20_contract_address, evm_contract_abi, evm_wallet)
 
-const log_balance = async (addr: any) => {
+const log_balance = async (addr: string) => {
 	const balance_call = ethers.hexlify(seiutils.encodeEvmFuncCall("balanceOf(address)", [addr]))
 	const balance = await evm_wallet.call({
 		to: erc20_contract_address,
 		data: balance_call,
 	})
-	console.log({ balance: parseInt(balance.replace("0x", ""), 16) })
+	console.log({ [addr]: parseInt(balance.replace("0x", ""), 16) })
 }
-
-const approve_call = ethers.hexlify(seiutils.encodeEvmFuncCall("approve(address,uint256)", [seicore.stringToCanonicalAddr(wrapper_contract.contractAddress).fill(0, 0, 12), 10]));
-// const x = ethers.hexlify(seicore.stringToCanonicalAddr(wrapper_contract.contractAddress))
 
 await log_balance(evm_address)
 
-// const wrapper_evm_addr = seiutils.toChecksumAddressEvm(ethers.hexlify(seicore.stringToCanonicalAddr(wrapper_contract.contractAddress)))
-// if (!seiutils.isValidEvmAddress(wrapper_evm_addr, true)) bail(wrapper_evm_addr)
-// console.log(wrapper_evm_addr)
-// const approve = await erc20_contract.approve(wrapper_evm_addr, 10)
-// console.log({ approve })
-
-console.log({
-	erc20_contract_address, approve_call
-})
-
+const approve_call = ethers.hexlify(seiutils.encodeEvmFuncCall("approve(address,uint256)", [seicore.stringToCanonicalAddr(wrapper_contract.contractAddress).fill(0, 0, 12), 10]));
 const approve = await evm_wallet.sendTransaction({
 	to: erc20_contract_address,
 	data: approve_call,
@@ -107,26 +94,37 @@ const approve = await evm_wallet.sendTransaction({
 })
 await approve.wait()
 
+console.log("APPROVED TRANSACTION")
+
 const recipient = Buffer.from(evm_address.substring(2), "hex").toString("base64")
-const x = await sei_client.execute(
+await sei_client.execute(
 	sei_acc.address,
 	wrapper_contract.contractAddress,
 	{ wrap: { amount: "10", token_addr: erc20_contract_address, recipient } } satisfies ERC20WrapperExecMsg,
 	"auto"
 )
 
-await log_balance(evm_address)
-await log_balance(erc20_contract_address)
-bail(JSON.stringify(x, (_, v) => typeof v === "bigint" ? Number(v) : v, 2))
+console.log("WRAPPED 10 TOKENS")
 
-// const tkn_denom = `factory/${wrapper_contract.contractAddress}/crwn${erc20_contract_address.substring(2)}`
-// await sei_client.execute(
-// 	sei_acc.address,
-// 	wrapper_contract.contractAddress,
-// 	{ unwrap: {} } satisfies ERC20WrapperExecMsg,
-// 	"auto",
-// 	undefined,
-// 	[{ amount: "5", denom: tkn_denom }]
-// )
-//
-// await log_balance(evm_address)
+await log_balance(evm_address)
+const contract_addr = seiutils.toChecksumAddressEvm(ethers.hexlify(seicore.stringToCanonicalAddr(wrapper_contract.contractAddress).subarray(12)))
+await log_balance(contract_addr)
+
+const tkn_denom = `factory/${wrapper_contract.contractAddress}/crwn${erc20_contract_address.substring(2)}`
+await sei_client.execute(
+	sei_acc.address,
+	wrapper_contract.contractAddress,
+	{
+		unwrap: {
+			recipient
+		}
+	} satisfies ERC20WrapperExecMsg,
+	"auto",
+	undefined,
+	[{ amount: "5", denom: tkn_denom }]
+)
+
+console.log("UNWRAPPED 5 TOKENS")
+
+await log_balance(evm_address)
+await log_balance(contract_addr)
