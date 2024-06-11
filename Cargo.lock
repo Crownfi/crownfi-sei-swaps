@@ -572,7 +572,11 @@ version = "0.1.0"
 dependencies = [
  "bpaf",
  "color-eyre",
+ "cosmwasm-schema",
+ "cosmwasm-std",
  "crownfi-astro-common",
+ "crownfi-cw20-wrapper",
+ "crownfi-erc20-wrapper",
  "crownfi-sei-sdk-autogen",
 ]
 

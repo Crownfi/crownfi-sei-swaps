@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use bpaf::Bpaf;
+use cosmwasm_std::Empty;
 use crownfi_astro_common::{
 	factory::{AstroFactoryExecuteMsg, AstroFactoryInstantiateMsg, AstroFactoryMigrateMsg, AstroFactoryQueryMsg},
 	pair::{
@@ -9,9 +10,16 @@ use crownfi_astro_common::{
 	router::{
 		AstroRouteCw20HookMsg, AstroRouteExecuteMsg, AstroRouteInstantiateMsg, AstroRouteMigrateMsg, AstroRouteQueryMsg,
 	},
-	wrapper::{CW20WrapperExecMsg, ERC20WrapperExecMsg, TokenWrapperQueryMsg},
 };
 use crownfi_sei_sdk_autogen::CrownfiSdkMaker;
+
+#[cosmwasm_schema::cw_serde]
+#[derive(cosmwasm_schema::QueryResponses)]
+enum EmptyQuery {
+	#[returns(Empty)]
+	Empty {},
+}
+
 type Void = ();
 
 #[derive(Clone, Debug, Bpaf)]
@@ -52,16 +60,16 @@ fn main() -> color_eyre::Result<()> {
 		>("astro_router")?
 		.add_contract::<
 			Void,
-			CW20WrapperExecMsg,
-			TokenWrapperQueryMsg,
+			crownfi_cw20_wrapper::CW20WrapperExecMsg,
+			crownfi_cw20_wrapper::CW20WrapperQueryMsg,
 			Void,
 			Void,
 			Void
 		>("cw_20_wrapper")?
 		.add_contract::<
 			Void,
-			ERC20WrapperExecMsg,
-			TokenWrapperQueryMsg,
+			crownfi_erc20_wrapper::ERC20WrapperExecMsg,
+			EmptyQuery,
 			Void,
 			Void,
 			Void

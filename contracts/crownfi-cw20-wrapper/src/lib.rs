@@ -1,9 +1,10 @@
 use anyhow::Result;
 use base32::Alphabet;
+use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{
-	to_json_binary, BankMsg, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Response, SubMsg, Uint128, WasmMsg,
+	to_json_binary, Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Response, SubMsg,
+	Uint128, WasmMsg,
 };
-use crownfi_astro_common::wrapper::CW20WrapperExecMsg;
 use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, storage::map::StoredMap};
 use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
 
@@ -79,13 +80,19 @@ pub fn execute(
 			let mut submessages = Vec::with_capacity(funds_len);
 
 			for fund in info.funds {
-				let subdenom = fund
-					.denom
-					.split('/')
-					.last()
-					.ok_or(Error::TokenDoesntBelongToContract)?
-					.to_owned();
+				let splited_denom = fund.denom.split('/').collect::<Box<[_]>>();
+				splited_denom
+					.get(1)
+					.and_then(|addr| {
+						if *addr == env.contract.address {
+							Some(addr)
+						} else {
+							None
+						}
+					})
+					.ok_or(Error::TokenDoesntBelongToContract)?;
 
+				let subdenom = splited_denom[2].to_string();
 				let Some(addr) = known_tokens.get(&subdenom)? else {
 					return Err(Error::TokenDoesntBelongToContract.into());
 				};
@@ -106,12 +113,37 @@ pub fn execute(
 	})
 }
 
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+pub fn query(_deps: Deps, _env: Env, msg: CW20WrapperQueryMsg) -> Result<Binary> {
+	let known_tokens = StoredMap::<String, SeiCanonicalAddr>::new(b"known_tokens");
+	let CW20WrapperQueryMsg::WrappedDenomOf { cw20 } = msg;
+	let canon_addr = SeiCanonicalAddr::try_from(cw20)?;
+	let mut subdenom = base32::encode(BASE32_ALGORITHM, canon_addr.as_slice());
+	subdenom.truncate(44);
+
+	let res = known_tokens.has(&subdenom).then_some(subdenom);
+	Ok(to_json_binary(&res)?)
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
 	#[error("The tokens received were not created by this contract")]
 	TokenDoesntBelongToContract,
 	#[error("No tokens were sent to this contract")]
 	UnfundedCall,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum CW20WrapperExecMsg {
+	Receive(cw20::Cw20ReceiveMsg),
+	Unwrap { receiver: Option<Addr> },
+}
+
+#[cosmwasm_schema::cw_serde]
+#[derive(QueryResponses)]
+pub enum CW20WrapperQueryMsg {
+	#[returns(Option<String>)]
+	WrappedDenomOf { cw20: Addr },
 }
 
 #[cfg(test)]

@@ -15,6 +15,10 @@ private = true
 
 [dependencies]
 crownfi-astro-common = {path = "../crownfi-astro-common"}
+crownfi-erc20-wrapper = { path = "../../../contracts/crownfi-erc20-wrapper" }
+crownfi-cw20-wrapper = { path = "../../../contracts/crownfi-cw20-wrapper" }
 crownfi-sei-sdk-autogen = {workspace = true}
 bpaf = {workspace = true}
 color-eyre = {workspace = true}
+cosmwasm-schema = { workspace = true }
+cosmwasm-std = { workspace = true }

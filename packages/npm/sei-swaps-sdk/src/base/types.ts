@@ -478,33 +478,48 @@ export type CW20WrapperExecMsg =
     };
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
+ * via the `definition` "CW20WrapperQueryMsg".
+ */
+export type CW20WrapperQueryMsg = {
+  wrapped_denom_of: {
+    cw20: Addr;
+  };
+};
+/**
+ * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "ERC20WrapperExecMsg".
  */
 export type ERC20WrapperExecMsg =
   | {
       wrap: {
         amount: Uint128;
-        recipient: Binary;
+        evm_sender: Binary;
+        recipient?: Addr | null;
         token_addr: string;
       };
     }
   | {
       unwrap: {
-        recipient: Binary;
+        evm_recipient: Binary;
       };
     };
+/**
+ * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
+ * via the `definition` "EmptyQuery".
+ */
+export type EmptyQuery = {
+  empty: {};
+};
+/**
+ * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
+ * via the `definition` "Nullable_String".
+ */
+export type Nullable_String = string | null;
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "Nullable_Uint128".
  */
 export type Nullable_Uint128 = Uint128 | null;
-/**
- * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
- * via the `definition` "TokenWrapperQueryMsg".
- */
-export type TokenWrapperQueryMsg = {
-  empty: {};
-};
 
 export interface CrownfiSdkMakerAutogen {
   [k: string]: unknown;

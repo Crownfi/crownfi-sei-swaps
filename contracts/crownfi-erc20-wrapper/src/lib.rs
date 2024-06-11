@@ -1,6 +1,7 @@
 use anyhow::Result;
-use cosmwasm_std::{BankMsg, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Response, SubMsg, Uint128};
-use crownfi_astro_common::wrapper::ERC20WrapperExecMsg;
+use cosmwasm_std::{
+	Addr, BankMsg, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Response, SubMsg, Uint128,
+};
 use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, storage::map::StoredMap};
 use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
 
@@ -29,21 +30,22 @@ pub fn execute(
 
 	let response = match msg {
 		ERC20WrapperExecMsg::Wrap {
-			recipient,
+			evm_sender,
 			token_addr,
 			amount,
+			recipient,
 		} => {
+			if &token_addr[..2] != "0x" {
+				return Err(Error::InvalidEvmAddress(token_addr).into());
+			}
+
 			if info.funds.len() > 0 {
 				return Err(Error::UnexpectedFunds.into());
 			}
 
-			let capped_tkn_addr = if &token_addr[..2] == "0x" {
-				&token_addr[2..]
-			} else {
-				&token_addr
-			}
-			.to_string();
-			let bare_addr: [u8; 20] = hex::FromHex::from_hex(&capped_tkn_addr)?;
+			let capped_tkn_addr = token_addr[2..].to_string();
+			let bare_addr: [u8; 20] =
+				hex::FromHex::from_hex(&capped_tkn_addr).map_err(|_| Error::InvalidEvmAddress(token_addr.clone()))?;
 
 			let subdenom = format!("crwn{capped_tkn_addr}");
 			let denom = format!("factory/{}/{subdenom}", env.contract.address);
@@ -55,9 +57,10 @@ pub fn execute(
 				None
 			};
 
-			let payload = encode_transfer_from_payload(recipient, (&env.contract.address).try_into()?, amount)?;
+			let payload = encode_transfer_from_payload(evm_sender, (&env.contract.address).try_into()?, amount)?;
 			let amount = Coin { amount, denom };
 
+			let recipient = recipient.unwrap_or(info.sender);
 			Response::new()
 				.add_message(SeiMsg::CallEvm {
 					to: token_addr,
@@ -68,10 +71,10 @@ pub fn execute(
 				.add_message(SeiMsg::MintTokens { amount: amount.clone() })
 				.add_submessage(SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
 					amount: vec![amount],
-					to_address: info.sender.to_string(),
+					to_address: recipient.to_string(),
 				})))
 		}
-		ERC20WrapperExecMsg::Unwrap { recipient } => {
+		ERC20WrapperExecMsg::Unwrap { evm_recipient } => {
 			let mut msgs: Vec<CosmosMsg<SeiMsg>> = Vec::with_capacity(info.funds.len() * 2);
 
 			for fund in info.funds {
@@ -82,7 +85,7 @@ pub fn execute(
 					.ok_or(Error::TokenDoesntBelongToContract)?;
 
 				let token_addr = splited_denom[2].replace("crwn", "0x");
-				let evm_payload = encode_transfer_payload(recipient.as_slice().try_into()?, fund.amount);
+				let evm_payload = encode_transfer_payload(evm_recipient.as_slice().try_into()?, fund.amount);
 				msgs.push(
 					SeiMsg::CallEvm {
 						to: token_addr,
@@ -105,9 +108,6 @@ const TRANSFER_SIG: &[u8] = b"\xa9\x05\x9c\xbb";
 const TRANSFER_FROM_SIG: &[u8] = b"\x23\xb8\x72\xdd";
 
 fn encode_transfer_from_payload(owner: Binary, recipient: SeiCanonicalAddr, amount: Uint128) -> Result<String, Error> {
-	let mut buff = [0u8; 88];
-	buff[..4].copy_from_slice(TRANSFER_FROM_SIG);
-
 	if owner.len() != 20 {
 		return Err(Error::InvalidEvmAddress(owner.to_string()));
 	}
@@ -134,6 +134,19 @@ fn encode_transfer_payload(recipient: [u8; 20], amount: Uint128) -> String {
 	buff.extend_from_slice(&amount.to_be_bytes());
 
 	Binary::from(buff).to_base64()
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum ERC20WrapperExecMsg {
+	Wrap {
+		evm_sender: Binary,
+		recipient: Option<Addr>,
+		token_addr: String,
+		amount: Uint128,
+	},
+	Unwrap {
+		evm_recipient: Binary,
+	},
 }
 
 #[derive(thiserror::Error, Debug)]
