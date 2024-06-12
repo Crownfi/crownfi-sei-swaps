@@ -3,7 +3,7 @@ use cosmwasm_std::{
 	Addr, BankMsg, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Response, SubMsg, Uint128,
 };
 use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, storage::map::StoredMap};
-use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
+use sei_cosmwasm::{SeiMsg, SeiQuerier, SeiQueryWrapper};
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -21,12 +21,13 @@ pub fn instantiate(
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn execute(
-	_deps: DepsMut<SeiQueryWrapper>,
+	deps: DepsMut<SeiQueryWrapper>,
 	env: Env,
 	info: MessageInfo,
 	msg: ERC20WrapperExecMsg,
 ) -> Result<Response<SeiMsg>> {
 	let known_tokens = StoredMap::<[u8; 20], bool>::new(b"known_tokens");
+	let querier = SeiQuerier::new(&deps.querier);
 
 	let response = match msg {
 		ERC20WrapperExecMsg::Wrap {
@@ -35,13 +36,17 @@ pub fn execute(
 			amount,
 			recipient,
 		} => {
+			if info.funds.len() > 0 {
+				return Err(Error::UnexpectedFunds.into());
+			}
+
 			if &token_addr[..2] != "0x" {
 				return Err(Error::InvalidEvmAddress(token_addr).into());
 			}
 
-			if info.funds.len() > 0 {
-				return Err(Error::UnexpectedFunds.into());
-			}
+			querier
+				.erc20_token_info(token_addr.clone(), env.contract.address.to_string())
+				.map_err(|_| Error::InvalidERC20Contract)?;
 
 			let capped_tkn_addr = token_addr[2..].to_string();
 			let bare_addr: [u8; 20] =
@@ -159,6 +164,8 @@ pub enum Error {
 	TokenDoesntBelongToContract,
 	#[error("No tokens were sent to this contract")]
 	UnfundedCall,
+	#[error("The ERC20 Contract is not valid")]
+	InvalidERC20Contract,
 }
 
 // #[cfg(test)]
