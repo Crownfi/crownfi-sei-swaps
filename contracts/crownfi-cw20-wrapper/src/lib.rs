@@ -1,12 +1,17 @@
 use anyhow::Result;
 use base32::Alphabet;
-use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{
-	to_json_binary, Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Response, SubMsg,
+	to_json_binary, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Response, SubMsg,
 	Uint128, WasmMsg,
 };
 use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, storage::map::StoredMap};
 use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
+
+use error::Error;
+use msg::*;
+
+mod error;
+pub mod msg;
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -123,27 +128,6 @@ pub fn query(_deps: Deps, _env: Env, msg: CW20WrapperQueryMsg) -> Result<Binary>
 
 	let res = known_tokens.has(&subdenom).then_some(subdenom);
 	Ok(to_json_binary(&res)?)
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-	#[error("The tokens received were not created by this contract")]
-	TokenDoesntBelongToContract,
-	#[error("No tokens were sent to this contract")]
-	UnfundedCall,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub enum CW20WrapperExecMsg {
-	Receive(cw20::Cw20ReceiveMsg),
-	Unwrap { receiver: Option<Addr> },
-}
-
-#[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-pub enum CW20WrapperQueryMsg {
-	#[returns(Option<String>)]
-	WrappedDenomOf { cw20: Addr },
 }
 
 #[cfg(test)]

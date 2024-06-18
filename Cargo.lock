@@ -455,7 +455,7 @@ dependencies = [
 [[package]]
 name = "crownfi-cw-common"
 version = "0.4.0"
-source = "git+ssh://git@github.com/Crownfi/crownfi-sei-common.git?branch=main#df06426303c3445ab1c9ae48d6dffc608d939717"
+source = "git+ssh://git@github.com/Crownfi/crownfi-sei-common.git?branch=main#853e3f8443a2c613ab22605e4ddb25c9bf6da9c7"
 dependencies = [
  "bech32",
  "borsh",
@@ -550,7 +550,7 @@ dependencies = [
 [[package]]
 name = "crownfi-sei-sdk-autogen"
 version = "0.1.0"
-source = "git+ssh://git@github.com/Crownfi/crownfi-sei-common.git?branch=main#df06426303c3445ab1c9ae48d6dffc608d939717"
+source = "git+ssh://git@github.com/Crownfi/crownfi-sei-common.git?branch=main#853e3f8443a2c613ab22605e4ddb25c9bf6da9c7"
 dependencies = [
  "convert_case",
  "cosmwasm-schema",
@@ -574,10 +574,12 @@ dependencies = [
  "color-eyre",
  "cosmwasm-schema",
  "cosmwasm-std",
- "crownfi-astro-common",
  "crownfi-cw20-wrapper",
  "crownfi-erc20-wrapper",
+ "crownfi-pool-factory-contract",
+ "crownfi-pool-pair-contract",
  "crownfi-sei-sdk-autogen",
+ "crownfi-swap-router-contract",
 ]
 
 [[package]]
@@ -1160,9 +1162,9 @@ checksum = "78b3ae25bc7c8c38cec158d1f2757ee79e9b3740fbc7ccf0e59e4b08d793fa89"
 
 [[package]]
 name = "memchr"
-version = "2.7.2"
+version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c8640c5d730cb13ebd907d8d04b52f55ac9a2eec55b440c8892f40d56c76c1d"
+checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 
 [[package]]
 name = "miniz_oxide"

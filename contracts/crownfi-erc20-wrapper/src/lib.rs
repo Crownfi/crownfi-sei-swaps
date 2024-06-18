@@ -1,9 +1,13 @@
 use anyhow::Result;
-use cosmwasm_std::{
-	Addr, BankMsg, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Response, SubMsg, Uint128,
-};
+use cosmwasm_std::{BankMsg, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Response, SubMsg, Uint128};
 use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, storage::map::StoredMap};
 use sei_cosmwasm::{SeiMsg, SeiQuerier, SeiQueryWrapper};
+
+use error::Error;
+use msg::ERC20WrapperExecMsg;
+
+mod error;
+pub mod msg;
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -139,33 +143,6 @@ fn encode_transfer_payload(recipient: [u8; 20], amount: Uint128) -> String {
 	buff.extend_from_slice(&amount.to_be_bytes());
 
 	Binary::from(buff).to_base64()
-}
-
-#[cosmwasm_schema::cw_serde]
-pub enum ERC20WrapperExecMsg {
-	Wrap {
-		evm_sender: Binary,
-		recipient: Option<Addr>,
-		token_addr: String,
-		amount: Uint128,
-	},
-	Unwrap {
-		evm_recipient: Binary,
-	},
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-	#[error("Tokens are not expected to be sent to this method")]
-	UnexpectedFunds,
-	#[error("The `{0}` EVM address is not valid")]
-	InvalidEvmAddress(String),
-	#[error("The tokens received were not created by this contract")]
-	TokenDoesntBelongToContract,
-	#[error("No tokens were sent to this contract")]
-	UnfundedCall,
-	#[error("The ERC20 Contract is not valid")]
-	InvalidERC20Contract,
 }
 
 // #[cfg(test)]

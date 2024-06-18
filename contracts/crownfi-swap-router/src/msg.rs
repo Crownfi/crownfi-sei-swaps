@@ -32,7 +32,7 @@ pub enum SwapRouterExecuteMsg {
 		/// The account receiving the resulting asset, defaults to the sender.
 		receiver: Option<Addr>,
 	},
-	NextStep,
+	NextStep {},
 }
 
 #[cw_serde]
