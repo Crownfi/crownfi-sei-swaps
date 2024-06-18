@@ -17,10 +17,7 @@ use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
 use crate::{
 	error::PoolFactoryContractError,
 	msg::{PoolFactoryCreatedPair, PoolFactoryExecuteMsg, PoolFactoryInstantiateMsg, PoolFactoryQueryMsg},
-	state::{
-		get_pool_addresses_store, PoolFactoryConfig, PoolFactoryConfigFlags,
-		PoolFactoryConfigJsonable,
-	},
+	state::{get_pool_addresses_store, PoolFactoryConfig, PoolFactoryConfigFlags, PoolFactoryConfigJsonable},
 };
 
 const CONTRACT_NAME: &str = "crownfi-pool-factory";
@@ -269,7 +266,7 @@ pub fn query(
 	msg: PoolFactoryQueryMsg,
 ) -> Result<Binary, PoolFactoryContractError> {
 	Ok(match msg {
-		PoolFactoryQueryMsg::Config => to_json_binary(&PoolFactoryConfigJsonable::try_from(
+		PoolFactoryQueryMsg::Config {} => to_json_binary(&PoolFactoryConfigJsonable::try_from(
 			PoolFactoryConfig::load_non_empty()?.as_ref(),
 		)?)?,
 		PoolFactoryQueryMsg::PairAddr { pair } => to_json_binary(
@@ -285,7 +282,10 @@ pub fn query(
 					.iter_range(after.map(|after| after.into()), None)?
 					.map(|(pair, address)| PoolFactoryCreatedPair {
 						canonical_pair: pair.into(),
-						address: address.as_ref().try_into().expect("address stringification shouldn't fail"),
+						address: address
+							.as_ref()
+							.try_into()
+							.expect("address stringification shouldn't fail"),
 					})
 					.take(limit.unwrap_or(u32::MAX) as usize)
 					.collect::<Vec<_>>(),

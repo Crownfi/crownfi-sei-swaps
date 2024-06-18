@@ -204,28 +204,27 @@ pub fn process_provide_liquidity(
 	if mint_amount.is_zero() {
 		return Err(CrownfiSwapsCommonError::PayoutIsZero.into());
 	}
-	Ok(mint_workaround(
-		Response::new(),
-		coin(mint_amount.u128(), pool_lp_denom.clone()),
-	)?
-	.add_attributes(attr_provide_liquidity(
-		msg_info.sender.clone(),
-		receiver.clone(),
-		incoming_assets,
-		mint_amount,
-	))
-	.add_message(if let Some(receiver_payload) = receiver_payload {
-		CosmosMsg::from(WasmMsg::Execute {
-			contract_addr: receiver.into_string(),
-			msg: receiver_payload,
-			funds: vec![coin(mint_amount.u128(), pool_lp_denom)],
-		})
-	} else {
-		CosmosMsg::from(BankMsg::Send {
-			to_address: receiver.into_string(),
-			amount: vec![coin(mint_amount.u128(), pool_lp_denom)],
-		})
-	}))
+	Ok(
+		mint_workaround(Response::new(), coin(mint_amount.u128(), pool_lp_denom.clone()))?
+			.add_attributes(attr_provide_liquidity(
+				msg_info.sender.clone(),
+				receiver.clone(),
+				incoming_assets,
+				mint_amount,
+			))
+			.add_message(if let Some(receiver_payload) = receiver_payload {
+				CosmosMsg::from(WasmMsg::Execute {
+					contract_addr: receiver.into_string(),
+					msg: receiver_payload,
+					funds: vec![coin(mint_amount.u128(), pool_lp_denom)],
+				})
+			} else {
+				CosmosMsg::from(BankMsg::Send {
+					to_address: receiver.into_string(),
+					amount: vec![coin(mint_amount.u128(), pool_lp_denom)],
+				})
+			}),
+	)
 }
 
 pub fn process_withdraw_liquidity(
@@ -251,27 +250,25 @@ pub fn process_withdraw_liquidity(
 	if refund_assets[0].amount.is_zero() || refund_assets[1].amount.is_zero() {
 		return Err(CrownfiSwapsCommonError::PayoutIsZero.into());
 	}
-	Ok(
-		burn_token_workaround(Response::new(), msg_info.funds[0].clone())?
-			.add_attributes(attr_withdraw_liquidity(
-				msg_info.sender,
-				receiver.clone(),
-				withdrawn_share_amount,
-				[&refund_assets[0], &refund_assets[1]],
-			))
-			.add_message(if let Some(receiver_payload) = receiver_payload {
-				CosmosMsg::from(WasmMsg::Execute {
-					contract_addr: receiver.into_string(),
-					msg: receiver_payload,
-					funds: refund_assets.into(),
-				})
-			} else {
-				CosmosMsg::from(BankMsg::Send {
-					to_address: receiver.into_string(),
-					amount: refund_assets.into(),
-				})
-			}),
-	)
+	Ok(burn_token_workaround(Response::new(), msg_info.funds[0].clone())?
+		.add_attributes(attr_withdraw_liquidity(
+			msg_info.sender,
+			receiver.clone(),
+			withdrawn_share_amount,
+			[&refund_assets[0], &refund_assets[1]],
+		))
+		.add_message(if let Some(receiver_payload) = receiver_payload {
+			CosmosMsg::from(WasmMsg::Execute {
+				contract_addr: receiver.into_string(),
+				msg: receiver_payload,
+				funds: refund_assets.into(),
+			})
+		} else {
+			CosmosMsg::from(BankMsg::Send {
+				to_address: receiver.into_string(),
+				amount: refund_assets.into(),
+			})
+		}))
 }
 
 pub fn process_withdraw_and_split_liquidity(
@@ -300,39 +297,37 @@ pub fn process_withdraw_and_split_liquidity(
 	if refund_assets[0].amount.is_zero() || refund_assets[1].amount.is_zero() {
 		return Err(CrownfiSwapsCommonError::PayoutIsZero.into());
 	}
-	Ok(
-		burn_token_workaround(Response::new(), msg_info.funds[0].clone())?
-			.add_attributes(attr_withdraw_and_split_liquidity(
-				msg_info.sender,
-				[&left_receiver, &right_receiver],
-				withdrawn_share_amount,
-				[&refund_assets[0], &refund_assets[1]],
-			))
-			.add_message(if let Some(receiver_payload) = left_receiver_payload {
-				CosmosMsg::from(WasmMsg::Execute {
-					contract_addr: left_receiver.into_string(),
-					msg: receiver_payload,
-					funds: refund_assets[0..1].into(),
-				})
-			} else {
-				CosmosMsg::from(BankMsg::Send {
-					to_address: left_receiver.into_string(),
-					amount: refund_assets[0..1].into(),
-				})
+	Ok(burn_token_workaround(Response::new(), msg_info.funds[0].clone())?
+		.add_attributes(attr_withdraw_and_split_liquidity(
+			msg_info.sender,
+			[&left_receiver, &right_receiver],
+			withdrawn_share_amount,
+			[&refund_assets[0], &refund_assets[1]],
+		))
+		.add_message(if let Some(receiver_payload) = left_receiver_payload {
+			CosmosMsg::from(WasmMsg::Execute {
+				contract_addr: left_receiver.into_string(),
+				msg: receiver_payload,
+				funds: refund_assets[0..1].into(),
 			})
-			.add_message(if let Some(receiver_payload) = right_receiver_payload {
-				CosmosMsg::from(WasmMsg::Execute {
-					contract_addr: right_receiver.into_string(),
-					msg: receiver_payload,
-					funds: refund_assets[1..].into(),
-				})
-			} else {
-				CosmosMsg::from(BankMsg::Send {
-					to_address: right_receiver.into_string(),
-					amount: refund_assets[1..].into(),
-				})
-			}),
-	)
+		} else {
+			CosmosMsg::from(BankMsg::Send {
+				to_address: left_receiver.into_string(),
+				amount: refund_assets[0..1].into(),
+			})
+		})
+		.add_message(if let Some(receiver_payload) = right_receiver_payload {
+			CosmosMsg::from(WasmMsg::Execute {
+				contract_addr: right_receiver.into_string(),
+				msg: receiver_payload,
+				funds: refund_assets[1..].into(),
+			})
+		} else {
+			CosmosMsg::from(BankMsg::Send {
+				to_address: right_receiver.into_string(),
+				amount: refund_assets[1..].into(),
+			})
+		}))
 }
 
 pub fn process_swap(
@@ -415,7 +410,7 @@ pub fn process_swap(
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Result<Binary, PoolPairContractError> {
 	Ok(match msg {
-		PoolPairQueryMsg::PairDenoms => {
+		PoolPairQueryMsg::PairDenoms {} => {
 			let config = PoolPairConfig::load_non_empty()?;
 			let mut pool_id: PoolPairIdentifier = CanonicalPoolPairIdentifier::load_non_empty()?.into_inner().into();
 			if config.flags.contains(PoolPairConfigFlags::INVERSE) {
@@ -423,10 +418,10 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 			}
 			to_json_binary(&<[String; 2]>::from(pool_id))?
 		}
-		PoolPairQueryMsg::CanonicalPairDenoms => to_json_binary(&<[String; 2]>::from(
+		PoolPairQueryMsg::CanonicalPairDenoms {} => to_json_binary(&<[String; 2]>::from(
 			CanonicalPoolPairIdentifier::load_non_empty()?.into_inner(),
 		))?,
-		PoolPairQueryMsg::PairIdentifier => {
+		PoolPairQueryMsg::PairIdentifier {} => {
 			let config = PoolPairConfig::load_non_empty()?;
 			let mut pool_id: PoolPairIdentifier = CanonicalPoolPairIdentifier::load_non_empty()?.into_inner().into();
 			if config.flags.contains(PoolPairConfigFlags::INVERSE) {
@@ -434,11 +429,11 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 			}
 			to_json_binary(&pool_id.to_string())?
 		}
-		PoolPairQueryMsg::CanonicalPairIdentifier => {
+		PoolPairQueryMsg::CanonicalPairIdentifier {} => {
 			to_json_binary(&CanonicalPoolPairIdentifier::load_non_empty()?.to_string())?
 		}
-		PoolPairQueryMsg::Config => to_json_binary(&PoolPairConfigJsonable::try_from(
-			PoolPairConfig::load_non_empty()?.as_ref()
+		PoolPairQueryMsg::Config {} => to_json_binary(&PoolPairConfigJsonable::try_from(
+			PoolPairConfig::load_non_empty()?.as_ref(),
 		)?)?,
 		PoolPairQueryMsg::TotalShares => {
 			to_json_binary(&total_supply_workaround(&lp_denom(&env)))?
@@ -523,7 +518,7 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 				},
 			)?
 		}
-		PoolPairQueryMsg::TotalVolumeSum => {
+		PoolPairQueryMsg::TotalVolumeSum {} => {
 			let volume_stats = VolumeStatisticsCounter::new()?;
 			to_json_binary(&volume_stats.get_volume_all_time(env.block.time)?)?
 		}

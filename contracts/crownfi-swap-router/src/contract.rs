@@ -66,7 +66,7 @@ pub fn execute(
 			unwrapper,
 			receiver,
 		),
-		SwapRouterExecuteMsg::NextStep => process_execute_next_step(deps, msg_info),
+		SwapRouterExecuteMsg::NextStep {} => process_execute_next_step(deps, msg_info),
 	}
 }
 

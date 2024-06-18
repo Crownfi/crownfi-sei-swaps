@@ -6,6 +6,9 @@ edition = "2021"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[features]
+library = []
+
 [dependencies]
 crownfi-astro-common = { path = "../../packages/cargo/crownfi-astro-common", default-features = false }
 cw2 = { workspace = true }
