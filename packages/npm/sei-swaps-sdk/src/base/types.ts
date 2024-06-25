@@ -66,28 +66,6 @@ export type ArraySize_2Of_String = [string, string];
  */
 export type Binary = string;
 /**
- * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
- * via the `definition` "CW20WrapperExecMsg".
- */
-export type CW20WrapperExecMsg =
-  | {
-      receive: Cw20ReceiveMsg;
-    }
-  | {
-      unwrap: {
-        receiver?: Addr | null;
-      };
-    };
-/**
- * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
- * via the `definition` "CW20WrapperQueryMsg".
- */
-export type CW20WrapperQueryMsg = {
-  wrapped_denom_of: {
-    cw20: Addr;
-  };
-};
-/**
  * A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0
  *
  * The greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)
@@ -98,39 +76,9 @@ export type CW20WrapperQueryMsg = {
 export type Decimal = string;
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
- * via the `definition` "ERC20WrapperExecMsg".
- */
-export type ERC20WrapperExecMsg =
-  | {
-      wrap: {
-        amount: Uint128;
-        evm_sender: Binary;
-        recipient?: Addr | null;
-        token_addr: string;
-      };
-    }
-  | {
-      unwrap: {
-        evm_recipient: Binary;
-      };
-    };
-/**
- * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
- * via the `definition` "EmptyQuery".
- */
-export type EmptyQuery = {
-  empty: {};
-};
-/**
- * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "Nullable_Addr".
  */
 export type Nullable_Addr = Addr | null;
-/**
- * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
- * via the `definition` "Nullable_String".
- */
-export type Nullable_String = string | null;
 /**
  * This structure describes the execute messages of the contract.
  *
@@ -451,28 +399,6 @@ export interface PoolFactoryCreatedPair {
 export interface Coin {
   amount: Uint128;
   denom: string;
-  [k: string]: unknown;
-}
-/**
- * Cw20ReceiveMsg should be de/serialized under `Receive()` variant in a ExecuteMsg
- *
- * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
- * via the `definition` "Cw20ReceiveMsg".
- */
-export interface Cw20ReceiveMsg {
-  amount: Uint128;
-  msg: Binary;
-  sender: string;
-}
-/**
- * An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.
- *
- * It is designed to be expressable in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)
- *
- * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
- * via the `definition` "Empty".
- */
-export interface Empty {
   [k: string]: unknown;
 }
 /**
