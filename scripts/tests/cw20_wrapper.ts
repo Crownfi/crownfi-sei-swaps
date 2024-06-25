@@ -4,8 +4,8 @@ import fs from "node:fs/promises"
 
 import * as seicore from "@crownfi/sei-js-core"
 import * as base32 from "hi-base32"
-import { TokenWrapperContract } from "../../packages/npm/sei-swaps-sdk/src/base/token_wrapper.js"
-import { CW20WrapperExecMsg } from "../../packages/npm/sei-swaps-sdk/src/base/types.js"
+import { Cw20WrapperContract } from "../../packages/npm/token-wrapper-sdk/src/base/cw_20_wrapper.js"
+import { CW20WrapperExecMsg } from "../../packages/npm/token-wrapper-sdk/src/index.js"
 import { GasPrice } from "@cosmjs/stargate"
 
 const bail = (message: string): never => {
@@ -60,7 +60,7 @@ console.log({ token, contractAddress })
 
 const amt = get_arg()
 
-const contract = new TokenWrapperContract(client["forceGetQueryClient"](), contractAddress)
+const contract = new Cw20WrapperContract(client["forceGetQueryClient"](), contractAddress)
 const acc_canonical_addr = seicore.stringToCanonicalAddr(acc.address)
 const cw20msg = contract.executeIxCw20(Buffer.from(acc_canonical_addr), token, amt)
 

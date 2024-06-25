@@ -52,7 +52,7 @@ pub fn execute(
 				.erc20_token_info(token_addr.clone(), env.contract.address.to_string())
 				.map_err(|_| Error::InvalidERC20Contract)?;
 
-			let capped_tkn_addr = token_addr[2..].to_string();
+			let capped_tkn_addr = token_addr[2..].to_uppercase();
 			let bare_addr: [u8; 20] =
 				hex::FromHex::from_hex(&capped_tkn_addr).map_err(|_| Error::InvalidEvmAddress(token_addr.clone()))?;
 

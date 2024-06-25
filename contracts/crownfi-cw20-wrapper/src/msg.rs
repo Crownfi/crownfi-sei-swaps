@@ -10,6 +10,6 @@ pub enum CW20WrapperExecMsg {
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 pub enum CW20WrapperQueryMsg {
-	#[returns(Option<String>)]
-	WrappedDenomOf { cw20: Addr },
+	#[returns(Option<Addr>)]
+	UnwrappedAddrOf { denom: String },
 }

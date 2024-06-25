@@ -5,9 +5,9 @@ import { execFile } from "node:child_process"
 
 import * as seicore from "@crownfi/sei-js-core"
 import * as seiutils from "@crownfi/sei-utils"
-import * as ethers from "ethers"
+import ethers from "ethers"
 import { GasPrice } from "@cosmjs/stargate"
-import { ERC20WrapperExecMsg } from "../../packages/npm/sei-swaps-sdk/src/base/types.js"
+import { ERC20WrapperExecMsg } from "../../packages/npm/token-wrapper-sdk/src/index.js"
 
 const bail = (message: string): never => {
 	console.error(message)
