@@ -5,8 +5,6 @@
  * The Rust definition of the associated structs is the source of truth!!
  */
 export * from "./types.js";
-export * from "./cw_20_wrapper.js";
-export * from "./erc_20_wrapper.js";
 export * from "./pool_factory.js";
 export * from "./pool_pair.js";
 export * from "./swap_router.js";

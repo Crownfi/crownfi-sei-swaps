@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-use bpaf::Bpaf;
 use cosmwasm_std::Empty;
 use crownfi_sei_sdk_autogen::CrownfiSdkMaker;
 
@@ -19,17 +18,22 @@ enum EmptyQuery {
 
 type Void = ();
 
-#[derive(Clone, Debug, Bpaf)]
-#[bpaf(options, version)]
-struct MakeSdkOptions {
-	#[bpaf(positional("OUT_DIR"))]
-	/// The path to save the auto-generated typescript to
-	out_dir: PathBuf,
-}
-
 fn main() -> color_eyre::Result<()> {
 	color_eyre::install()?;
-	let args = make_sdk_options().run();
+
+	let curr_dir = std::env::current_dir()?;
+	let mut dist_dir = curr_dir
+		.into_iter()
+		.take_while(|x| *x != "csswap-mvp")
+		.collect::<PathBuf>();
+	dist_dir.push("csswap-mvp/packages/npm");
+
+	let mut wrapper_dist = dist_dir.clone();
+	wrapper_dist.push("token-wrapper-sdk/src/base");
+
+	let mut swaps_dist = dist_dir;
+	swaps_dist.push("sei-swaps-sdk/src/base");
+
 	CrownfiSdkMaker::new()
 		.add_contract::<PoolFactoryInstantiateMsg, PoolFactoryExecuteMsg, PoolFactoryQueryMsg, Void, Void, Void>(
 			"pool_factory",
@@ -38,9 +42,12 @@ fn main() -> color_eyre::Result<()> {
 		.add_contract::<SwapRouterInstantiateMsg, SwapRouterExecuteMsg, SwapRouterQueryMsg, Void, Void, Void>(
 			"swap_router",
 		)?
+		.generate_code(swaps_dist)?;
+
+	CrownfiSdkMaker::new()
 		.add_contract::<Void, CW20WrapperExecMsg, CW20WrapperQueryMsg, Void, Void, Void>("cw_20_wrapper")?
 		.add_contract::<Void, ERC20WrapperExecMsg, EmptyQuery, Void, Void, Void>("erc_20_wrapper")?
-		.generate_code(args.out_dir)?;
+		.generate_code(wrapper_dist)?;
 
 	Ok(())
 }
