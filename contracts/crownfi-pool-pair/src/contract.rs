@@ -435,7 +435,9 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 		PoolPairQueryMsg::Config {} => to_json_binary(&PoolPairConfigJsonable::try_from(
 			PoolPairConfig::load_non_empty()?.as_ref(),
 		)?)?,
-
+		PoolPairQueryMsg::TotalShares => {
+			to_json_binary(&total_supply_workaround(&lp_denom(&env)))?
+		}
 		PoolPairQueryMsg::ShareValue { amount } => {
 			let pool_id = CanonicalPoolPairIdentifier::load_non_empty()?;
 			let share_supply = total_supply_workaround(&lp_denom(&env));
