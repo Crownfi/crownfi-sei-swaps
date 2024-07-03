@@ -4,21 +4,24 @@
  * DO NOT MODIFY IT BY HAND.
  * The Rust definition of the associated structs is the source of truth!!
  */
-import {Addr, Binary, ERC20WrapperExecMsg, Empty, EmptyQuery, Uint128} from "./types.js";
-import {Coin} from "@cosmjs/amino";
-import {ExecuteInstruction} from "@cosmjs/cosmwasm-stargate";
-import {ContractBase} from "@crownfi/sei-utils";
+import { Addr, Binary, ERC20WrapperExecMsg, Empty, EmptyQuery, Uint128 } from "./types.js";
+import { Coin } from "@cosmjs/amino";
+import { ExecuteInstruction } from "@cosmjs/cosmwasm-stargate";
+import { ContractBase } from "@crownfi/sei-utils";
 export class Erc20WrapperContract extends ContractBase {
 	queryEmpty(): Promise<Empty> {
-		const msg = {"empty": {}} satisfies EmptyQuery;
+		const msg = { empty: {} } satisfies EmptyQuery;
 		return this.query(msg);
 	}
-	buildWrapIx(args: {"amount": Uint128, "evm_sender": Binary, "recipient"?: Addr | null, "token_addr": string}, funds?: Coin[]): ExecuteInstruction {
-		const msg = {"wrap": args} satisfies ERC20WrapperExecMsg;
+	buildWrapIx(
+		args: { amount: Uint128; evm_sender: Binary; recipient?: Addr | null; token_addr: string },
+		funds?: Coin[]
+	): ExecuteInstruction {
+		const msg = { wrap: args } satisfies ERC20WrapperExecMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildUnwrapIx(args: {"evm_recipient": Binary}, funds?: Coin[]): ExecuteInstruction {
-		const msg = {"unwrap": args} satisfies ERC20WrapperExecMsg;
+	buildUnwrapIx(args: { evm_recipient: Binary }, funds?: Coin[]): ExecuteInstruction {
+		const msg = { unwrap: args } satisfies ERC20WrapperExecMsg;
 		return this.executeIx(msg, funds);
 	}
 }

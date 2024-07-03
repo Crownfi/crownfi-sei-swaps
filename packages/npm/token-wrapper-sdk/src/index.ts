@@ -23,6 +23,6 @@
 // 	make_native_denom_erc20 = this.erc20wrapper!.make_native_denom
 // }
 
-export * from "./base"
-export * from "./cw20"
-export * from "./erc20"
+export * from "./base/index.js";
+export * from "./cw20.js";
+export * from "./erc20.js";

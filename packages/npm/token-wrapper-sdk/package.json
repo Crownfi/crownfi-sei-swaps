@@ -1,18 +1,25 @@
 {
-  "name": "token-wrapper-sdk",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@crownfi/sei-js-core": "^5.2.4",
-    "@crownfi/sei-utils": "^0.3.10",
-    "ethers": "^6.13.1",
-    "hi-base32": "^0.5.1"
-  }
+	"name": "@crownfi/token-wrapper-sdk",
+	"version": "0.0.3",
+	"main": "dist/index.js",
+	"type": "module",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"dependencies": {
+		"@cosmjs/cosmwasm-stargate": "^0.32.3",
+		"@cosmjs/stargate": "^0.32.3",
+		"@crownfi/sei-js-core": "^5.2.4",
+		"@crownfi/sei-utils": "^0.3.10",
+		"hi-base32": "^0.5.1"
+	},
+	"publishConfig": {
+		"registry": "https://npm.crownfi.io"
+	},
+	"devDependencies": {
+		"typescript": "^5.5.2"
+	}
 }
