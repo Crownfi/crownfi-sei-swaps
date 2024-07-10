@@ -5,7 +5,7 @@ import base32 from "hi-base32";
 
 import { Cw20WrapperContract } from "./base/cw_20_wrapper.js";
 import { CW20WrapperExecMsg, Nullable_Addr } from "./base/types.js";
-import { SigningClient, Amount, validate_native_denom_factory } from "./common.js";
+import { SigningClient, Amount, validate_native_denom_factory, check_native_denom_factory } from "./common.js";
 
 export class CW20TokenWrapper extends Cw20WrapperContract {
 	constructor(client: SigningClient, contract_address: string) {
@@ -18,12 +18,14 @@ export class CW20TokenWrapper extends Cw20WrapperContract {
 			.substring(0, 44)
 			.toLowerCase()}`;
 
-	validate_native_denom = validate_native_denom_factory(this.address)
+	validate_native_denom = validate_native_denom_factory(this.address);
 
-	cw20_address = (native_denom: string): Promise<Nullable_Addr> => {
-		this.validate_native_denom(native_denom)
-		return this.queryUnwrappedAddrOf({ denom: native_denom })
-	}
+	check_native_denom = check_native_denom_factory(this.address);
+
+	real_address = (native_denom: string): Promise<Nullable_Addr> => {
+		this.validate_native_denom(native_denom);
+		return this.queryUnwrappedAddrOf({ denom: native_denom });
+	};
 
 	wrap(amount: Amount, token_contract: string, sender: string, recipient?: string): ExecuteInstruction {
 		const r = recipient ?? sender;
@@ -40,7 +42,7 @@ export class CW20TokenWrapper extends Cw20WrapperContract {
 
 	unwrap(tokens: Coin[]) {
 		if (tokens.length === 0) throw new Error("Empty set of tokens being sent to contract.");
-		tokens.forEach(x => this.validate_native_denom(x.denom))
-		return this.unwrap_unchecked(tokens)
+		tokens.forEach((x) => this.validate_native_denom(x.denom));
+		return this.unwrap_unchecked(tokens);
 	}
 }

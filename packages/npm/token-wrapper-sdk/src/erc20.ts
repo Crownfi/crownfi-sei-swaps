@@ -6,7 +6,7 @@ import { EvmExecuteInstruction } from "@crownfi/sei-utils";
 
 import { ERC20WrapperExecMsg } from "./base/types.js";
 import { Erc20WrapperContract } from "./base/erc_20_wrapper.js";
-import { Amount, SigningClient, validate_native_denom_factory } from "./common.js";
+import { Amount, SigningClient, check_native_denom_factory, validate_native_denom_factory } from "./common.js";
 
 export class ERC20TokenWrapper extends Erc20WrapperContract {
 	constructor(client: SigningClient, contract_address: string) {
@@ -15,15 +15,18 @@ export class ERC20TokenWrapper extends Erc20WrapperContract {
 
 	private assert_evm_addr(values: Record<any, string>) {
 		for (const entry in values)
-			if (!seiutils.isValidEvmAddress(values[entry])) throw new Error(`Invalid EVM address for ${entry}: ${values[entry]}.`);
+			if (!seiutils.isValidEvmAddress(values[entry]))
+				throw new Error(`Invalid EVM address for ${entry}: ${values[entry]}.`);
 	}
 
 	native_denom = (addr: string): string => `factory/${this.address}/crwn${addr.replace("0x", "").toUpperCase()}`;
 
-	validate_native_denom = validate_native_denom_factory(this.address)
+	validate_native_denom = validate_native_denom_factory(this.address);
 
-	erc20_address(native_denom: string): string {
-		this.validate_native_denom(native_denom)
+	check_native_denom = check_native_denom_factory(this.address);
+
+	real_address(native_denom: string): string {
+		this.validate_native_denom(native_denom);
 		const response = "0x" + native_denom.substring(native_denom.length - 40);
 		this.assert_evm_addr({ response });
 		return response;
@@ -66,11 +69,11 @@ export class ERC20TokenWrapper extends Erc20WrapperContract {
 			unwrap: { evm_recipient: recipient },
 		} satisfies ERC20WrapperExecMsg,
 		funds: tokens,
-	})
+	});
 
 	unwrap(tokens: Coin[], recipient: string) {
 		if (tokens.length === 0) throw new Error("Empty set of tokens being sent to contract.");
-		tokens.forEach(tkn => this.validate_native_denom(tkn.denom))
+		tokens.forEach((tkn) => this.validate_native_denom(tkn.denom));
 		this.assert_evm_addr({ recipient });
 	}
 }
