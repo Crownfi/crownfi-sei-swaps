@@ -26,6 +26,8 @@ import { UnifiedDenom, UnifiedDenomPair, matchTokenKind } from "./types.js";
 import { Coin } from "@cosmjs/amino";
 import { bigIntMin } from "math-bigint";
 // import { SeiQueryClient } from "@crownfi/sei-js-core"
+import {WasmExtension} from "@cosmjs/cosmwasm-stargate";
+import {QueryClient} from "@cosmjs/stargate";
 
 export type SwapMarketDepositCalcResult = {
 	newShares: bigint;
@@ -65,7 +67,7 @@ export class SwapMarketPair {
 	// #pairKind: [TknKind, TknKind]
 	// #astroPairType: AstroPairType
 	protected constructor(
-		public readonly contract: PoolPairContract,
+		public readonly contract: PoolPairContract<QueryClient & WasmExtension>,
 		/** The amount of tokens deposited in the pool, maps with the `assets` property (Stable for 1.0) */
 		public readonly totalDeposits: [bigint, bigint],
 		makerFeeBasisPoints: number,
