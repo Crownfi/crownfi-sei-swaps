@@ -4,65 +4,72 @@
  * DO NOT MODIFY IT BY HAND.
  * The Rust definition of the associated structs is the source of truth!!
  */
-import {
-	Addr,
-	ArrayOf_PoolFactoryCreatedPair,
-	Nullable_Addr,
-	PoolFactoryConfigJsonable,
-	PoolFactoryExecuteMsg,
-	PoolFactoryQueryMsg,
-} from "./types.js";
-import { Coin } from "@cosmjs/amino";
-import { ExecuteInstruction } from "@cosmjs/cosmwasm-stargate";
-import { ContractBase } from "@crownfi/sei-utils";
-export class PoolFactoryContract extends ContractBase {
+import {Addr, ArrayOf_PoolFactoryCreatedPair, Nullable_Addr, PoolFactoryConfigJsonable, PoolFactoryExecuteMsg, PoolFactoryQueryMsg} from "./types.js";
+import {Coin} from "@cosmjs/amino";
+import {ExecuteInstruction, WasmExtension} from "@cosmjs/cosmwasm-stargate";
+import {QueryClient} from "@cosmjs/stargate";
+import {ContractBase} from "@crownfi/sei-utils";
+export class PoolFactoryContract<Q extends QueryClient & WasmExtension> extends ContractBase<Q> {
+	/** Config returns contract settings specified in the custom [`ConfigResponse`] structure. */
 	queryConfig(): Promise<PoolFactoryConfigJsonable> {
-		const msg = { config: {} } satisfies PoolFactoryQueryMsg;
+		const msg = {"config": {}} satisfies PoolFactoryQueryMsg;
 		return this.query(msg);
 	}
-	queryPairAddr(args: { pair: [string, string] }): Promise<Nullable_Addr> {
-		const msg = { pair_addr: args } satisfies PoolFactoryQueryMsg;
+	/** Gets the contract address for a pair. The result may include the inverse pair if it exists. */
+	queryPairAddr(args: {
+		"pair": [string, string]
+	}): Promise<Nullable_Addr> {
+		const msg = {"pair_addr": args} satisfies PoolFactoryQueryMsg;
 		return this.query(msg);
 	}
-	queryPairs(
-		args: { after?: [string, string]; limit?: number | null } = {}
-	): Promise<ArrayOf_PoolFactoryCreatedPair> {
-		const msg = { pairs: args } satisfies PoolFactoryQueryMsg;
+	/** Pairs returns an array of pairs and their information according to the specified parameters in `start_after` and `limit` variables. */
+	queryPairs(args: {
+		"after"?: [string, string],
+		"limit"?: number | null
+	} = {}): Promise<ArrayOf_PoolFactoryCreatedPair> {
+		const msg = {"pairs": args} satisfies PoolFactoryQueryMsg;
 		return this.query(msg);
 	}
-	buildUpdateConfigIx(
-		args: {
-			admin?: Addr | null;
-			default_maker_fee_bps?: number | null;
-			default_total_fee_bps?: number | null;
-			fee_receiver?: Addr | null;
-			pair_code_id?: number | null;
-			permissionless_pool_cration?: boolean | null;
-		} = {},
-		funds?: Coin[]
-	): ExecuteInstruction {
-		const msg = { update_config: args } satisfies PoolFactoryExecuteMsg;
+	/** UpdateConfig updates relevant code IDs */
+	buildUpdateConfigIx(args: {
+		/** The head honcho */
+		"admin"?: Addr | null,
+		/** The amount of fees (in bps) collected by the Maker contract from this pair type */
+		"default_maker_fee_bps"?: number | null,
+		/** The total fees (in bps) charged by a pair of this type */
+		"default_total_fee_bps"?: number | null,
+		/** Where to put the maker fees, set to "sei1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq703fpu" to disable. */
+		"fee_receiver"?: Addr | null,
+		/** Code to use when instantiating new pool pairs */
+		"pair_code_id"?: number | null,
+		/** If true, everyone will be able to create new trading pairs */
+		"permissionless_pool_cration"?: boolean | null
+	} = {}, funds?: Coin[]): ExecuteInstruction {
+		const msg = {"update_config": args} satisfies PoolFactoryExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildCreatePoolIx(
-		args: { initial_shares_receiver?: Addr | null; left_denom: string },
-		funds?: Coin[]
-	): ExecuteInstruction {
-		const msg = { create_pool: args } satisfies PoolFactoryExecuteMsg;
+	/** CreatePool instantiates a new pair pool contract. The pair is determined by the initial liquidity funds sent to this contract */
+	buildCreatePoolIx(args: {
+		"initial_shares_receiver"?: Addr | null,
+		/** As funds must be given in alphabetical order, this is used to determine whether or not the pair should be inversed when presented to the user */
+		"left_denom": string
+	}, funds?: Coin[]): ExecuteInstruction {
+		const msg = {"create_pool": args} satisfies PoolFactoryExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildUpdateFeesForPoolIx(
-		args: { maker_fee_bps?: number | null; pair: [string, string]; total_fee_bps?: number | null },
-		funds?: Coin[]
-	): ExecuteInstruction {
-		const msg = { update_fees_for_pool: args } satisfies PoolFactoryExecuteMsg;
+	buildUpdateFeesForPoolIx(args: {
+		"maker_fee_bps"?: number | null,
+		"pair": [string, string],
+		"total_fee_bps"?: number | null
+	}, funds?: Coin[]): ExecuteInstruction {
+		const msg = {"update_fees_for_pool": args} satisfies PoolFactoryExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildUpdateGlobalConfigForPoolIx(
-		args: { after?: [string, string]; limit?: number | null } = {},
-		funds?: Coin[]
-	): ExecuteInstruction {
-		const msg = { update_global_config_for_pool: args } satisfies PoolFactoryExecuteMsg;
+	buildUpdateGlobalConfigForPoolIx(args: {
+		"after"?: [string, string],
+		"limit"?: number | null
+	} = {}, funds?: Coin[]): ExecuteInstruction {
+		const msg = {"update_global_config_for_pool": args} satisfies PoolFactoryExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
 }

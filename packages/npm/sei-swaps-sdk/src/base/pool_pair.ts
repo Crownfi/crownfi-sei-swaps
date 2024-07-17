@@ -4,127 +4,156 @@
  * DO NOT MODIFY IT BY HAND.
  * The Rust definition of the associated structs is the source of truth!!
  */
-import {
-	Addr,
-	ArraySize_2Of_Coin,
-	ArraySize_2Of_String,
-	Binary,
-	Decimal,
-	PoolPairCalcNaiveSwapResult,
-	PoolPairCalcSwapResult,
-	PoolPairConfigJsonable,
-	PoolPairExecuteMsg,
-	PoolPairQueryMsg,
-	PoolPairQuerySimulateDepositResponse,
-	String,
-	Uint128,
-	VolumeQueryResponse,
-} from "./types.js";
-import { Coin } from "@cosmjs/amino";
-import { ExecuteInstruction } from "@cosmjs/cosmwasm-stargate";
-import { ContractBase } from "@crownfi/sei-utils";
-export class PoolPairContract extends ContractBase {
+import {Addr, ArraySize_2Of_Coin, ArraySize_2Of_String, Binary, Decimal, PoolPairCalcNaiveSwapResult, PoolPairCalcSwapResult, PoolPairConfigJsonable, PoolPairExecuteMsg, PoolPairQueryMsg, PoolPairQuerySimulateDepositResponse, String, Uint128, VolumeQueryResponse} from "./types.js";
+import {Coin} from "@cosmjs/amino";
+import {ExecuteInstruction, WasmExtension} from "@cosmjs/cosmwasm-stargate";
+import {QueryClient} from "@cosmjs/stargate";
+import {ContractBase} from "@crownfi/sei-utils";
+export class PoolPairContract<Q extends QueryClient & WasmExtension> extends ContractBase<Q> {
+	/** Returns the pair denoms as they are marketed. */
 	queryPairDenoms(): Promise<ArraySize_2Of_String> {
-		const msg = "pair_denoms" satisfies PoolPairQueryMsg;
+		const msg = {"pair_denoms": {}} satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
+	/** Returns the pair denoms as it's internally represented (Denoms are in lexicographical order). */
 	queryCanonicalPairDenoms(): Promise<ArraySize_2Of_String> {
-		const msg = "canonical_pair_denoms" satisfies PoolPairQueryMsg;
+		const msg = {"canonical_pair_denoms": {}} satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
+	/** Returns the pair identifier as it's marketed. */
 	queryPairIdentifier(): Promise<String> {
-		const msg = "pair_identifier" satisfies PoolPairQueryMsg;
+		const msg = {"pair_identifier": {}} satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
+	/** Returns the pair identifier as it's internally represented (Denoms are in lexicographical order). */
 	queryCanonicalPairIdentifier(): Promise<String> {
-		const msg = "canonical_pair_identifier" satisfies PoolPairQueryMsg;
+		const msg = {"canonical_pair_identifier": {}} satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
+	/** Config returns contract settings specified in the custom [`ConfigResponse`] structure. */
 	queryConfig(): Promise<PoolPairConfigJsonable> {
-		const msg = "config" satisfies PoolPairQueryMsg;
+		const msg = {"config": {}} satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
-	queryTotalShares(): Promise<Uint128> {
-		const msg = "total_shares" satisfies PoolPairQueryMsg;
+	/** Returns the current value of shares */
+	queryShareValue(args: {
+		"amount": Uint128
+	}): Promise<ArraySize_2Of_Coin> {
+		const msg = {"share_value": args} satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
-	queryShareValue(args: { amount: Uint128 }): Promise<ArraySize_2Of_Coin> {
-		const msg = { share_value: args } satisfies PoolPairQueryMsg;
+	/** Simulates a deposit and tells you how many pool shares you'd recieve, along with their value. */
+	querySimulateProvideLiquidity(args: {
+		"offer": [Coin, Coin]
+	}): Promise<PoolPairQuerySimulateDepositResponse> {
+		const msg = {"simulate_provide_liquidity": args} satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
-	querySimulateProvideLiquidity(args: { offer: [Coin, Coin] }): Promise<PoolPairQuerySimulateDepositResponse> {
-		const msg = { simulate_provide_liquidity: args } satisfies PoolPairQueryMsg;
+	/** Simulates a swap and tells you how much you'd get in return, the spread, and the fees involved. */
+	querySimulateSwap(args: {
+		"offer": Coin
+	}): Promise<PoolPairCalcSwapResult> {
+		const msg = {"simulate_swap": args} satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
-	querySimulateSwap(args: { offer: Coin }): Promise<PoolPairCalcSwapResult> {
-		const msg = { simulate_swap: args } satisfies PoolPairQueryMsg;
+	/** Simulates a swap assuming infinite liquidity, i.e. having no effect on the exchange rate. */
+	querySimulateNaiveSwap(args: {
+		"offer": Coin
+	}): Promise<PoolPairCalcNaiveSwapResult> {
+		const msg = {"simulate_naive_swap": args} satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
-	querySimulateNaiveSwap(args: { offer: Coin }): Promise<PoolPairCalcNaiveSwapResult> {
-		const msg = { simulate_naive_swap: args } satisfies PoolPairQueryMsg;
+	/** If past_hours is specified and is greater than 0, returns the total volume in the past specified hours. e.g. 24 means volume over the past 24 hours, updated every hour (UTC).
+
+Otherwise, returns the amount of volume since this hour started (UTC).
+
+Data older than 24 hours is not guaranteed. */
+	queryHourlyVolumeSum(args: {
+		"past_hours"?: number | null
+	} = {}): Promise<VolumeQueryResponse> {
+		const msg = {"hourly_volume_sum": args} satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
-	queryHourlyVolumeSum(args: { past_hours?: number | null } = {}): Promise<VolumeQueryResponse> {
-		const msg = { hourly_volume_sum: args } satisfies PoolPairQueryMsg;
+	/** If past_days is specified and is greater than 0, returns the total volume in the past specified days. e.g. 7 means volume over the past 7 days, updated every midnight (UTC).
+
+Otherwise, returns the amount of volume since midnight (UTC).
+
+Data older than 30 days is not guaranteed. */
+	queryDailyVolumeSum(args: {
+		"past_days"?: number | null
+	} = {}): Promise<VolumeQueryResponse> {
+		const msg = {"daily_volume_sum": args} satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
-	queryDailyVolumeSum(args: { past_days?: number | null } = {}): Promise<VolumeQueryResponse> {
-		const msg = { daily_volume_sum: args } satisfies PoolPairQueryMsg;
-		return this.query(msg);
-	}
+	/** Get the all time volume from since the first trade happened. */
 	queryTotalVolumeSum(): Promise<VolumeQueryResponse> {
-		const msg = "total_volume_sum" satisfies PoolPairQueryMsg;
+		const msg = {"total_volume_sum": {}} satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
-	buildUpdateConfigIx(
-		args: {
-			admin?: Addr | null;
-			endorsed?: boolean | null;
-			fee_receiver?: Addr | null;
-			maker_fee_bps?: number | null;
-			total_fee_bps?: number | null;
-		} = {},
-		funds?: Coin[]
-	): ExecuteInstruction {
-		const msg = { update_config: args } satisfies PoolPairExecuteMsg;
+	/** Update the pair configuration */
+	buildUpdateConfigIx(args: {
+		/** The head honcho, this is usually the factory contract */
+		"admin"?: Addr | null,
+		/** If true, this has been endorsed by the admin. */
+		"endorsed"?: boolean | null,
+		/** Where to put the maker fees, set to "sei1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq703fpu" to disable. */
+		"fee_receiver"?: Addr | null,
+		/** The amount of fees (in bps) collected by the Maker contract from this pair type */
+		"maker_fee_bps"?: number | null,
+		/** The total fees (in bps) charged by a pair of this type */
+		"total_fee_bps"?: number | null
+	} = {}, funds?: Coin[]): ExecuteInstruction {
+		const msg = {"update_config": args} satisfies PoolPairExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildProvideLiquidityIx(
-		args: { receiver?: Addr | null; receiver_payload?: Binary | null; slippage_tolerance?: Decimal | null } = {},
-		funds?: Coin[]
-	): ExecuteInstruction {
-		const msg = { provide_liquidity: args } satisfies PoolPairExecuteMsg;
+	/** ProvideLiquidity allows someone to provide liquidity in the pool */
+	buildProvideLiquidityIx(args: {
+		/** The receiver of pool share */
+		"receiver"?: Addr | null,
+		/** If the receiver is a contract, you can execute it by passing the encoded message here verbatim. */
+		"receiver_payload"?: Binary | null,
+		/** The slippage tolerance that allows liquidity provision only if the price in the pool doesn't move too much */
+		"slippage_tolerance"?: Decimal | null
+	} = {}, funds?: Coin[]): ExecuteInstruction {
+		const msg = {"provide_liquidity": args} satisfies PoolPairExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildWithdrawLiquidityIx(
-		args: { receiver?: Addr | null; receiver_payload?: Binary | null } = {},
-		funds?: Coin[]
-	): ExecuteInstruction {
-		const msg = { withdraw_liquidity: args } satisfies PoolPairExecuteMsg;
+	/** Withdraw liquidity from the pool */
+	buildWithdrawLiquidityIx(args: {
+		/** The receiver of the share value */
+		"receiver"?: Addr | null,
+		/** If the receiver is a contract, you can execute it by passing the encoded message here verbatim. */
+		"receiver_payload"?: Binary | null
+	} = {}, funds?: Coin[]): ExecuteInstruction {
+		const msg = {"withdraw_liquidity": args} satisfies PoolPairExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildWithdrawAndSplitLiquidityIx(
-		args: {
-			left_coin_receiver?: Addr | null;
-			left_coin_receiver_payload?: Binary | null;
-			right_coin_receiver?: Addr | null;
-			right_coin_receiver_payload?: Binary | null;
-		} = {},
-		funds?: Coin[]
-	): ExecuteInstruction {
-		const msg = { withdraw_and_split_liquidity: args } satisfies PoolPairExecuteMsg;
+	/** Withdraw liquidity from the pool, but also allows you to specify different destinations for both tokens. Note That the "left" and "right" coins correspond to the denoms in canonical, that is, lexicographical order. */
+	buildWithdrawAndSplitLiquidityIx(args: {
+		/** The receiver of the share value */
+		"left_coin_receiver"?: Addr | null,
+		/** If the receiver is a contract, you can execute it by passing the encoded message here verbatim. */
+		"left_coin_receiver_payload"?: Binary | null,
+		/** The receiver of the share value */
+		"right_coin_receiver"?: Addr | null,
+		/** If the receiver is a contract, you can execute it by passing the encoded message here verbatim. */
+		"right_coin_receiver_payload"?: Binary | null
+	} = {}, funds?: Coin[]): ExecuteInstruction {
+		const msg = {"withdraw_and_split_liquidity": args} satisfies PoolPairExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildSwapIx(
-		args: {
-			expected_result?: Uint128 | null;
-			receiver?: Addr | null;
-			receiver_payload?: Binary | null;
-			slippage_tolerance?: Decimal | null;
-		} = {},
-		funds?: Coin[]
-	): ExecuteInstruction {
-		const msg = { swap: args } satisfies PoolPairExecuteMsg;
+	/** Swap performs a swap in the pool */
+	buildSwapIx(args: {
+		/** The expected amount after swap, before fees are taken. By default this will be `incoming_coin * exchange_rate` */
+		"expected_result"?: Uint128 | null,
+		/** The account receiving the payout */
+		"receiver"?: Addr | null,
+		/** If the receiver is a contract, you can execute it by passing the encoded message here verbatim. */
+		"receiver_payload"?: Binary | null,
+		/** A value between 0 and 1 determining the difference tolerance between `expected_result` and the actual result of the swap before fees. e.g. 0.1 means a 10% slippage tolerance. By default this will be to 0.5%. */
+		"slippage_tolerance"?: Decimal | null
+	} = {}, funds?: Coin[]): ExecuteInstruction {
+		const msg = {"swap": args} satisfies PoolPairExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
 }
