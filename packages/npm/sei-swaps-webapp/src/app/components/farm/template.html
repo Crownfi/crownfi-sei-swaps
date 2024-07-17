@@ -3,22 +3,22 @@
 	<div class="big-chests">
 		<!-- Padding bottom 50% ? -->
 		<div>
-			CrownFi TVL:<br>
+			CrownFi TVL:<br />
 			<span cewt-ref="big-chest-tvl">⣿⣿⣿⣿</span>
 		</div>
 		<div>
-			Total Volume Traded:<br>
+			Total Volume Traded:<br />
 			<span cewt-ref="big-chest-total-traded">// TODO</span>
 		</div>
 		<div>
-			24H Volume:<br>
+			24H Volume:<br />
 			<span cewt-ref="big-chest-volume-24h">// TODO</span>
 		</div>
 	</div>
 	<div class="pool-search-options">
 		<button class="primary" cewt-ref="all-pool-btn" disabled>All Pools</button>
 		<button class="primary" cewt-ref="my-pool-btn" disabled>My Pools</button>
-		<input class="primary" type="search" cewt-ref="pool-search-text" disabled>
+		<input class="primary" type="search" cewt-ref="pool-search-text" disabled />
 	</div>
 	<div cewt-ref="pool-list" class="pool-list">
 		<div class="pool-list-headings">
@@ -28,24 +28,12 @@
 			<div class="pool-list-heading">
 				<!-- Quick hack to appease the grid gods -->
 			</div>
-			<div class="pool-list-heading">
-				Pools
-			</div>
-			<div class="pool-list-heading">
-				Exchange Rate
-			</div>
-			<div class="pool-list-heading">
-				Total Deposits
-			</div>
-			<div class="pool-list-heading">
-				Fee Rate
-			</div>
-			<div class="pool-list-heading">
-				24H Volume
-			</div>
-			<div class="pool-list-heading">
-				APY
-			</div>
+			<div class="pool-list-heading">Pools</div>
+			<div class="pool-list-heading">Exchange Rate</div>
+			<div class="pool-list-heading">Total Deposits</div>
+			<div class="pool-list-heading">Fee Rate</div>
+			<div class="pool-list-heading">24H Volume</div>
+			<div class="pool-list-heading">APY</div>
 			<div class="pool-list-heading">
 				<!-- Quick hack to appease the grid gods -->
 			</div>
@@ -56,29 +44,19 @@
 <template cewt-name="farm-pool-item" cewt-extends="div" cewt-attributes="pool">
 	<button class="pool-star" cewt-ref="btn-star" disabled></button>
 	<div class="pool-stats-icons">
-		<img cewt-ref="icon-token0" src="/assets/lazy-load.svg">
-		<img cewt-ref="icon-token1" src="/assets/lazy-load.svg">
+		<img cewt-ref="icon-token0" src="/assets/lazy-load.svg" />
+		<img cewt-ref="icon-token1" src="/assets/lazy-load.svg" />
 	</div>
-	<div class="pool-stats-name" cewt-ref="pool-name">
-		⣿⣿
-	</div>
-	<div class="pool-stat" cewt-ref="exchange-rate">
-		⣿⣿
-	</div>
+	<div class="pool-stats-name" cewt-ref="pool-name">⣿⣿</div>
+	<div class="pool-stat" cewt-ref="exchange-rate">⣿⣿</div>
 	<div class="pool-stat" cewt-ref="total-deposits">
-		⣿⣿⣿⣿<br>
+		⣿⣿⣿⣿<br />
 		⣿⣿⣿⣿
 	</div>
-	<div class="pool-stat" cewt-ref="fee-rate">
-		⣿⣿
-	</div>
-	<div class="pool-stat" cewt-ref="volume-24h">
-		⣿⣿⣿⣿
-	</div>
-	<div class="pool-stat" cewt-ref="apy">
-		⣿⣿
-	</div>
-	
+	<div class="pool-stat" cewt-ref="fee-rate">⣿⣿</div>
+	<div class="pool-stat" cewt-ref="volume-24h">⣿⣿⣿⣿</div>
+	<div class="pool-stat" cewt-ref="apy">⣿⣿</div>
+
 	<button class="pool-expand" cewt-ref="btn-expand" disabled></button>
 </template>
 
@@ -113,40 +91,41 @@
 	<form cewt-ref="form" class="dialog-trade-form" method="dialog">
 		<h2>Deposit type:</h2>
 		<div class="trade-type-options">
-			<label class="toggle-button"><input name="deposit-type" value="current" checked type="radio"><span>Current rate</span></label>
-			<label class="toggle-button"><input name="deposit-type" value="imbalanced" disabled type="radio"><span>Custom amounts</span></label>
+			<label class="toggle-button"
+				><input name="deposit-type" value="current" checked type="radio" /><span>Current rate</span></label
+			>
+			<label class="toggle-button"
+				><input name="deposit-type" value="imbalanced" disabled type="radio" /><span
+					>Custom amounts</span
+				></label
+			>
 		</div>
 
 		<h2>Spending:</h2>
 		<label class="trade-amount-input">
-			<input type="number" min="1" name="amount0">
+			<input type="number" min="1" name="amount0" />
 			<span class="trade-amount-denom" cewt-ref="denom-token0">Token0</span>
 		</label>
-		<div class="trade-amount-balance">
-			Current balance: <span cewt-ref="balance-token0"></span>
-		</div>
+		<div class="trade-amount-balance">Current balance: <span cewt-ref="balance-token0"></span></div>
 		<label class="trade-amount-input">
-			<input type="number" min="1" name="amount1">
+			<input type="number" min="1" name="amount1" />
 			<span class="trade-amount-denom" cewt-ref="denom-token1">Token1</span>
 		</label>
-		<div class="trade-amount-balance">
-			Current balance: <span cewt-ref="balance-token1"></span>
-		</div>
+		<div class="trade-amount-balance">Current balance: <span cewt-ref="balance-token1"></span></div>
 
 		<div class="trade-warning" cewt-ref="trade-warning">
-			Note: <span cewt-ref="implicit-trade-from">-</span> will be swapped to <span cewt-ref="implicit-trade-to">-</span> during deposit.
+			Note: <span cewt-ref="implicit-trade-from">-</span> will be swapped to
+			<span cewt-ref="implicit-trade-to">-</span> during deposit.
 		</div>
 
 		<h2>Recieving</h2>
 		<label class="trade-amount-input">
-			<input type="number" min="1" name="result">
+			<input type="number" min="1" name="result" />
 			<span class="trade-amount-denom" cewt-ref="denom-result">Shares</span>
 		</label>
-		<div class="trade-amount-balance">
-			Current balance: <span cewt-ref="balance-result"></span>
-		</div>
-		
-		<input type="hidden" name="pool">
+		<div class="trade-amount-balance">Current balance: <span cewt-ref="balance-result"></span></div>
+
+		<input type="hidden" name="pool" />
 		<button class="primary trade-execute">Deposit</button>
 		<button cewt-ref="btn-cancel">Cancel</button>
 	</form>
@@ -156,19 +135,17 @@
 	<h1>Withdraw</h1>
 	<form cewt-ref="form" class="dialog-trade-form" method="dialog">
 		<label class="trade-amount-input">
-			<input type="number" min="1" class="form-control" name="amount">
+			<input type="number" min="1" class="form-control" name="amount" />
 			<span class="trade-amount-denom" cewt-ref="denom">Shares</span>
 		</label>
-		<div class="trade-amount-balance">
-			Current shares: <span cewt-ref="balance"></span>
-		</div>
+		<div class="trade-amount-balance">Current shares: <span cewt-ref="balance"></span></div>
 
 		<div class="trade-result">
-			You recieve: <br>
+			You recieve: <br />
 			&nbsp;<span cewt-ref="trade-result-token0">0</span> + <span cewt-ref="trade-result-token1">0</span>
 		</div>
-		
-		<input type="hidden" name="pool">
+
+		<input type="hidden" name="pool" />
 		<button class="primary trade-execute">Withdraw</button>
 		<button cewt-ref="btn-cancel">Cancel</button>
 	</form>

@@ -1,9 +1,7 @@
-<template cewt-name="wallet-button" cewt-extends="button" cewt-attributes="wallet-address">
-	Connect wallet
-</template>
+<template cewt-name="wallet-button" cewt-extends="button" cewt-attributes="wallet-address"> Connect wallet </template>
 
 <template cewt-name="wallet-choice" cewt-extends="button" cewt-attributes="text, icon">
-	<img src="/assets/lazy-load.svg" cewt-ref="img">
+	<img src="/assets/lazy-load.svg" cewt-ref="img" />
 	<span cewt-ref="text">Generiwallet</span>
 </template>
 
@@ -14,8 +12,6 @@
 		<option value="atlantic-2">Testnet (atlantic-2)</option>
 		<option value="sei-chain">Localnet (sei-chain)</option>
 	</select>
-	<div cewt-ref="choices" class="wallet-choices">
-
-	</div>
+	<div cewt-ref="choices" class="wallet-choices"></div>
 	<button cewt-ref="cancel-button">Cancel</button>
 </template>

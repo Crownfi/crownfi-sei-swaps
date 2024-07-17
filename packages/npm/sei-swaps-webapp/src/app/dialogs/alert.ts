@@ -4,7 +4,7 @@ import { PopupModalAutogen } from "./_autogen.js";
 class PopupModalElement extends PopupModalAutogen {
 	untilClosed: Promise<void>;
 	private untilCloseCallback: () => void;
-	constructor(content?: {heading: string, message: string}){
+	constructor(content?: { heading: string; message: string }) {
 		super();
 		if (content) {
 			// content will be undefined if the element was already added to the DOM before it was registered
@@ -12,13 +12,15 @@ class PopupModalElement extends PopupModalAutogen {
 			this.message = content.message;
 		}
 		this.untilCloseCallback = () => {}; // Gotta satisfy TS until 2 lines down
-		this.untilClosed = new Promise(resolve => {
+		this.untilClosed = new Promise((resolve) => {
 			this.untilCloseCallback = resolve;
 		});
 		this.addEventListener("close", (ev) => {
 			this.remove();
 		});
-		this.refs.dismissBtn.onclick = () => {this.close()};
+		this.refs.dismissBtn.onclick = () => {
+			this.close();
+		};
 	}
 	protected onHeadingChanged(oldValue: string | null, newValue: string | null) {
 		this.refs.heading.innerText = newValue + "";
@@ -31,7 +33,7 @@ class PopupModalElement extends PopupModalAutogen {
 	}
 	disconnectedCallback() {
 		this.untilCloseCallback();
-		this.untilClosed = new Promise(resolve => {
+		this.untilClosed = new Promise((resolve) => {
 			this.untilCloseCallback = resolve;
 		});
 	}
@@ -39,10 +41,9 @@ class PopupModalElement extends PopupModalAutogen {
 PopupModalElement.registerElement();
 
 export async function alert(heading: string, message: string) {
-
 	const newModal = new PopupModalElement({
 		heading,
-		message
+		message,
 	});
 	document.body.appendChild(newModal);
 	await newModal.untilClosed;

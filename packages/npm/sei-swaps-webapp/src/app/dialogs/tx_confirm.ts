@@ -5,7 +5,7 @@ import { TxConfirmedModalAutogen } from "./_autogen.js";
 class PopupModalElement extends TxConfirmedModalAutogen {
 	untilClosed: Promise<void>;
 	#untilCloseCallback: () => void;
-	constructor(content?: {chain: string, txhash: string}){
+	constructor(content?: { chain: string; txhash: string }) {
 		super();
 		if (content) {
 			// content will be undefined if the element was already added to the DOM before it was registered
@@ -13,13 +13,15 @@ class PopupModalElement extends TxConfirmedModalAutogen {
 			this.txhash = content.txhash;
 		}
 		this.#untilCloseCallback = () => {}; // Gotta satisfy TS until 2 lines down
-		this.untilClosed = new Promise(resolve => {
+		this.untilClosed = new Promise((resolve) => {
 			this.#untilCloseCallback = resolve;
 		});
 		this.addEventListener("close", (ev) => {
 			this.remove();
 		});
-		this.refs.dismissBtn.onclick = () => {this.close()};
+		this.refs.dismissBtn.onclick = () => {
+			this.close();
+		};
 	}
 	protected onChainChanged(oldValue: string | null, newValue: string | null) {
 		this.#updateLink();
@@ -28,18 +30,16 @@ class PopupModalElement extends TxConfirmedModalAutogen {
 		this.#updateLink();
 	}
 	#updateLink() {
-		this.refs.txLink.href =`https://www.seiscan.app/${
-			encodeURIComponent(this.chain + "")
-		}/txs/${
-			encodeURIComponent(this.txhash + "")
-		}`;
+		this.refs.txLink.href = `https://www.seiscan.app/${encodeURIComponent(
+			this.chain + ""
+		)}/txs/${encodeURIComponent(this.txhash + "")}`;
 	}
 	connectedCallback() {
 		this.showModal();
 	}
 	disconnectedCallback() {
 		this.#untilCloseCallback();
-		this.untilClosed = new Promise(resolve => {
+		this.untilClosed = new Promise((resolve) => {
 			this.#untilCloseCallback = resolve;
 		});
 	}
@@ -49,7 +49,7 @@ PopupModalElement.registerElement();
 seiUtilEventEmitter.on("transactionConfirmed", (ev) => {
 	const newModal = new PopupModalElement({
 		chain: ev.chainId,
-		txhash: ev.result.transactionHash
+		txhash: ev.result.transactionHash,
 	});
 	document.body.appendChild(newModal);
 });

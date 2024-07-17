@@ -8,7 +8,7 @@ export class SwapComponentRefs {
 	#form?: HTMLFormElementKnownControls<SwapComponentFormCollection1, SwapComponentFormValues1>;
 	get form() {
 		if (this.#form === undefined) {
-			this.#form = this.#element.querySelector("[cewt-ref=\"form\"]:not(:scope [is] *)")!;
+			this.#form = this.#element.querySelector('[cewt-ref="form"]:not(:scope [is] *)')!;
 			this.#form.values = normalizeFormValues.bind(this.#form, this.#form);
 		}
 		return this.#form;
@@ -16,63 +16,63 @@ export class SwapComponentRefs {
 	#inBalance?: HTMLSpanElement;
 	get inBalance() {
 		if (this.#inBalance === undefined) {
-			this.#inBalance = this.#element.querySelector("[cewt-ref=\"in-balance\"]:not(:scope [is] *)")!;
+			this.#inBalance = this.#element.querySelector('[cewt-ref="in-balance"]:not(:scope [is] *)')!;
 		}
 		return this.#inBalance;
 	}
 	#inIcon?: HTMLImageElement;
 	get inIcon() {
 		if (this.#inIcon === undefined) {
-			this.#inIcon = this.#element.querySelector("[cewt-ref=\"in-icon\"]:not(:scope [is] *)")!;
+			this.#inIcon = this.#element.querySelector('[cewt-ref="in-icon"]:not(:scope [is] *)')!;
 		}
 		return this.#inIcon;
 	}
 	#btnInMax?: HTMLButtonElement;
 	get btnInMax() {
 		if (this.#btnInMax === undefined) {
-			this.#btnInMax = this.#element.querySelector("[cewt-ref=\"btn-in-max\"]:not(:scope [is] *)")!;
+			this.#btnInMax = this.#element.querySelector('[cewt-ref="btn-in-max"]:not(:scope [is] *)')!;
 		}
 		return this.#btnInMax;
 	}
 	#btnInHalf?: HTMLButtonElement;
 	get btnInHalf() {
 		if (this.#btnInHalf === undefined) {
-			this.#btnInHalf = this.#element.querySelector("[cewt-ref=\"btn-in-half\"]:not(:scope [is] *)")!;
+			this.#btnInHalf = this.#element.querySelector('[cewt-ref="btn-in-half"]:not(:scope [is] *)')!;
 		}
 		return this.#btnInHalf;
 	}
 	#inError?: HTMLDivElement;
 	get inError() {
 		if (this.#inError === undefined) {
-			this.#inError = this.#element.querySelector("[cewt-ref=\"in-error\"]:not(:scope [is] *)")!;
+			this.#inError = this.#element.querySelector('[cewt-ref="in-error"]:not(:scope [is] *)')!;
 		}
 		return this.#inError;
 	}
 	#outBalance?: HTMLSpanElement;
 	get outBalance() {
 		if (this.#outBalance === undefined) {
-			this.#outBalance = this.#element.querySelector("[cewt-ref=\"out-balance\"]:not(:scope [is] *)")!;
+			this.#outBalance = this.#element.querySelector('[cewt-ref="out-balance"]:not(:scope [is] *)')!;
 		}
 		return this.#outBalance;
 	}
 	#outIcon?: HTMLImageElement;
 	get outIcon() {
 		if (this.#outIcon === undefined) {
-			this.#outIcon = this.#element.querySelector("[cewt-ref=\"out-icon\"]:not(:scope [is] *)")!;
+			this.#outIcon = this.#element.querySelector('[cewt-ref="out-icon"]:not(:scope [is] *)')!;
 		}
 		return this.#outIcon;
 	}
 	#outError?: HTMLDivElement;
 	get outError() {
 		if (this.#outError === undefined) {
-			this.#outError = this.#element.querySelector("[cewt-ref=\"out-error\"]:not(:scope [is] *)")!;
+			this.#outError = this.#element.querySelector('[cewt-ref="out-error"]:not(:scope [is] *)')!;
 		}
 		return this.#outError;
 	}
 	#btnSwap?: HTMLButtonElement;
 	get btnSwap() {
 		if (this.#btnSwap === undefined) {
-			this.#btnSwap = this.#element.querySelector("[cewt-ref=\"btn-swap\"]:not(:scope [is] *)")!;
+			this.#btnSwap = this.#element.querySelector('[cewt-ref="btn-swap"]:not(:scope [is] *)')!;
 		}
 		return this.#btnSwap;
 	}
@@ -80,8 +80,9 @@ export class SwapComponentRefs {
 let _templateSwapComponent: HTMLTemplateElement | null = null;
 function getSwapComponentTemplate(): HTMLTemplateElement {
 	if (_templateSwapComponent == null) {
-		 _templateSwapComponent = document.createElement("template")
-		 _templateSwapComponent.innerHTML = "\n\t<p>\n\t\tHail, noble traders and crypto enthusiasts! We bid thee welcome to the grand realm of Crownfi Swaps, where the\n\t\tart of swapping digital treasures is elevated to a level befitting kings and queens.\n\t</p>\n\t<form cewt-ref=\"form\" class=\"swap-inner\">\n\t\t<div class=\"swap-coin\">\n\t\t\t<div class=\"left-right-text\">\n\t\t\t\t<span>From</span>\n\t\t\t\t<span>Balance: <span cewt-ref=\"in-balance\">[Unknown]</span></span>\n\t\t\t</div>\n\t\t\t<div class=\"swap-coin-inputs\">\n\t\t\t\t<img cewt-ref=\"in-icon\" class=\"swap-coin-icon\" src=\"/assets/placeholder.svg\">\n\t\t\t\t<!-- Defined at runtime -->\n\t\t\t\t<select is=\"select-changes\" name=\"in-token\"></select>\n\t\t\t\t<button cewt-ref=\"btn-in-max\">Max</button>\n\t\t\t\t<button cewt-ref=\"btn-in-half\">Half</button>\n\t\t\t\t<input type=\"number\" name=\"in-amount\">\n\t\t\t</div>\n\t\t\t<div class=\"input-error\" cewt-ref=\"in-error\"></div>\n\t\t</div>\n\t\t<img src=\"/assets/swaps-swords.svg\">\n\t\t<div class=\"swap-coin\">\n\t\t\t<div class=\"left-right-text\">\n\t\t\t\t<span>To</span>\n\t\t\t\t<span>Balance: <span cewt-ref=\"out-balance\">[Unknown]</span></span>\n\t\t\t</div>\n\t\t\t<div class=\"swap-coin-inputs\">\n\t\t\t\t<img src=\"/assets/placeholder.svg\" cewt-ref=\"out-icon\" class=\"swap-coin-icon\">\n\t\t\t\t<!-- Defined at runtime -->\n\t\t\t\t<select is=\"select-changes\" name=\"out-token\"></select>\n\t\t\t\t<input name=\"out-amount\" readonly=\"\" type=\"number\">\n\t\t\t</div>\n\t\t\t<div class=\"input-error\" cewt-ref=\"out-error\"></div>\n\t\t</div>\n\t\t<button class=\"primary\" disabled=\"\" ,=\"\" cewt-ref=\"btn-swap\">Swap</button>\n\t</form>\n\t<img class=\"seal\" src=\"/assets/seal.svg\">\n";
+		_templateSwapComponent = document.createElement("template");
+		_templateSwapComponent.innerHTML =
+			'\n\t<p>\n\t\tHail, noble traders and crypto enthusiasts! We bid thee welcome to the grand realm of Crownfi Swaps, where the\n\t\tart of swapping digital treasures is elevated to a level befitting kings and queens.\n\t</p>\n\t<form cewt-ref="form" class="swap-inner">\n\t\t<div class="swap-coin">\n\t\t\t<div class="left-right-text">\n\t\t\t\t<span>From</span>\n\t\t\t\t<span>Balance: <span cewt-ref="in-balance">[Unknown]</span></span>\n\t\t\t</div>\n\t\t\t<div class="swap-coin-inputs">\n\t\t\t\t<img cewt-ref="in-icon" class="swap-coin-icon" src="/assets/placeholder.svg">\n\t\t\t\t<!-- Defined at runtime -->\n\t\t\t\t<select is="select-changes" name="in-token"></select>\n\t\t\t\t<button cewt-ref="btn-in-max">Max</button>\n\t\t\t\t<button cewt-ref="btn-in-half">Half</button>\n\t\t\t\t<input type="number" name="in-amount">\n\t\t\t</div>\n\t\t\t<div class="input-error" cewt-ref="in-error"></div>\n\t\t</div>\n\t\t<img src="/assets/swaps-swords.svg">\n\t\t<div class="swap-coin">\n\t\t\t<div class="left-right-text">\n\t\t\t\t<span>To</span>\n\t\t\t\t<span>Balance: <span cewt-ref="out-balance">[Unknown]</span></span>\n\t\t\t</div>\n\t\t\t<div class="swap-coin-inputs">\n\t\t\t\t<img src="/assets/placeholder.svg" cewt-ref="out-icon" class="swap-coin-icon">\n\t\t\t\t<!-- Defined at runtime -->\n\t\t\t\t<select is="select-changes" name="out-token"></select>\n\t\t\t\t<input name="out-amount" readonly="" type="number">\n\t\t\t</div>\n\t\t\t<div class="input-error" cewt-ref="out-error"></div>\n\t\t</div>\n\t\t<button class="primary" disabled="" ,="" cewt-ref="btn-swap">Swap</button>\n\t</form>\n\t<img class="seal" src="/assets/seal.svg">\n';
 	}
 	return _templateSwapComponent;
 }
@@ -90,11 +91,7 @@ export class SwapComponentAutogen extends HTMLDivElement {
 	constructor() {
 		super();
 		if (this.childElementCount == 0) {
-			this.appendChild(
-				getSwapComponentTemplate()
-					.content
-					.cloneNode(true)
-			);
+			this.appendChild(getSwapComponentTemplate().content.cloneNode(true));
 		}
 		this.setAttribute("is", "swap-component"); // allow for easy query selecting
 		this.refs = new SwapComponentRefs(this);
@@ -109,7 +106,7 @@ export class SwapComponentAutogen extends HTMLDivElement {
 		// To be overridden by child class
 	}
 	public static registerElement() {
-		customElements.define("swap-component", this, { extends: "div"});
+		customElements.define("swap-component", this, { extends: "div" });
 	}
 }
 export type SwapComponentFormCollection1 = HTMLFormControlsCollection & {
@@ -131,7 +128,7 @@ export type SwapComponentFormValues1 = {
 interface HTMLFormElementKnownControls<C extends HTMLFormControlsCollection, V> extends HTMLFormElement {
 	readonly elements: C;
 	values: () => V;
-};
+}
 
 // TODO: Make this part of a util lib instead of part of the autogen
 export function normalizeFormValues(source: HTMLFormElement | SubmitEvent): any {
@@ -150,8 +147,8 @@ export function normalizeFormValues(source: HTMLFormElement | SubmitEvent): any 
 					result[formControl.name] = formControl.value;
 				}
 			}
-		}else if (formControl instanceof HTMLInputElement) {
-			switch(formControl.type) {
+		} else if (formControl instanceof HTMLInputElement) {
+			switch (formControl.type) {
 				case "checkbox": {
 					result[formControl.name] = formControl.checked;
 					break;
@@ -179,7 +176,7 @@ export function normalizeFormValues(source: HTMLFormElement | SubmitEvent): any 
 				default:
 					result[formControl.name] = formControl.value;
 			}
-		}else if (
+		} else if (
 			formControl instanceof HTMLOutputElement ||
 			formControl instanceof HTMLSelectElement ||
 			formControl instanceof HTMLTextAreaElement

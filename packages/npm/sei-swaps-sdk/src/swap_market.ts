@@ -1,165 +1,172 @@
 import { CosmWasmClient, ExecuteInstruction } from "@cosmjs/cosmwasm-stargate";
-import { AstroFactoryContract, AstroPairContract } from "./index.js"
+import {
+	PoolPairContract,
+	PoolFactoryContract,
+	PoolFactoryConfigJsonable,
+	Uint128,
+	SwapRouterContract,
+} from "./index.js";
 import { Addr, ClientEnv, getBalanceChangesFor, getUserTokenInfo, updateUserTokenInfo } from "@crownfi/sei-utils";
-import { amountWithDenomToAstroAsset, astroAssetInfoToUniDenom, astroAssetToAmountWithDenom, uniDenomToAstroAssetInfo } from "./astro_legacy_conversions.js";
-import { Asset, AstroFactoryConfigResponse, AstroPairPoolResponse, AstroPairType, AstroRouterContract, PairInfo } from "./base/index.js";
-import { UnifiedDenom, UnifiedDenomPair, matchIfCW20Token } from "./types.js";
+import {
+	amountWithDenomToAstroAsset,
+	astroAssetInfoToUniDenom,
+	astroAssetToAmountWithDenom,
+	uniDenomToAstroAssetInfo,
+} from "./astro_legacy_conversions.js";
+import {
+	Asset,
+	AstroFactoryConfigResponse,
+	AstroPairContract,
+	AstroPairPoolResponse,
+	AstroPairType,
+	AstroRouterContract,
+	PairInfo,
+} from "./base/index.js";
+import { UnifiedDenom, UnifiedDenomPair, matchTokenKind } from "./types.js";
 import { Coin } from "@cosmjs/amino";
 import { bigIntMin } from "math-bigint";
-
+// import { SeiQueryClient } from "@crownfi/sei-js-core"
 
 export type SwapMarketDepositCalcResult = {
-	newShares: bigint,
-	newShareValue: [[bigint, UnifiedDenom], [bigint, UnifiedDenom]]
-}
+	newShares: bigint;
+	newShareValue: [[bigint, UnifiedDenom], [bigint, UnifiedDenom]];
+};
 
 export class SwapMarketPair {
-	readonly contract: AstroPairContract
 	/** Name of the pair (Stable for 1.0) */
-	readonly name: string
+	readonly name: string;
 	/** The assets in the pair (Stable for 1.0) */
-	readonly assets: UnifiedDenomPair
-	/** The amount of tokens deposited in the pool, maps with the `assets` property (Stable for 1.0) */
-	readonly totalDeposits: [bigint, bigint]
+	readonly assets: UnifiedDenomPair;
 	/** Maker fee in basis points. 10000‱ = 100% (Stable for 1.0) */
-	get makerFeeBasisPoints() {return this.#makerFeeBasisPoints}
-	#makerFeeBasisPoints: number
+	get makerFeeBasisPoints() {
+		return this.#makerFeeBasisPoints;
+	}
+	#makerFeeBasisPoints: number;
 	/** Pool fee in basis points. 10000‱ = 100% (Stable for 1.0) */
-	get poolFeeBasisPoints() {return this.#poolFeeBasisPoints}
-	#poolFeeBasisPoints: number
+	get poolFeeBasisPoints() {
+		return this.#poolFeeBasisPoints;
+	}
+	#poolFeeBasisPoints: number;
 	/** The denom of the shares */
-	get sharesDenom() {return this.#sharesDenom}
-	#sharesDenom: UnifiedDenom
+	// get sharesDenom() {
+	// 	return this.#sharesDenom;
+	// }
+	// #sharesDenom: UnifiedDenom;
 	/** The denom of the shares */
-	get totalShares() {return this.#totalShares}
-	#totalShares: bigint
+	get totalShares() {
+		return this.#totalShares;
+	}
+	#totalShares: bigint;
 	/** Total fee. (Stable for 1.0) */
 	get totalFeeBasisPoints() {
 		return this.makerFeeBasisPoints + this.poolFeeBasisPoints;
 	}
 
-	#astroPairType: AstroPairType
-	constructor(
-		contract: AstroPairContract,
-		factoryConfig: AstroFactoryConfigResponse,
-		pairInfo: PairInfo,
-		poolInfo: AstroPairPoolResponse
+	// #pairKind: [TknKind, TknKind]
+	// #astroPairType: AstroPairType
+	protected constructor(
+		public readonly contract: PoolPairContract,
+		/** The amount of tokens deposited in the pool, maps with the `assets` property (Stable for 1.0) */
+		public readonly totalDeposits: [bigint, bigint],
+		makerFeeBasisPoints: number,
+		poolFeeBasisPoints: number,
+		// factoryConfig: PoolFactoryConfigJsonable,
+		// pairInfo: UnifiedDenomPair,
+		poolInfo: { assets: UnifiedDenomPair; total_shares: Uint128 }
 	) {
-		this.contract = contract;
-		this.assets = (poolInfo.assets as [Asset, Asset])
-			// You'd think that the .map type definition would account for fixed-length arrays, but nope.
-			.map(asset => astroAssetInfoToUniDenom(asset.info)) as [UnifiedDenom, UnifiedDenom];
-		this.totalDeposits = (poolInfo.assets as [Asset, Asset])
-			.map(asset => BigInt(asset.amount)) as [bigint, bigint];
-		this.name = this.assets.map(denom => getUserTokenInfo(denom).symbol).join("-");
-		
-		this.#astroPairType = pairInfo.pair_type;
-		this.#sharesDenom = "cw20/" + pairInfo.liquidity_token;
-		this.#totalShares = BigInt(poolInfo.total_share);
-		const factoryPairConfig = factoryConfig.pair_configs.find(v => {
-			// Ugh, the "single property with empty object" convention for rust handling Rust enums sucks.
-			// Can't wait until we migrate away from astroport-derived contracts...
-			return JSON.stringify(v.pair_type) == JSON.stringify(this.#astroPairType);
-		});
-		if (factoryPairConfig === undefined) {
-			// Some assertion
-			throw new Error("Couln't find factoryPairConfig " + JSON.stringify(this.#astroPairType) + " in " + JSON.stringify(factoryConfig.pair_configs));
-		}
-		this.#makerFeeBasisPoints = factoryPairConfig.maker_fee_bps;
-		this.#poolFeeBasisPoints = factoryPairConfig.total_fee_bps - factoryPairConfig.maker_fee_bps;
+		// this.totalDeposits = totalDeposits
+		this.assets = poolInfo.assets;
+		this.#poolFeeBasisPoints = poolFeeBasisPoints;
+		this.#makerFeeBasisPoints = makerFeeBasisPoints;
+		this.#totalShares = 0n;
+		this.name = this.assets.map((denom) => getUserTokenInfo(denom).symbol).join("-");
+
+		// this.totalDeposits = poolInfo.assets.map((asset) => BigInt(asset)) as [bigint, bigint];
+
+		// this.#astroPairType = pairInfo.pair_type;
+		// this.#sharesDenom = "cw20/" + pairInfo.liquidity_token;
+		// this.#totalShares = BigInt(poolInfo.total_share);
+		// const factoryPairConfig = factoryConfig.pair_configs.find((v) => {
+		// 	// Ugh, the "single property with empty object" convention for rust handling Rust enums sucks.
+		// 	// Can't wait until we migrate away from astroport-derived contracts...
+		// 	return JSON.stringify(v.pair_type) == JSON.stringify(this.#astroPairType);
+		// });
+		// if (factoryPairConfig === undefined) {
+		// 	// Some assertion
+		// 	throw new Error(
+		// 		"Couln't find factoryPairConfig " +
+		// 		JSON.stringify(this.#astroPairType) +
+		// 		" in " +
+		// 		JSON.stringify(factoryConfig.pair_configs)
+		// 	);
+		// }
+
+		// this.#makerFeeBasisPoints = factoryConfig.default_maker_fee_bps;
+		// this.#poolFeeBasisPoints = factoryConfig.default_total_fee_bps - factoryConfig.default_maker_fee_bps;
 	}
 	/**
 	 * Resolves the promise if the factory contract is compatible with this library.
 	 * Otherwise, the promise is rejected with a `ContractVersionNotSatisfiedError`.
-	 * 
+	 *
 	 * Stable for `1.0`
 	 */
 	async checkVersion() {
 		await this.contract.checkVersion({
 			"astroport-pair": "^1.4",
-			"crownfi-astro-pair": "^0.9"
+			"crownfi-astro-pair": "^0.9",
 		});
-	}
-	/**
-	 * Used for bulk-refreshing multiple pools
-	 * @internal
-	 */
-	async _refresh(factoryConfig: AstroFactoryConfigResponse) {
-		const poolInfo = await this.contract.queryPool();
-		if (poolInfo.assets.length != 2) {
-			// This should never happen...
-			// but the contract uses a Vec<Asset> instead of an [Asset; 2] so here we are
-			throw new Error("The pool \"pair\" should contain 2 assets.");
-		}
-		const poolInfoAssets = poolInfo.assets as [Asset, Asset];
-		for (let i = 0; i < poolInfoAssets.length; i += 1) {
-			const [amount, denom] = astroAssetToAmountWithDenom(poolInfo.assets[i]);
-			if (this.assets[i] != denom) {
-				throw new Error("The pair somehow changed the asset it was containing")
-			}
-			this.totalDeposits[i] = amount;
-		}
-		this.#totalShares = BigInt(poolInfo.total_share);
-
-		const factoryPairConfig = factoryConfig.pair_configs.find(v => {
-			// Ugh, the "single property with empty object" convention for rust handling Rust enums sucks.
-			// Can't wait until we migrate away from astroport-derived contracts...
-			return JSON.stringify(v.pair_type) == JSON.stringify(this.#astroPairType);
-		});
-		if (factoryPairConfig === undefined) {
-			// Some assertion
-			throw new Error("Couln't find factoryPairConfig " + JSON.stringify(this.#astroPairType) + " in " + JSON.stringify(factoryConfig.pair_configs));
-		}
-		this.#makerFeeBasisPoints = factoryPairConfig.maker_fee_bps;
-		this.#poolFeeBasisPoints = factoryPairConfig.total_fee_bps - factoryPairConfig.maker_fee_bps;
 	}
 	/**
 	 * Refreshes the pool value, total shares, and fees.
-	 * 
+	 *
 	 * There is no need to call this function if you call `refresh()` on the `SwapMarket` used to construct this class.
-	 * 
+	 *
 	 * Stable for `1.0`
 	 */
 	async refresh() {
-		const factoryContract = new AstroFactoryContract(
-			this.contract.endpoint,
-			(await this.contract.queryConfig()).factory_addr
-		);
-		await this._refresh(await factoryContract.queryConfig());
+		const totalShares = await this.contract.queryTotalShares();
+		this.#totalShares = BigInt(totalShares);
+		const config = await this.contract.queryConfig();
+		this.#makerFeeBasisPoints = config.maker_fee_bps;
+		this.#poolFeeBasisPoints = config.total_fee_bps - config.maker_fee_bps;
+
+		const totalDeposits = await this.contract.queryShareValue({ amount: totalShares });
+		this.totalDeposits[0] = BigInt(totalDeposits[0].amount);
+		this.totalDeposits[1] = BigInt(totalDeposits[1].amount);
 	}
 	/**
 	 * Returns an approximate exchange rate between assets[0] and assets[1].
-	 * 
+	 *
 	 * Stable for `1.0`
-	 * 
+	 *
 	 * @param inverse return assets[1] -> assets[0] rate instead
 	 * @returns The approximate exchange rate
 	 */
 	exchangeRate(inverse?: boolean): number {
 		if (inverse) {
-			return Number(this.totalDeposits[0]) / Number(this.totalDeposits[1]);	
+			return Number(this.totalDeposits[0]) / Number(this.totalDeposits[1]);
 		} else {
-			return Number(this.totalDeposits[1]) / Number(this.totalDeposits[0]);	
+			return Number(this.totalDeposits[1]) / Number(this.totalDeposits[0]);
 		}
 	}
 
 	/**
 	 * Performs a "dumb" exchange quote from assets[0] to assets[1] assuming infinite liquidity and no slippage
-	 * 
+	 *
 	 * Stable for `1.0`
-	 * 
+	 *
 	 * @param value input value
 	 * @param inverse return assets[1] -> assets[0] rate instead
 	 * @param includeFees subtract swap fees from the input
 	 */
 	exchangeValue(value: bigint, inverse?: boolean, includeFees?: boolean) {
 		if (includeFees) {
-			value = value * (10000n - BigInt(this.totalFeeBasisPoints)) / 10000n;
+			value = (value * (10000n - BigInt(this.totalFeeBasisPoints))) / 10000n;
 		}
 		if (inverse) {
-			return value * this.totalDeposits[0] / this.totalDeposits[1];	
+			return (value * this.totalDeposits[0]) / this.totalDeposits[1];
 		} else {
-			return value * this.totalDeposits[1] / this.totalDeposits[0];	
+			return (value * this.totalDeposits[1]) / this.totalDeposits[0];
 		}
 	}
 
@@ -170,23 +177,23 @@ export class SwapMarketPair {
 		if (this.totalShares == 0n) {
 			return [
 				[0n, this.assets[0]],
-				[0n, this.assets[1]]
-			]
+				[0n, this.assets[1]],
+			];
 		}
 		return [
-			[this.totalDeposits[0] * shares / this.totalShares, this.assets[0]],
-			[this.totalDeposits[1] * shares / this.totalShares, this.assets[1]]
-		]
+			[(this.totalDeposits[0] * shares) / this.totalShares, this.assets[0]],
+			[(this.totalDeposits[1] * shares) / this.totalShares, this.assets[1]],
+		];
 	}
 	buildProvideLiquidityIxs(
 		token0Amount: bigint,
 		token1Amount: bigint,
 		slippageTolerance: number = 0.01,
-		receiver?: Addr | null,
+		receiver?: Addr | null
 	): ExecuteInstruction[] {
-		const funds: Coin[] = []
+		const funds: Coin[] = [];
 		const ixs: ExecuteInstruction[] = [];
-		matchIfCW20Token(
+		matchTokenKind(
 			this.assets[0],
 			(contractAddress) => {
 				ixs.push({
@@ -194,19 +201,19 @@ export class SwapMarketPair {
 					msg: {
 						increase_allowance: {
 							amount: token0Amount + "",
-							spender: this.contract.address
-						}
-					}/* satisfies CW20ExecuteMsg */
+							spender: this.contract.address,
+						},
+					} /* satisfies CW20ExecuteMsg */,
 				});
 			},
 			(denom) => {
 				funds.push({
 					amount: token0Amount + "",
-					denom
+					denom,
 				});
 			}
 		);
-		matchIfCW20Token(
+		matchTokenKind(
 			this.assets[1],
 			(contractAddress) => {
 				ixs.push({
@@ -214,46 +221,42 @@ export class SwapMarketPair {
 					msg: {
 						increase_allowance: {
 							amount: token1Amount + "",
-							spender: this.contract.address
-						}
-					}/* satisfies CW20ExecuteMsg */
+							spender: this.contract.address,
+						},
+					} /* satisfies CW20ExecuteMsg */,
 				});
 			},
 			(denom) => {
 				funds.push({
 					amount: token1Amount + "",
-					denom
+					denom,
 				});
 			}
 		);
 		ixs.push(
 			this.contract.buildProvideLiquidityIx({
-				assets: [
-					amountWithDenomToAstroAsset(token0Amount, this.assets[0]),
-					amountWithDenomToAstroAsset(token1Amount, this.assets[1])
-				],
 				slippage_tolerance: slippageTolerance + "",
-				receiver
+				receiver,
 			})
 		);
 		return ixs;
 	}
 
-	calculateProvideLiquidity(
-		token0Amount: bigint,
-		token1Amount: bigint
-	): SwapMarketDepositCalcResult {
+	calculateProvideLiquidity(token0Amount: bigint, token1Amount: bigint): SwapMarketDepositCalcResult {
 		if (this.totalDeposits[0] == 0n || this.totalDeposits[1] == 0n) {
 			// Honestly, this is an edgecase which isn't worth thinking about in publicly facing pools
 			return {
 				newShares: 1000n,
-				newShareValue: [[token0Amount, this.assets[0]], [token1Amount, this.assets[1]]],
+				newShareValue: [
+					[token0Amount, this.assets[0]],
+					[token1Amount, this.assets[1]],
+				],
 			};
 		}
 		// The contract calculates the minting of new shares before deposit using this algorithm
 		const newShares = bigIntMin(
-			token0Amount * this.totalShares / this.totalDeposits[0],
-			token1Amount * this.totalShares / this.totalDeposits[1]
+			(token0Amount * this.totalShares) / this.totalDeposits[0],
+			(token1Amount * this.totalShares) / this.totalDeposits[1]
 		);
 		const totalSharesAfter = this.totalShares + newShares;
 		const totalDeposit0After = this.totalDeposits[0] + token0Amount;
@@ -262,33 +265,32 @@ export class SwapMarketPair {
 		return {
 			newShares,
 			newShareValue: [
-				[totalDeposit0After * newShares / totalSharesAfter, this.assets[0]],
-				[totalDeposit1After * newShares / totalSharesAfter, this.assets[1]]
-			]
+				[(totalDeposit0After * newShares) / totalSharesAfter, this.assets[0]],
+				[(totalDeposit1After * newShares) / totalSharesAfter, this.assets[1]],
+			],
 		};
 	}
 
-	buildWithdrawLiquidityIxs(
-		shares: bigint
-	): ExecuteInstruction[] {
+	buildWithdrawLiquidityIxs(shares: bigint): ExecuteInstruction[] {
 		// Still returning an array cuz there's fancy stuff that's in store for the major contracts upgrade
-		return [
-			this.contract.buildWithdrawLiquidityCw20Ix(this.sharesDenom, shares)
-		];
+		// this.contract.buildWithdrawLiquidityIx({})
+		// this.contract.buildWithdrawAndSplitLiquidityIx optinionally unwraps the tokens
+		// return [this.contract.buildWithdrawLiquidityCw20Ix(this.sharesDenom, shares)];
+		process.exit(1);
 	}
 
 	/**
 	 * Builds the ExecuteInstruction(s) needed to perform the swap.
-	 * 
+	 *
 	 * Stable for `1.0`
-	 * 
+	 *
 	 * @param offerAmount The amount of tokens to swap
 	 * @param offerDenom The denom (or "cw20/{contractAddress}") to swap must match one of the pairs
 	 * @param slippageTolerance The contract will throw an error and the transaction will be reverted if the exchange
 	 * rate changes by the following amount, defaults to 1% (0.01).
 	 * @param receiver If you want the resulting tokens to be sent to an address that differs from the message sender,
 	 * specify it here.
-	 * 
+	 *
 	 * @returns Contract instructions to execute or null if the denom asked isn't available. Note that the specific
 	 * instructions generated including the contracts sent to may change in future updates.
 	 */
@@ -296,34 +298,30 @@ export class SwapMarketPair {
 		offerAmount: bigint,
 		offerDenom: UnifiedDenom,
 		slippageTolerance: number = 0.01,
-		receiver?: Addr | null,
+		receiver?: Addr | null
 	): ExecuteInstruction[] {
-		return matchIfCW20Token(
+		return matchTokenKind(
 			offerDenom,
 			(contractAddress) => [
-				this.contract.buildSwapCw20Ix(
-					contractAddress,
-					offerAmount,
-					{
-						max_spread: slippageTolerance + "",
-						to: receiver
-					}
-				)
+				this.contract.buildSwapCw20Ix(contractAddress, offerAmount, {
+					max_spread: slippageTolerance + "",
+					to: receiver,
+				}),
 			],
 			(denom) => [
 				this.contract.buildSwapIx(
 					{
 						offer_asset: amountWithDenomToAstroAsset(offerAmount, denom),
 						max_spread: slippageTolerance + "",
-						to: receiver
+						to: receiver,
 					},
 					[
 						{
 							amount: offerAmount + "",
-							denom
-						}
+							denom,
+						},
 					]
-				)
+				),
 			]
 		);
 	}
@@ -333,14 +331,9 @@ export class SwapMarketPair {
 		offerAmount: bigint,
 		offerDenom: UnifiedDenom,
 		slippageTolerance: number = 0.01,
-		receiver?: Addr | null,
+		receiver?: Addr | null
 	): Promise<SwapMarketSwapSimResult> {
-		const instructions = this.buildSwapIxs(
-			offerAmount,
-			offerDenom,
-			slippageTolerance,
-			receiver
-		);
+		const instructions = this.buildSwapIxs(offerAmount, offerDenom, slippageTolerance, receiver);
 		if (instructions == null) {
 			throw new Error("Market does not hold assets offered or requested");
 		}
@@ -350,47 +343,44 @@ export class SwapMarketPair {
 		const amount = balanceChanges[askDenom] || 0n;
 		return {
 			instructions,
-			amount
+			amount,
 		};
 	}
 }
 
 export type SwapMarketSwapSimResult = {
-	amount: bigint,
+	amount: bigint;
 	// slippage: number,
-	instructions: ExecuteInstruction[]
-}
+	instructions: ExecuteInstruction[];
+};
 
 /**
  * Represents the whole swap market.
  * The existance of this class is stable for `1.0`
- * 
+ *
  * After constructing this class, the `refresh` method must be called once for this class to be usable.
  */
 export class SwapMarket {
-	readonly factoryContract: AstroFactoryContract
-	readonly routerContract: AstroRouterContract
-	#assetPairMap: {[pair: string]: SwapMarketPair}
-	#marketingNameToPair: {[marketingName: string]: SwapMarketPair}
-	constructor(
-		endpoint: CosmWasmClient,
-		factoryContractAddress: Addr,
-		routerContractAddress: Addr
-	) {
-		this.factoryContract = new AstroFactoryContract(endpoint, factoryContractAddress);
-		this.routerContract = new AstroRouterContract(endpoint, routerContractAddress);
+	readonly factoryContract: PoolFactoryContract;
+	readonly routerContract: SwapRouterContract;
+	#assetPairMap: { [pair: string]: SwapMarketPair };
+	#marketingNameToPair: { [marketingName: string]: SwapMarketPair };
+	constructor(endpoint: CosmWasmClient, factoryContractAddress: Addr, routerContractAddress: Addr) {
+		const client = endpoint["forceGetQueryClient"]();
+		this.factoryContract = new PoolFactoryContract(client, factoryContractAddress);
+		this.routerContract = new SwapRouterContract(client, routerContractAddress);
 		this.#assetPairMap = {};
 		this.#marketingNameToPair = {};
 	}
 	/**
 	 * Gets the default SwapMarket. That is, the one with contracts published by CrownFi.
-	 * 
+	 *
 	 * @param endpoint RPC Endpoint
 	 * @param chainId network ID, if unspecified, the endpoint will be queried.
 	 * @returns The SwapMarket with the default contracts
 	 */
 	static async getFromChainId(endpoint: CosmWasmClient, chainId?: string): Promise<SwapMarket> {
-		chainId = chainId || await endpoint.getChainId();
+		chainId = chainId || (await endpoint.getChainId());
 		switch (chainId) {
 			case "atlantic-2":
 				return new SwapMarket(
@@ -405,36 +395,31 @@ export class SwapMarket {
 	/**
 	 * Resolves the promise if the factory contract is compatible with this library.
 	 * Otherwise, the promise is rejected with a `ContractVersionNotSatisfiedError`.
-	 * 
+	 *
 	 * Stable for `1.0`
 	 */
 	async checkVersion() {
 		await this.factoryContract.checkVersion({
 			"astroport-factory": "^1.6",
-			"crownfi-factory": "^0.9"
+			"crownfi-factory": "^0.9",
 		});
 	}
 	/**
 	 * Finds all available trading pairs. If the pair is already known to exist, its corrosponding
 	 */
 	async refresh(): Promise<void> {
-		const [factoryConfig, {pairs}] = await Promise.all([
+		const [factoryConfig, pairs] = await Promise.all([
 			this.factoryContract.queryConfig(),
 			// FIXME: Skip over pairs we already know about
 			this.factoryContract.queryPairs(),
-			updateUserTokenInfo()
+			updateUserTokenInfo(),
 		]);
 		for (const pairInfo of pairs) {
-			const pairKey = pairInfo.asset_infos.map(astroAssetInfoToUniDenom).join("\0");
+			const pairKey = pairInfo.canonical_pair.join("\0");
 			if (this.#assetPairMap[pairKey] == null) {
-				const pairContract = new AstroPairContract(this.factoryContract.endpoint, pairInfo.contract_addr);
+				const pairContract = new PoolPairContract(this.factoryContract.endpoint, pairInfo.address);
 				const poolInfo = await pairContract.queryPool();
-				const pair = new SwapMarketPair(
-					pairContract,
-					factoryConfig,
-					pairInfo,
-					poolInfo
-				);
+				const pair = new SwapMarketPair(pairContract, factoryConfig, pairInfo, poolInfo);
 				this.#assetPairMap[pairKey] = pair;
 				this.#marketingNameToPair[pair.name] = pair;
 			} else {
@@ -450,14 +435,16 @@ export class SwapMarket {
 	}
 	/**
 	 * Gets the `SwapMarketPair` corresponding with the specified assets.
-	 * 
+	 *
 	 * @param pair The pair to look up
 	 * @param tryInverse Try looking for the reverse-pairing if the one specified isn't found
-	 * @returns 
+	 * @returns
 	 */
 	getPair(pair: UnifiedDenomPair, tryInverse: boolean = false): SwapMarketPair | null {
-		return this.#assetPairMap[pair.join("\0")] ??
-			(tryInverse ? (this.#assetPairMap[pair[1] + "\0" + pair[0]] ?? null) : null);
+		return (
+			this.#assetPairMap[pair.join("\0")] ??
+			(tryInverse ? this.#assetPairMap[pair[1] + "\0" + pair[0]] ?? null : null)
+		);
 	}
 	/**
 	 * Stable for `1.0`
@@ -467,7 +454,7 @@ export class SwapMarket {
 	}
 	/**
 	 * Returns a mapping of denom to a list of other denoms they can be directly traded with
-	 * 
+	 *
 	 * Stable for `1.0`
 	 */
 	getDirectTradeMap(): Map<UnifiedDenom, UnifiedDenom[]> {
@@ -475,20 +462,20 @@ export class SwapMarket {
 		for (const pair of this.getAllPairs()) {
 			if (result.has(pair.assets[0])) {
 				result.get(pair.assets[0])?.push(pair.assets[1]);
-			}else{
-				result.set(pair.assets[0], [pair.assets[1]])
+			} else {
+				result.set(pair.assets[0], [pair.assets[1]]);
 			}
 			if (result.has(pair.assets[1])) {
 				result.get(pair.assets[1])?.push(pair.assets[0]);
-			}else{
-				result.set(pair.assets[1], [pair.assets[0]])
+			} else {
+				result.set(pair.assets[1], [pair.assets[0]]);
 			}
 		}
 		return result;
 	}
 	/**
 	 * Checks if this market holds the specified asset(s)
-	 * 
+	 *
 	 * Stable for `1.0`
 	 * @param asset asset or multiple assets to check (as multiple args)
 	 * @returns true if all the specified assets are in the market
@@ -524,7 +511,7 @@ export class SwapMarket {
 		// weights... But this is MVP so we're targetting lowest hops with brute force, baby!
 		// That will be fine as long as we have 1 or 2 common tokens among all our pools.
 		_alreadySeenFroms.add(from);
-	
+
 		const directTos = _directPairs.get(from);
 		if (directTos == null) {
 			return null;
@@ -538,37 +525,28 @@ export class SwapMarket {
 			}
 			// EXPONENTIAL TIME COMPLEXITY LET'S GOOOOOOO
 			const potentialSubResult = this.#resolveMultiSwapRoute(directTo, to, _directPairs, _alreadySeenFroms);
-			if (
-				potentialSubResult != null &&
-				(subResult == null || subResult.length > potentialSubResult.length)
-			) {
-				subResult = potentialSubResult
+			if (potentialSubResult != null && (subResult == null || subResult.length > potentialSubResult.length)) {
+				subResult = potentialSubResult;
 			}
 		}
 		if (subResult == null) {
 			return null;
 		}
-		return [
-			[from, subResult[0][0]],
-			...subResult
-		];
+		return [[from, subResult[0][0]], ...subResult];
 	}
 
 	/**
 	 * Does what the function says
-	 * 
+	 *
 	 * Stable for `1.0`
-	 * 
-	 * @param from 
-	 * @param to 
+	 *
+	 * @param from
+	 * @param to
 	 * @returns individual swaps to make represented as [from, to], or null if the "from" or "to" isn't in this market.
 	 * This also returns an empty array if "from" and "to" is identical. But don't rely on this to determine the
 	 * existance of the asset in this market.
 	 */
-	resolveMultiSwapRoute(
-		from: UnifiedDenom,
-		to: UnifiedDenom,
-	): [UnifiedDenom, UnifiedDenom][] | null {
+	resolveMultiSwapRoute(from: UnifiedDenom, to: UnifiedDenom): [UnifiedDenom, UnifiedDenom][] | null {
 		if (from == to) {
 			return [];
 		}
@@ -577,9 +555,9 @@ export class SwapMarket {
 
 	/**
 	 * Builds the ExecuteInstruction(s) needed to perform the swap.
-	 * 
+	 *
 	 * Stable for `1.0`
-	 * 
+	 *
 	 * @param offerAmount The amount of tokens to swap
 	 * @param offerDenom The denom (or "cw20/{contractAddress}") to swap
 	 * @param askDenom The tokens you want in return
@@ -587,7 +565,7 @@ export class SwapMarket {
 	 * rate changes by the following amount, defaults to 1% (0.01).
 	 * @param receiver If you want the resulting tokens to be sent to an address that differs from the message sender,
 	 * specify it here.
-	 * 
+	 *
 	 * @returns Contract instructions to execute. If the denom asked isn't available, or if `offerDenom` is equal to
 	 * `askDenom`, this returns null. Note that the specific instructions generated including the contracts sent to
 	 * may change in future updates.
@@ -597,7 +575,7 @@ export class SwapMarket {
 		offerDenom: UnifiedDenom,
 		askDenom: UnifiedDenom,
 		slippageTolerance: number = 0.01,
-		receiver?: Addr | null,
+		receiver?: Addr | null
 	): ExecuteInstruction[] | null {
 		const result: ExecuteInstruction[] = [];
 		const route = this.resolveMultiSwapRoute(offerDenom, askDenom);
@@ -612,54 +590,54 @@ export class SwapMarket {
 				receiver
 			);
 		}
-		const operations = route.map(v => {
-			return {
-				astro_swap: {
-					offer_asset_info: uniDenomToAstroAssetInfo(v[0]),
-					ask_asset_info: uniDenomToAstroAssetInfo(v[1])
-				}
-			}
-		});
-		return matchIfCW20Token(
+		// const operations = route.map((v) => {
+		// 	return {
+		// 		astro_swap: {
+		// 			offer_asset_info: uniDenomToAstroAssetInfo(v[0]),
+		// 			ask_asset_info: uniDenomToAstroAssetInfo(v[1]),
+		// 		},
+		// 	};
+		// });
+		return matchTokenKind(
 			offerDenom,
-			(contractAddress) => [
-				this.routerContract.buildExecuteSwapOperationsCw20Ix(
-					contractAddress,
-					offerAmount,
-					{
-						max_spread: slippageTolerance + "",
-						operations
-					}
-				)
-			],
-			(denom) => [
-				this.routerContract.buildExecuteSwapOperationsIx(
-					{
-						max_spread: slippageTolerance + "",
-						operations
-					},
-					[{
-						amount: offerAmount + "",
-						denom
-					}]
-				)
-			]
+			(contractAddress) => {
+				return [
+					this.routerContract.buildExecuteSwapsIx({ swappers: [this.factoryContract.address] }),
+					// this.routerContract.buildExecuteSwapOperationsCw20Ix(contractAddress, offerAmount, {
+					// 	max_spread: slippageTolerance + "",
+					// 	operations,
+					// }),
+				];
+			},
+			(contractAddress) => [],
+			(denom) => []
+			// this.routerContract.buildExecuteSwapOperationsIx(
+			// 	{
+			// 		max_spread: slippageTolerance + "",
+			// 		operations,
+			// 	},
+			// 	[
+			// 		{
+			// 			amount: offerAmount + "",
+			// 			denom,
+			// 		},
+			// 	]
+			// ),
 		);
-		
 	}
 
 	/**
 	 * Simulates the swap. This requires a signable ClientEnv as an actual transaction simulation is performed.
-	 * 
+	 *
 	 * Stable for `1.0`
-	 * 
-	 * @param client 
-	 * @param offerAmount 
-	 * @param offerDenom 
-	 * @param askDenom 
-	 * @param slippageTolerance 
-	 * @param receiver 
-	 * @returns 
+	 *
+	 * @param client
+	 * @param offerAmount
+	 * @param offerDenom
+	 * @param askDenom
+	 * @param slippageTolerance
+	 * @param receiver
+	 * @returns
 	 */
 	async simulateSwap(
 		client: ClientEnv,
@@ -667,15 +645,9 @@ export class SwapMarket {
 		offerDenom: UnifiedDenom,
 		askDenom: UnifiedDenom,
 		slippageTolerance: number = 0.01,
-		receiver?: Addr | null,
+		receiver?: Addr | null
 	): Promise<SwapMarketSwapSimResult> {
-		const instructions = this.buildSwapIxs(
-			offerAmount,
-			offerDenom,
-			askDenom,
-			slippageTolerance,
-			receiver
-		);
+		const instructions = this.buildSwapIxs(offerAmount, offerDenom, askDenom, slippageTolerance, receiver);
 		if (offerDenom == askDenom) {
 			throw new Error("Trading input denom must differ from trading output denom");
 		}
@@ -687,25 +659,21 @@ export class SwapMarket {
 		const amount = balanceChanges[askDenom] || 0n;
 		return {
 			instructions,
-			amount
+			amount,
 		};
 	}
 
 	/**
 	 * Returns an approximate exchange reate between the specified assets
-	 * 
+	 *
 	 * Stable for `1.0`
-	 * 
-	 * @param fromDenom 
-	 * @param toDenom 
+	 *
+	 * @param fromDenom
+	 * @param toDenom
 	 * @param includeFees include swap fees (not transaction fees)
 	 * @returns The exchange rate or NaN if either of the assets aren't in the market
 	 */
-	exchangeRate(
-		fromDenom: UnifiedDenom,
-		toDenom: UnifiedDenom,
-		includeFees?: boolean
-	): number {
+	exchangeRate(fromDenom: UnifiedDenom, toDenom: UnifiedDenom, includeFees?: boolean): number {
 		if (fromDenom == toDenom) {
 			return 1;
 		}
@@ -718,7 +686,7 @@ export class SwapMarket {
 			const pair = this.getPair(directExchange, true)!;
 			let directRate = pair.exchangeRate(pair.assets[1] == fromDenom);
 			if (includeFees) {
-				directRate *= ((10000 - pair.totalFeeBasisPoints) / 10000);
+				directRate *= (10000 - pair.totalFeeBasisPoints) / 10000;
 			}
 			result *= directRate;
 		}
@@ -727,19 +695,14 @@ export class SwapMarket {
 
 	/**
 	 * Performs a "dumb" exchange quote assuming infinite liquidity and no slippage
-	 * 
-	 * @param value 
-	 * @param fromDenom 
-	 * @param toDenom 
+	 *
+	 * @param value
+	 * @param fromDenom
+	 * @param toDenom
 	 * @param includeFees include swap fees (not transaction fees)
 	 * @returns The exchange value or null if either of the assets aren't in the market
 	 */
-	exchangeValue(
-		value: bigint,
-		fromDenom: UnifiedDenom,
-		toDenom: UnifiedDenom,
-		includeFees?: boolean
-	): bigint | null {
+	exchangeValue(value: bigint, fromDenom: UnifiedDenom, toDenom: UnifiedDenom, includeFees?: boolean): bigint | null {
 		if (fromDenom == toDenom) {
 			return value;
 		}

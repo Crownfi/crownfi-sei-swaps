@@ -9,8 +9,8 @@ export class WalletButtonRefs {
 let _templateWalletButton: HTMLTemplateElement | null = null;
 function getWalletButtonTemplate(): HTMLTemplateElement {
 	if (_templateWalletButton == null) {
-		 _templateWalletButton = document.createElement("template")
-		 _templateWalletButton.innerHTML = "\n\tConnect wallet\n";
+		_templateWalletButton = document.createElement("template");
+		_templateWalletButton.innerHTML = "\n\tConnect wallet\n";
 	}
 	return _templateWalletButton;
 }
@@ -26,7 +26,7 @@ export class WalletButtonAutogen extends HTMLButtonElement {
 	set walletAddress(v: string | null) {
 		if (v == null) {
 			this.removeAttribute("wallet-address");
-		}else{
+		} else {
 			this.setAttribute("wallet-address", v);
 		}
 	}
@@ -34,23 +34,19 @@ export class WalletButtonAutogen extends HTMLButtonElement {
 		// To be overridden by child class
 	}
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
-		switch(name) {
+		switch (name) {
 			case "wallet-address":
 				this.#attributeWalletAddressValue = newValue;
 				this.onWalletAddressChanged(oldValue, newValue);
 				break;
 			default:
-				// Shouldn't happen
+			// Shouldn't happen
 		}
 	}
 	constructor() {
 		super();
 		if (this.childElementCount == 0) {
-			this.appendChild(
-				getWalletButtonTemplate()
-					.content
-					.cloneNode(true)
-			);
+			this.appendChild(getWalletButtonTemplate().content.cloneNode(true));
 		}
 		this.setAttribute("is", "wallet-button"); // allow for easy query selecting
 		this.refs = new WalletButtonRefs(this);
@@ -65,7 +61,7 @@ export class WalletButtonAutogen extends HTMLButtonElement {
 		// To be overridden by child class
 	}
 	public static registerElement() {
-		customElements.define("wallet-button", this, { extends: "button"});
+		customElements.define("wallet-button", this, { extends: "button" });
 	}
 }
 export class WalletChoiceRefs {
@@ -76,14 +72,14 @@ export class WalletChoiceRefs {
 	#img?: HTMLImageElement;
 	get img() {
 		if (this.#img === undefined) {
-			this.#img = this.#element.querySelector("[cewt-ref=\"img\"]:not(:scope [is] *)")!;
+			this.#img = this.#element.querySelector('[cewt-ref="img"]:not(:scope [is] *)')!;
 		}
 		return this.#img;
 	}
 	#text?: HTMLSpanElement;
 	get text() {
 		if (this.#text === undefined) {
-			this.#text = this.#element.querySelector("[cewt-ref=\"text\"]:not(:scope [is] *)")!;
+			this.#text = this.#element.querySelector('[cewt-ref="text"]:not(:scope [is] *)')!;
 		}
 		return this.#text;
 	}
@@ -91,8 +87,9 @@ export class WalletChoiceRefs {
 let _templateWalletChoice: HTMLTemplateElement | null = null;
 function getWalletChoiceTemplate(): HTMLTemplateElement {
 	if (_templateWalletChoice == null) {
-		 _templateWalletChoice = document.createElement("template")
-		 _templateWalletChoice.innerHTML = "\n\t<img cewt-ref=\"img\" src=\"/assets/lazy-load.svg\">\n\t<span cewt-ref=\"text\">Generiwallet</span>\n";
+		_templateWalletChoice = document.createElement("template");
+		_templateWalletChoice.innerHTML =
+			'\n\t<img cewt-ref="img" src="/assets/lazy-load.svg">\n\t<span cewt-ref="text">Generiwallet</span>\n';
 	}
 	return _templateWalletChoice;
 }
@@ -108,7 +105,7 @@ export class WalletChoiceAutogen extends HTMLButtonElement {
 	set text(v: string | null) {
 		if (v == null) {
 			this.removeAttribute("text");
-		}else{
+		} else {
 			this.setAttribute("text", v);
 		}
 	}
@@ -122,7 +119,7 @@ export class WalletChoiceAutogen extends HTMLButtonElement {
 	set icon(v: string | null) {
 		if (v == null) {
 			this.removeAttribute("icon");
-		}else{
+		} else {
 			this.setAttribute("icon", v);
 		}
 	}
@@ -130,7 +127,7 @@ export class WalletChoiceAutogen extends HTMLButtonElement {
 		// To be overridden by child class
 	}
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
-		switch(name) {
+		switch (name) {
 			case "text":
 				this.#attributeTextValue = newValue;
 				this.onTextChanged(oldValue, newValue);
@@ -140,17 +137,13 @@ export class WalletChoiceAutogen extends HTMLButtonElement {
 				this.onIconChanged(oldValue, newValue);
 				break;
 			default:
-				// Shouldn't happen
+			// Shouldn't happen
 		}
 	}
 	constructor() {
 		super();
 		if (this.childElementCount == 0) {
-			this.appendChild(
-				getWalletChoiceTemplate()
-					.content
-					.cloneNode(true)
-			);
+			this.appendChild(getWalletChoiceTemplate().content.cloneNode(true));
 		}
 		this.setAttribute("is", "wallet-choice"); // allow for easy query selecting
 		this.refs = new WalletChoiceRefs(this);
@@ -165,7 +158,7 @@ export class WalletChoiceAutogen extends HTMLButtonElement {
 		// To be overridden by child class
 	}
 	public static registerElement() {
-		customElements.define("wallet-choice", this, { extends: "button"});
+		customElements.define("wallet-choice", this, { extends: "button" });
 	}
 }
 export class WalletModalRefs {
@@ -176,28 +169,28 @@ export class WalletModalRefs {
 	#heading?: HTMLHeadingElement;
 	get heading() {
 		if (this.#heading === undefined) {
-			this.#heading = this.#element.querySelector("[cewt-ref=\"heading\"]:not(:scope [is] *)")!;
+			this.#heading = this.#element.querySelector('[cewt-ref="heading"]:not(:scope [is] *)')!;
 		}
 		return this.#heading;
 	}
 	#selectedNetwork?: HTMLSelectElement;
 	get selectedNetwork() {
 		if (this.#selectedNetwork === undefined) {
-			this.#selectedNetwork = this.#element.querySelector("[cewt-ref=\"selected-network\"]:not(:scope [is] *)")!;
+			this.#selectedNetwork = this.#element.querySelector('[cewt-ref="selected-network"]:not(:scope [is] *)')!;
 		}
 		return this.#selectedNetwork;
 	}
 	#choices?: HTMLDivElement;
 	get choices() {
 		if (this.#choices === undefined) {
-			this.#choices = this.#element.querySelector("[cewt-ref=\"choices\"]:not(:scope [is] *)")!;
+			this.#choices = this.#element.querySelector('[cewt-ref="choices"]:not(:scope [is] *)')!;
 		}
 		return this.#choices;
 	}
 	#cancelButton?: HTMLButtonElement;
 	get cancelButton() {
 		if (this.#cancelButton === undefined) {
-			this.#cancelButton = this.#element.querySelector("[cewt-ref=\"cancel-button\"]:not(:scope [is] *)")!;
+			this.#cancelButton = this.#element.querySelector('[cewt-ref="cancel-button"]:not(:scope [is] *)')!;
 		}
 		return this.#cancelButton;
 	}
@@ -205,8 +198,9 @@ export class WalletModalRefs {
 let _templateWalletModal: HTMLTemplateElement | null = null;
 function getWalletModalTemplate(): HTMLTemplateElement {
 	if (_templateWalletModal == null) {
-		 _templateWalletModal = document.createElement("template")
-		 _templateWalletModal.innerHTML = "\n\t<h1 cewt-ref=\"heading\">Choose wallet</h1>\n\t<select cewt-ref=\"selected-network\">\n\t\t<option value=\"pacific-1\">Mainnet (pacific-1)</option>\n\t\t<option value=\"atlantic-2\">Testnet (atlantic-2)</option>\n\t\t<option value=\"sei-chain\">Localnet (sei-chain)</option>\n\t</select>\n\t<div class=\"wallet-choices\" cewt-ref=\"choices\">\n\n\t</div>\n\t<button cewt-ref=\"cancel-button\">Cancel</button>\n";
+		_templateWalletModal = document.createElement("template");
+		_templateWalletModal.innerHTML =
+			'\n\t<h1 cewt-ref="heading">Choose wallet</h1>\n\t<select cewt-ref="selected-network">\n\t\t<option value="pacific-1">Mainnet (pacific-1)</option>\n\t\t<option value="atlantic-2">Testnet (atlantic-2)</option>\n\t\t<option value="sei-chain">Localnet (sei-chain)</option>\n\t</select>\n\t<div class="wallet-choices" cewt-ref="choices">\n\n\t</div>\n\t<button cewt-ref="cancel-button">Cancel</button>\n';
 	}
 	return _templateWalletModal;
 }
@@ -215,11 +209,7 @@ export class WalletModalAutogen extends HTMLDialogElement {
 	constructor() {
 		super();
 		if (this.childElementCount == 0) {
-			this.appendChild(
-				getWalletModalTemplate()
-					.content
-					.cloneNode(true)
-			);
+			this.appendChild(getWalletModalTemplate().content.cloneNode(true));
 		}
 		this.setAttribute("is", "wallet-modal"); // allow for easy query selecting
 		this.refs = new WalletModalRefs(this);
@@ -234,6 +224,6 @@ export class WalletModalAutogen extends HTMLDialogElement {
 		// To be overridden by child class
 	}
 	public static registerElement() {
-		customElements.define("wallet-modal", this, { extends: "dialog"});
+		customElements.define("wallet-modal", this, { extends: "dialog" });
 	}
 }

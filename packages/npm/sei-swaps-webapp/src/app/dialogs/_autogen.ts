@@ -8,21 +8,21 @@ export class PopupModalRefs {
 	#heading?: HTMLHeadingElement;
 	get heading() {
 		if (this.#heading === undefined) {
-			this.#heading = this.#element.querySelector("[cewt-ref=\"heading\"]:not(:scope [is] *)")!;
+			this.#heading = this.#element.querySelector('[cewt-ref="heading"]:not(:scope [is] *)')!;
 		}
 		return this.#heading;
 	}
 	#message?: HTMLParagraphElement;
 	get message() {
 		if (this.#message === undefined) {
-			this.#message = this.#element.querySelector("[cewt-ref=\"message\"]:not(:scope [is] *)")!;
+			this.#message = this.#element.querySelector('[cewt-ref="message"]:not(:scope [is] *)')!;
 		}
 		return this.#message;
 	}
 	#dismissBtn?: HTMLButtonElement;
 	get dismissBtn() {
 		if (this.#dismissBtn === undefined) {
-			this.#dismissBtn = this.#element.querySelector("[cewt-ref=\"dismiss-btn\"]:not(:scope [is] *)")!;
+			this.#dismissBtn = this.#element.querySelector('[cewt-ref="dismiss-btn"]:not(:scope [is] *)')!;
 		}
 		return this.#dismissBtn;
 	}
@@ -30,8 +30,9 @@ export class PopupModalRefs {
 let _templatePopupModal: HTMLTemplateElement | null = null;
 function getPopupModalTemplate(): HTMLTemplateElement {
 	if (_templatePopupModal == null) {
-		 _templatePopupModal = document.createElement("template")
-		 _templatePopupModal.innerHTML = "\n\t<h1 cewt-ref=\"heading\">null</h1>\n\t<p cewt-ref=\"message\">null</p>\n\t<button cewt-ref=\"dismiss-btn\">OK</button>\n";
+		_templatePopupModal = document.createElement("template");
+		_templatePopupModal.innerHTML =
+			'\n\t<h1 cewt-ref="heading">null</h1>\n\t<p cewt-ref="message">null</p>\n\t<button cewt-ref="dismiss-btn">OK</button>\n';
 	}
 	return _templatePopupModal;
 }
@@ -47,7 +48,7 @@ export class PopupModalAutogen extends HTMLDialogElement {
 	set heading(v: string | null) {
 		if (v == null) {
 			this.removeAttribute("heading");
-		}else{
+		} else {
 			this.setAttribute("heading", v);
 		}
 	}
@@ -61,7 +62,7 @@ export class PopupModalAutogen extends HTMLDialogElement {
 	set message(v: string | null) {
 		if (v == null) {
 			this.removeAttribute("message");
-		}else{
+		} else {
 			this.setAttribute("message", v);
 		}
 	}
@@ -69,7 +70,7 @@ export class PopupModalAutogen extends HTMLDialogElement {
 		// To be overridden by child class
 	}
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
-		switch(name) {
+		switch (name) {
 			case "heading":
 				this.#attributeHeadingValue = newValue;
 				this.onHeadingChanged(oldValue, newValue);
@@ -79,17 +80,13 @@ export class PopupModalAutogen extends HTMLDialogElement {
 				this.onMessageChanged(oldValue, newValue);
 				break;
 			default:
-				// Shouldn't happen
+			// Shouldn't happen
 		}
 	}
 	constructor() {
 		super();
 		if (this.childElementCount == 0) {
-			this.appendChild(
-				getPopupModalTemplate()
-					.content
-					.cloneNode(true)
-			);
+			this.appendChild(getPopupModalTemplate().content.cloneNode(true));
 		}
 		this.setAttribute("is", "popup-modal"); // allow for easy query selecting
 		this.refs = new PopupModalRefs(this);
@@ -104,7 +101,7 @@ export class PopupModalAutogen extends HTMLDialogElement {
 		// To be overridden by child class
 	}
 	public static registerElement() {
-		customElements.define("popup-modal", this, { extends: "dialog"});
+		customElements.define("popup-modal", this, { extends: "dialog" });
 	}
 }
 export class ErrorModalRefs {
@@ -115,28 +112,28 @@ export class ErrorModalRefs {
 	#heading?: HTMLHeadingElement;
 	get heading() {
 		if (this.#heading === undefined) {
-			this.#heading = this.#element.querySelector("[cewt-ref=\"heading\"]:not(:scope [is] *)")!;
+			this.#heading = this.#element.querySelector('[cewt-ref="heading"]:not(:scope [is] *)')!;
 		}
 		return this.#heading;
 	}
 	#message?: HTMLParagraphElement;
 	get message() {
 		if (this.#message === undefined) {
-			this.#message = this.#element.querySelector("[cewt-ref=\"message\"]:not(:scope [is] *)")!;
+			this.#message = this.#element.querySelector('[cewt-ref="message"]:not(:scope [is] *)')!;
 		}
 		return this.#message;
 	}
 	#errorDetails?: HTMLTextAreaElement;
 	get errorDetails() {
 		if (this.#errorDetails === undefined) {
-			this.#errorDetails = this.#element.querySelector("[cewt-ref=\"error-details\"]:not(:scope [is] *)")!;
+			this.#errorDetails = this.#element.querySelector('[cewt-ref="error-details"]:not(:scope [is] *)')!;
 		}
 		return this.#errorDetails;
 	}
 	#dismissBtn?: HTMLButtonElement;
 	get dismissBtn() {
 		if (this.#dismissBtn === undefined) {
-			this.#dismissBtn = this.#element.querySelector("[cewt-ref=\"dismiss-btn\"]:not(:scope [is] *)")!;
+			this.#dismissBtn = this.#element.querySelector('[cewt-ref="dismiss-btn"]:not(:scope [is] *)')!;
 		}
 		return this.#dismissBtn;
 	}
@@ -144,8 +141,9 @@ export class ErrorModalRefs {
 let _templateErrorModal: HTMLTemplateElement | null = null;
 function getErrorModalTemplate(): HTMLTemplateElement {
 	if (_templateErrorModal == null) {
-		 _templateErrorModal = document.createElement("template")
-		 _templateErrorModal.innerHTML = "\n\t<h1 cewt-ref=\"heading\">null</h1>\n\t<p cewt-ref=\"message\">null</p>\n\t<textarea readonly=\"\" cewt-ref=\"error-details\"></textarea>\n\t<button cewt-ref=\"dismiss-btn\">OK</button>\n";
+		_templateErrorModal = document.createElement("template");
+		_templateErrorModal.innerHTML =
+			'\n\t<h1 cewt-ref="heading">null</h1>\n\t<p cewt-ref="message">null</p>\n\t<textarea readonly="" cewt-ref="error-details"></textarea>\n\t<button cewt-ref="dismiss-btn">OK</button>\n';
 	}
 	return _templateErrorModal;
 }
@@ -161,7 +159,7 @@ export class ErrorModalAutogen extends HTMLDialogElement {
 	set message(v: string | null) {
 		if (v == null) {
 			this.removeAttribute("message");
-		}else{
+		} else {
 			this.setAttribute("message", v);
 		}
 	}
@@ -175,7 +173,7 @@ export class ErrorModalAutogen extends HTMLDialogElement {
 	set details(v: string | null) {
 		if (v == null) {
 			this.removeAttribute("details");
-		}else{
+		} else {
 			this.setAttribute("details", v);
 		}
 	}
@@ -189,7 +187,7 @@ export class ErrorModalAutogen extends HTMLDialogElement {
 	set heading(v: string | null) {
 		if (v == null) {
 			this.removeAttribute("heading");
-		}else{
+		} else {
 			this.setAttribute("heading", v);
 		}
 	}
@@ -197,7 +195,7 @@ export class ErrorModalAutogen extends HTMLDialogElement {
 		// To be overridden by child class
 	}
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
-		switch(name) {
+		switch (name) {
 			case "message":
 				this.#attributeMessageValue = newValue;
 				this.onMessageChanged(oldValue, newValue);
@@ -211,17 +209,13 @@ export class ErrorModalAutogen extends HTMLDialogElement {
 				this.onHeadingChanged(oldValue, newValue);
 				break;
 			default:
-				// Shouldn't happen
+			// Shouldn't happen
 		}
 	}
 	constructor() {
 		super();
 		if (this.childElementCount == 0) {
-			this.appendChild(
-				getErrorModalTemplate()
-					.content
-					.cloneNode(true)
-			);
+			this.appendChild(getErrorModalTemplate().content.cloneNode(true));
 		}
 		this.setAttribute("is", "error-modal"); // allow for easy query selecting
 		this.refs = new ErrorModalRefs(this);
@@ -236,7 +230,7 @@ export class ErrorModalAutogen extends HTMLDialogElement {
 		// To be overridden by child class
 	}
 	public static registerElement() {
-		customElements.define("error-modal", this, { extends: "dialog"});
+		customElements.define("error-modal", this, { extends: "dialog" });
 	}
 }
 export class TxConfirmedModalRefs {
@@ -247,14 +241,14 @@ export class TxConfirmedModalRefs {
 	#txLink?: HTMLAnchorElement;
 	get txLink() {
 		if (this.#txLink === undefined) {
-			this.#txLink = this.#element.querySelector("[cewt-ref=\"tx-link\"]:not(:scope [is] *)")!;
+			this.#txLink = this.#element.querySelector('[cewt-ref="tx-link"]:not(:scope [is] *)')!;
 		}
 		return this.#txLink;
 	}
 	#dismissBtn?: HTMLButtonElement;
 	get dismissBtn() {
 		if (this.#dismissBtn === undefined) {
-			this.#dismissBtn = this.#element.querySelector("[cewt-ref=\"dismiss-btn\"]:not(:scope [is] *)")!;
+			this.#dismissBtn = this.#element.querySelector('[cewt-ref="dismiss-btn"]:not(:scope [is] *)')!;
 		}
 		return this.#dismissBtn;
 	}
@@ -262,8 +256,9 @@ export class TxConfirmedModalRefs {
 let _templateTxConfirmedModal: HTMLTemplateElement | null = null;
 function getTxConfirmedModalTemplate(): HTMLTemplateElement {
 	if (_templateTxConfirmedModal == null) {
-		 _templateTxConfirmedModal = document.createElement("template")
-		 _templateTxConfirmedModal.innerHTML = "\n\t<h1>Transaction confirmed</h1>\n\t<p>Your transaction has been successfully processed.</p>\n\t<p><a target=\"_blank\" cewt-ref=\"tx-link\" href=\"https://www.seiscan.app/\">You may view its details here.</a></p>\n\t<button cewt-ref=\"dismiss-btn\">OK</button>\n";
+		_templateTxConfirmedModal = document.createElement("template");
+		_templateTxConfirmedModal.innerHTML =
+			'\n\t<h1>Transaction confirmed</h1>\n\t<p>Your transaction has been successfully processed.</p>\n\t<p><a target="_blank" cewt-ref="tx-link" href="https://www.seiscan.app/">You may view its details here.</a></p>\n\t<button cewt-ref="dismiss-btn">OK</button>\n';
 	}
 	return _templateTxConfirmedModal;
 }
@@ -279,7 +274,7 @@ export class TxConfirmedModalAutogen extends HTMLDialogElement {
 	set txhash(v: string | null) {
 		if (v == null) {
 			this.removeAttribute("txhash");
-		}else{
+		} else {
 			this.setAttribute("txhash", v);
 		}
 	}
@@ -293,7 +288,7 @@ export class TxConfirmedModalAutogen extends HTMLDialogElement {
 	set chain(v: string | null) {
 		if (v == null) {
 			this.removeAttribute("chain");
-		}else{
+		} else {
 			this.setAttribute("chain", v);
 		}
 	}
@@ -301,7 +296,7 @@ export class TxConfirmedModalAutogen extends HTMLDialogElement {
 		// To be overridden by child class
 	}
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
-		switch(name) {
+		switch (name) {
 			case "txhash":
 				this.#attributeTxhashValue = newValue;
 				this.onTxhashChanged(oldValue, newValue);
@@ -311,17 +306,13 @@ export class TxConfirmedModalAutogen extends HTMLDialogElement {
 				this.onChainChanged(oldValue, newValue);
 				break;
 			default:
-				// Shouldn't happen
+			// Shouldn't happen
 		}
 	}
 	constructor() {
 		super();
 		if (this.childElementCount == 0) {
-			this.appendChild(
-				getTxConfirmedModalTemplate()
-					.content
-					.cloneNode(true)
-			);
+			this.appendChild(getTxConfirmedModalTemplate().content.cloneNode(true));
 		}
 		this.setAttribute("is", "tx-confirmed-modal"); // allow for easy query selecting
 		this.refs = new TxConfirmedModalRefs(this);
@@ -336,6 +327,6 @@ export class TxConfirmedModalAutogen extends HTMLDialogElement {
 		// To be overridden by child class
 	}
 	public static registerElement() {
-		customElements.define("tx-confirmed-modal", this, { extends: "dialog"});
+		customElements.define("tx-confirmed-modal", this, { extends: "dialog" });
 	}
 }

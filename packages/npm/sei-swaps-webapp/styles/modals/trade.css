@@ -3,11 +3,11 @@
 	flex-direction: column;
 	align-items: stretch;
 }
-.dialog-trade-form input[type=number]::-webkit-inner-spin-button, 
-.dialog-trade-form input[type=number]::-webkit-outer-spin-button { 
-	-webkit-appearance: none; 
+.dialog-trade-form input[type="number"]::-webkit-inner-spin-button,
+.dialog-trade-form input[type="number"]::-webkit-outer-spin-button {
+	-webkit-appearance: none;
 }
-.dialog-trade-form input[type=number] {
+.dialog-trade-form input[type="number"] {
 	-moz-appearance: textfield;
 }
 .trade-amount-input {

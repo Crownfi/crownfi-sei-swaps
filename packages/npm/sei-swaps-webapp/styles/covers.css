@@ -29,7 +29,7 @@
 }
 #loading-cover > .emoji-as-icon {
 	font-size: 128px;
-	animation: loading_spin 2s cubic-bezier(.68,-0.55,.27,1.55) 0s infinite;
+	animation: loading_spin 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0s infinite;
 }
 #loading-text {
 	font-size: 32px;

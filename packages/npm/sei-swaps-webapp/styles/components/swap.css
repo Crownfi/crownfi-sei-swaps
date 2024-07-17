@@ -5,10 +5,11 @@ div[is="swap-component"] {
 }
 .swap-inner {
 	border-radius: 20px;
-	border: 1px solid #8275BF;
-	background: linear-gradient(90deg, #DFAE61 0.36%, #EAC27C 33.47%, #F2CF8D 66.57%, #DFAE61 99.68%), linear-gradient(0deg, #BBA35E 0%, #BBA35E 100%);
-	box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25); 
-	
+	border: 1px solid #8275bf;
+	background: linear-gradient(90deg, #dfae61 0.36%, #eac27c 33.47%, #f2cf8d 66.57%, #dfae61 99.68%),
+		linear-gradient(0deg, #bba35e 0%, #bba35e 100%);
+	box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+
 	margin: 2px;
 	padding: 36px 28px;
 	display: flex;
@@ -25,7 +26,7 @@ div[is="swap-component"] {
 .swap-coin {
 	border-radius: 12px;
 	border: 1px solid #453884;
-	background: #FFEBB0;
+	background: #ffebb0;
 	box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
 
 	padding: 12px 24px 10px 24px;
@@ -53,11 +54,11 @@ div[is="swap-component"] {
 	text-align: right;
 }
 
-.swap-coin-inputs input[type=number]::-webkit-inner-spin-button, 
-.swap-coin-inputs input[type=number]::-webkit-outer-spin-button { 
-	-webkit-appearance: none; 
+.swap-coin-inputs input[type="number"]::-webkit-inner-spin-button,
+.swap-coin-inputs input[type="number"]::-webkit-outer-spin-button {
+	-webkit-appearance: none;
 }
-.swap-coin-inputs input[type=number] {
+.swap-coin-inputs input[type="number"] {
 	-moz-appearance: textfield;
 }
 
@@ -66,7 +67,7 @@ div[is="swap-component"] {
 	border-radius: 4px;
 	background: rgba(47, 16, 119, 0.13);
 	filter: none;
-	color: #2F1077;
+	color: #2f1077;
 	font-size: 12px;
 	font-style: normal;
 	font-weight: 700;
@@ -74,11 +75,11 @@ div[is="swap-component"] {
 }
 .swap-coin-inputs button:disabled {
 	opacity: 0.4;
-	filter: none
+	filter: none;
 }
 .swap-coin-inputs button:not(:disabled):active {
 	color: rgba(47, 16, 119, 0.13);
-	background: #2F1077;
+	background: #2f1077;
 }
 .swap-coin .input-error {
 	margin-top: 2px;

@@ -3,13 +3,13 @@ export const qa = document.querySelectorAll.bind(document);
 
 // as shown from https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/elements#value
 type HTMLFormControlsElement =
-	HTMLButtonElement |
-	HTMLFieldSetElement |
-	HTMLInputElement |
-	HTMLObjectElement |
-	HTMLOutputElement |
-	HTMLSelectElement |
-	HTMLTextAreaElement;
+	| HTMLButtonElement
+	| HTMLFieldSetElement
+	| HTMLInputElement
+	| HTMLObjectElement
+	| HTMLOutputElement
+	| HTMLSelectElement
+	| HTMLTextAreaElement;
 
 export function disableFormInputs(form: HTMLFormElement, exemptions: HTMLFormControlsElement[] = []) {
 	const exemptSet = new Set(exemptions);
@@ -20,7 +20,6 @@ export function disableFormInputs(form: HTMLFormElement, exemptions: HTMLFormCon
 		}
 		input.disabled = true;
 	}
-	  
 }
 export function enableFormInputs(form: HTMLFormElement, exemptions: HTMLFormControlsElement[] = []) {
 	const exemptSet = new Set(exemptions);

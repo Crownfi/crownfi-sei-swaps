@@ -1,4 +1,4 @@
-import { FarmPoolComponentAutogen, FarmPoolItemAutogen, FarmPoolItemOptionsAutogen } from "./_autogen.js"
+import { FarmPoolComponentAutogen, FarmPoolItemAutogen, FarmPoolItemOptionsAutogen } from "./_autogen.js";
 import { SwapMarket } from "@crownfi/sei-swaps-sdk";
 import { ClientEnv, UIAmount, getUserTokenInfo, seiUtilEventEmitter } from "@crownfi/sei-utils";
 import { errorDialogIfRejected } from "../../dialogs/index.js";
@@ -7,7 +7,6 @@ import { FarmPoolWithdrawDialogElement } from "./withdraw_dialog.js";
 import { FarmPoolDepositDialogElement } from "./deposit_dialog.js";
 
 export class FarmPoolComponentElement extends FarmPoolComponentAutogen {
-
 	constructor() {
 		super();
 		this.refs.bigChestTvl.innerText = "";
@@ -21,14 +20,11 @@ export class FarmPoolComponentElement extends FarmPoolComponentAutogen {
 	invalidateSwapMarket() {
 		this.#swapMarket = null;
 	}
-	#swapMarket: SwapMarket | null = null
+	#swapMarket: SwapMarket | null = null;
 	async swapMarket(): Promise<SwapMarket> {
 		if (this.#swapMarket == null) {
 			const client = await ClientEnv.get();
-			const swapMarket = await SwapMarket.getFromChainId(
-				client.wasmClient,
-				client.chainId
-			);
+			const swapMarket = await SwapMarket.getFromChainId(client.wasmClient, client.chainId);
 			await swapMarket.refresh();
 			this.#swapMarket = swapMarket;
 		}
@@ -57,7 +53,7 @@ export class FarmPoolComponentElement extends FarmPoolComponentAutogen {
 			this.refreshGlobalStats();
 			const allPairs = swapMarket.getAllPairs();
 			if (allPairs.length < placeholderElems.length) {
-				placeholderElems.splice(allPairs.length).forEach(elem => elem.remove());
+				placeholderElems.splice(allPairs.length).forEach((elem) => elem.remove());
 			}
 			for (let i = 0; i < placeholderElems.length; i += 1) {
 				placeholderElems[i].pool = allPairs[i].name;
@@ -72,11 +68,7 @@ export class FarmPoolComponentElement extends FarmPoolComponentAutogen {
 		});
 	}
 	refreshGlobalStats() {
-		const {
-			bigChestTvl,
-			bigChestTotalTraded,
-			bigChestVolume24H
-		} = this.refs;
+		const { bigChestTvl, bigChestTotalTraded, bigChestVolume24H } = this.refs;
 
 		bigChestTvl.innerText = "";
 		bigChestTvl.classList.add("lazy-loading-text-4");
@@ -87,7 +79,7 @@ export class FarmPoolComponentElement extends FarmPoolComponentAutogen {
 		errorDialogIfRejected(async () => {
 			const swapMarket = await this.swapMarket();
 			const commonValueDenom = "usei"; // change this to usdc or something idk
-			
+
 			let approxTVL = 0n;
 			for (const pair of swapMarket.getAllPairs()) {
 				// I love how all "value" in crypto (and even finance) is fake.
@@ -103,8 +95,6 @@ export class FarmPoolComponentElement extends FarmPoolComponentAutogen {
 		});
 	}
 
-	
-
 	static findFromParent(element: HTMLElement | null): FarmPoolComponentElement | null {
 		while (!(element instanceof FarmPoolComponentElement)) {
 			if (element == null) {
@@ -117,13 +107,12 @@ export class FarmPoolComponentElement extends FarmPoolComponentAutogen {
 }
 FarmPoolComponentElement.registerElement();
 
-seiUtilEventEmitter.on("defaultNetworkChanged", ev => {
-	(qa(`div[is="farm-pool-component"]`) as NodeListOf<FarmPoolComponentElement>).forEach(elem => {
+seiUtilEventEmitter.on("defaultNetworkChanged", (ev) => {
+	(qa(`div[is="farm-pool-component"]`) as NodeListOf<FarmPoolComponentElement>).forEach((elem) => {
 		elem.invalidateSwapMarket();
 		elem.rebuildPoolList();
 	});
-})
-
+});
 
 export class FarmPoolItemElement extends FarmPoolItemAutogen {
 	constructor() {
@@ -134,7 +123,7 @@ export class FarmPoolItemElement extends FarmPoolItemAutogen {
 					this.nextElementSibling.remove();
 				}
 				this.classList.remove("expanded");
-			}else{
+			} else {
 				const newOptions = new FarmPoolItemOptionsElement();
 				newOptions.pool = this.pool;
 				this.after(newOptions);
@@ -149,7 +138,7 @@ export class FarmPoolItemElement extends FarmPoolItemAutogen {
 			this.classList.remove("lazy-loading");
 			this.refs.poolName.innerText = newValue;
 			this.refreshPoolStats();
-		}else{
+		} else {
 			this.refs.btnExpand.disabled = true;
 			this.classList.add("lazy-loading");
 		}
@@ -161,19 +150,13 @@ export class FarmPoolItemElement extends FarmPoolItemAutogen {
 			return;
 		}
 
-		const {
-			exchangeRate,
-			totalDeposits,
-			feeRate,
-			volume24H,
-			apy: apyElem
-		} = this.refs;
+		const { exchangeRate, totalDeposits, feeRate, volume24H, apy: apyElem } = this.refs;
 		exchangeRate.innerText = "";
 		exchangeRate.classList.add("lazy-loading-text-2");
 
 		totalDeposits.innerHTML =
-			"<span class=\"lazy-loading-text-4\"></span><br><span class=\"lazy-loading-text-4\"></span>";
-		
+			'<span class="lazy-loading-text-4"></span><br><span class="lazy-loading-text-4"></span>';
+
 		feeRate.innerText = "";
 		feeRate.classList.add("lazy-loading-text-2");
 
@@ -182,17 +165,24 @@ export class FarmPoolItemElement extends FarmPoolItemAutogen {
 		errorDialogIfRejected(async () => {
 			const market = await marketElem.swapMarket();
 			const pair = market.getPairFromName(this.pool + "")!;
-			
+
 			const tokenInfo0 = getUserTokenInfo(pair.assets[0]);
 			const tokenInfo1 = getUserTokenInfo(pair.assets[1]);
-			
-			exchangeRate.innerText = "1 " + tokenInfo0.symbol +
-				" = " + pair.exchangeRate().toFixed(tokenInfo1.decimals) + " " + tokenInfo1.symbol;
+
+			exchangeRate.innerText =
+				"1 " +
+				tokenInfo0.symbol +
+				" = " +
+				pair.exchangeRate().toFixed(tokenInfo1.decimals) +
+				" " +
+				tokenInfo1.symbol;
 			exchangeRate.classList.remove("lazy-loading-text-2");
 
-			totalDeposits.innerText = pair.totalDeposits.map((amount, index) => {
-				return UIAmount(amount, pair.assets[index])
-			}).join("\n");
+			totalDeposits.innerText = pair.totalDeposits
+				.map((amount, index) => {
+					return UIAmount(amount, pair.assets[index]);
+				})
+				.join("\n");
 
 			feeRate.innerText = (pair.totalFeeBasisPoints / 100).toFixed(2) + "%";
 			feeRate.classList.remove("lazy-loading-text-2");
@@ -204,14 +194,14 @@ export class FarmPoolItemElement extends FarmPoolItemAutogen {
 }
 FarmPoolItemElement.registerElement();
 
-seiUtilEventEmitter.on("transactionConfirmed", ev => {
-	(qa(`div[is="farm-pool-item"]`) as NodeListOf<FarmPoolItemElement>).forEach(elem => {
+seiUtilEventEmitter.on("transactionConfirmed", (ev) => {
+	(qa(`div[is="farm-pool-item"]`) as NodeListOf<FarmPoolItemElement>).forEach((elem) => {
 		elem.refreshPoolStats();
 	});
-})
+});
 
 export class FarmPoolItemOptionsElement extends FarmPoolItemOptionsAutogen {
-	constructor(){
+	constructor() {
 		super();
 
 		this.refs.depositBtn.addEventListener("click", (ev) => {
@@ -238,14 +228,12 @@ export class FarmPoolItemOptionsElement extends FarmPoolItemOptionsAutogen {
 		this.refs.withdrawTxt.innerText = "";
 		this.refs.withdrawTxt.classList.add("lazy-loading-text-2");
 		errorDialogIfRejected(async () => {
-			try{
-				
+			try {
 				const [pool, client] = await Promise.all([
-					swapMarketElem.swapMarket()
-						.then(market => market.getPairFromName(this.pool + "")),
-					ClientEnv.get()
+					swapMarketElem.swapMarket().then((market) => market.getPairFromName(this.pool + "")),
+					ClientEnv.get(),
 				]);
-				
+
 				if (pool == null || client.account == null) {
 					this.refs.depositTxt.innerText = "[Not connected]";
 					this.refs.depositTxt.classList.remove("lazy-loading-text-2");
@@ -255,12 +243,15 @@ export class FarmPoolItemOptionsElement extends FarmPoolItemOptionsAutogen {
 				}
 				this.refs.withdrawBtn.disabled = false;
 				this.refs.depositBtn.disabled = false;
-				
+
 				const lpBalance = await client.getBalance(pool.sharesDenom);
 
 				this.refs.depositTxt.innerText = lpBalance + "";
-				this.refs.withdrawTxt.innerText = pool.shareValue(lpBalance).map(v => UIAmount(...v)).join("\n");
-			}catch(ex: any){
+				this.refs.withdrawTxt.innerText = pool
+					.shareValue(lpBalance)
+					.map((v) => UIAmount(...v))
+					.join("\n");
+			} catch (ex: any) {
 				if (!this.refs.depositTxt.innerText) {
 					this.refs.depositTxt.innerText = "[Error]";
 				}
@@ -268,7 +259,7 @@ export class FarmPoolItemOptionsElement extends FarmPoolItemOptionsAutogen {
 					this.refs.withdrawTxt.innerText = "[Error]";
 				}
 				throw ex;
-			}finally{
+			} finally {
 				this.refs.depositTxt.classList.remove("lazy-loading-text-2");
 				this.refs.withdrawTxt.classList.remove("lazy-loading-text-2");
 			}
@@ -280,13 +271,13 @@ export class FarmPoolItemOptionsElement extends FarmPoolItemOptionsAutogen {
 }
 FarmPoolItemOptionsElement.registerElement();
 
-seiUtilEventEmitter.on("transactionConfirmed", ev => {
-	(qa(`div[is="farm-pool-item-options"]`) as NodeListOf<FarmPoolItemOptionsElement>).forEach(elem => {
+seiUtilEventEmitter.on("transactionConfirmed", (ev) => {
+	(qa(`div[is="farm-pool-item-options"]`) as NodeListOf<FarmPoolItemOptionsElement>).forEach((elem) => {
 		elem.refreshBalances();
 	});
 });
-seiUtilEventEmitter.on("defaultProviderChanged", ev => {
-	(qa(`div[is="farm-pool-item-options"]`) as NodeListOf<FarmPoolItemOptionsElement>).forEach(elem => {
+seiUtilEventEmitter.on("defaultProviderChanged", (ev) => {
+	(qa(`div[is="farm-pool-item-options"]`) as NodeListOf<FarmPoolItemOptionsElement>).forEach((elem) => {
 		elem.refreshBalances();
 	});
-})
+});

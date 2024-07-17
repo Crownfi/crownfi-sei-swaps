@@ -1,12 +1,12 @@
 use crate::asset::{Asset, AssetInfo, PairInfo};
 use crate::factory::{
-    AstroFactoryConfig, AstroFactoryFeeInfoResponse, AstroPairType, AstroFactoryPairsResponse, AstroFactoryQueryMsg,
+	AstroFactoryConfig, AstroFactoryFeeInfoResponse, AstroFactoryPairsResponse, AstroFactoryQueryMsg, AstroPairType,
 };
 use crate::pair::{AstroPairQueryMsg, AstroPairReverseSimulationResponse, AstroPairSimulationResponse};
 
 use cosmwasm_std::{
-    from_json, Addr, AllBalanceResponse, BankQuery, Coin, CustomQuery, Decimal, QuerierWrapper,
-    QueryRequest, StdError, StdResult, Uint128,
+	from_json, Addr, AllBalanceResponse, BankQuery, Coin, CustomQuery, Decimal, QuerierWrapper, QueryRequest, StdError,
+	StdResult, Uint128,
 };
 
 use cw20::{BalanceResponse as Cw20BalanceResponse, Cw20QueryMsg, TokenInfoResponse};
@@ -15,27 +15,24 @@ use cw20::{BalanceResponse as Cw20BalanceResponse, Cw20QueryMsg, TokenInfoRespon
 ///
 /// * **denom** specifies the denomination used to return the balance (e.g uluna).
 pub fn query_balance<C>(
-    querier: &QuerierWrapper<C>,
-    account_addr: impl Into<String>,
-    denom: impl Into<String>,
+	querier: &QuerierWrapper<C>,
+	account_addr: impl Into<String>,
+	denom: impl Into<String>,
 ) -> StdResult<Uint128>
 where
-    C: CustomQuery,
+	C: CustomQuery,
 {
-    querier
-        .query_balance(account_addr, denom)
-        .map(|coin| coin.amount)
+	querier.query_balance(account_addr, denom).map(|coin| coin.amount)
 }
 
 /// Returns the total balances for all coins at a specified account address.
 ///
 /// * **account_addr** address for which we query balances.
 pub fn query_all_balances(querier: &QuerierWrapper, account_addr: Addr) -> StdResult<Vec<Coin>> {
-    let all_balances: AllBalanceResponse =
-        querier.query(&QueryRequest::Bank(BankQuery::AllBalances {
-            address: String::from(account_addr),
-        }))?;
-    Ok(all_balances.amount)
+	let all_balances: AllBalanceResponse = querier.query(&QueryRequest::Bank(BankQuery::AllBalances {
+		address: String::from(account_addr),
+	}))?;
+	Ok(all_balances.amount)
 }
 
 /// Returns a token balance for an account.
@@ -44,133 +41,122 @@ pub fn query_all_balances(querier: &QuerierWrapper, account_addr: Addr) -> StdRe
 ///
 /// * **account_addr** account address for which we return a balance.
 pub fn query_token_balance<C>(
-    querier: &QuerierWrapper<C>,
-    contract_addr: impl Into<String>,
-    account_addr: impl Into<String>,
+	querier: &QuerierWrapper<C>,
+	contract_addr: impl Into<String>,
+	account_addr: impl Into<String>,
 ) -> StdResult<Uint128>
 where
-    C: CustomQuery,
+	C: CustomQuery,
 {
-    // load balance from the token contract
-    let resp: Cw20BalanceResponse = querier
-        .query_wasm_smart(
-            contract_addr,
-            &Cw20QueryMsg::Balance {
-                address: account_addr.into(),
-            },
-        )
-        .unwrap_or_else(|_| Cw20BalanceResponse {
-            balance: Uint128::zero(),
-        });
+	// load balance from the token contract
+	let resp: Cw20BalanceResponse = querier
+		.query_wasm_smart(
+			contract_addr,
+			&Cw20QueryMsg::Balance {
+				address: account_addr.into(),
+			},
+		)
+		.unwrap_or_else(|_| Cw20BalanceResponse {
+			balance: Uint128::zero(),
+		});
 
-    Ok(resp.balance)
+	Ok(resp.balance)
 }
 
 /// Returns a token's symbol.
 ///
 /// * **contract_addr** token contract address.
-pub fn query_token_symbol<C>(
-    querier: &QuerierWrapper<C>,
-    contract_addr: impl Into<String>,
-) -> StdResult<String>
+pub fn query_token_symbol<C>(querier: &QuerierWrapper<C>, contract_addr: impl Into<String>) -> StdResult<String>
 where
-    C: CustomQuery,
+	C: CustomQuery,
 {
-    let res: TokenInfoResponse =
-        querier.query_wasm_smart(contract_addr, &Cw20QueryMsg::TokenInfo {})?;
+	let res: TokenInfoResponse = querier.query_wasm_smart(contract_addr, &Cw20QueryMsg::TokenInfo {})?;
 
-    Ok(res.symbol)
+	Ok(res.symbol)
 }
 
 /// Returns the total supply of a specific token.
 ///
 /// * **contract_addr** token contract address.
-pub fn query_supply<C>(
-    querier: &QuerierWrapper<C>,
-    contract_addr: impl Into<String>,
-) -> StdResult<Uint128>
+pub fn query_supply<C>(querier: &QuerierWrapper<C>, contract_addr: impl Into<String>) -> StdResult<Uint128>
 where
-    C: CustomQuery,
+	C: CustomQuery,
 {
-    let res: TokenInfoResponse =
-        querier.query_wasm_smart(contract_addr, &Cw20QueryMsg::TokenInfo {})?;
+	let res: TokenInfoResponse = querier.query_wasm_smart(contract_addr, &Cw20QueryMsg::TokenInfo {})?;
 
-    Ok(res.total_supply)
+	Ok(res.total_supply)
 }
 
 /// Returns the configuration for the factory contract.
 pub fn query_factory_config<C>(
-    querier: &QuerierWrapper<C>,
-    factory_contract: impl Into<String>,
+	querier: &QuerierWrapper<C>,
+	factory_contract: impl Into<String>,
 ) -> StdResult<AstroFactoryConfig>
 where
-    C: CustomQuery,
+	C: CustomQuery,
 {
-    if let Some(res) = querier.query_wasm_raw(factory_contract, b"config".as_slice())? {
-        let res = from_json(&res)?;
-        Ok(res)
-    } else {
-        Err(StdError::generic_err("The factory config not found!"))
-    }
+	if let Some(res) = querier.query_wasm_raw(factory_contract, b"config".as_slice())? {
+		let res = from_json(&res)?;
+		Ok(res)
+	} else {
+		Err(StdError::generic_err("The factory config not found!"))
+	}
 }
 
 /// This structure holds parameters that describe the fee structure for a pool.
 pub struct FeeInfo {
-    /// The fee address
-    pub fee_address: Option<Addr>,
-    /// The total amount of fees charged per swap
-    pub total_fee_rate: Decimal,
-    /// The amount of fees sent to the Maker contract
-    pub maker_fee_rate: Decimal,
+	/// The fee address
+	pub fee_address: Option<Addr>,
+	/// The total amount of fees charged per swap
+	pub total_fee_rate: Decimal,
+	/// The amount of fees sent to the Maker contract
+	pub maker_fee_rate: Decimal,
 }
 
 /// Returns the fee information for a specific pair type.
 ///
 /// * **pair_type** pair type we query information for.
 pub fn query_fee_info<C>(
-    querier: &QuerierWrapper<C>,
-    factory_contract: impl Into<String>,
-    pair_type: AstroPairType,
+	querier: &QuerierWrapper<C>,
+	factory_contract: impl Into<String>,
+	pair_type: AstroPairType,
 ) -> StdResult<FeeInfo>
 where
-    C: CustomQuery,
+	C: CustomQuery,
 {
-    let res: AstroFactoryFeeInfoResponse =
-        querier.query_wasm_smart(factory_contract, &AstroFactoryQueryMsg::FeeInfo { pair_type })?;
+	let res: AstroFactoryFeeInfoResponse =
+		querier.query_wasm_smart(factory_contract, &AstroFactoryQueryMsg::FeeInfo { pair_type })?;
 
-    Ok(FeeInfo {
-        fee_address: res.fee_address,
-        total_fee_rate: Decimal::from_ratio(res.total_fee_bps, 10000u16),
-        maker_fee_rate: Decimal::from_ratio(res.maker_fee_bps, 10000u16),
-    })
+	Ok(FeeInfo {
+		fee_address: res.fee_address,
+		total_fee_rate: Decimal::from_ratio(res.total_fee_bps, 10000u16),
+		maker_fee_rate: Decimal::from_ratio(res.maker_fee_bps, 10000u16),
+	})
 }
 
 /// Accepts two tokens as input and returns a pair's information.
 pub fn query_pair_info(
-    querier: &QuerierWrapper,
-    factory_contract: impl Into<String>,
-    asset_infos: &[AssetInfo],
+	querier: &QuerierWrapper,
+	factory_contract: impl Into<String>,
+	asset_infos: &[AssetInfo],
 ) -> StdResult<PairInfo> {
-    querier.query_wasm_smart(
-        factory_contract,
-        &AstroFactoryQueryMsg::Pair {
-            asset_infos: asset_infos.to_vec(),
-        },
-    )
+	querier.query_wasm_smart(
+		factory_contract,
+		&AstroFactoryQueryMsg::Pair {
+			asset_infos: asset_infos.to_vec(),
+		},
+	)
 }
 
 /// Returns a vector that contains items of type [`PairInfo`] which
 /// symbolize pairs instantiated in the Astroport factory
 pub fn query_pairs_info(
-    querier: &QuerierWrapper,
-    factory_contract: impl Into<String>,
-    start_after: Option<Vec<AssetInfo>>,
-    limit: Option<u32>,
+	querier: &QuerierWrapper,
+	factory_contract: impl Into<String>,
+	start_after: Option<Vec<AssetInfo>>,
+	limit: Option<u32>,
 ) -> StdResult<AstroFactoryPairsResponse> {
-    querier.query_wasm_smart(
-        factory_contract,
-        &AstroFactoryQueryMsg::Pairs { start_after, limit },
-    )
+	querier.query_wasm_smart(factory_contract, &AstroFactoryQueryMsg::Pairs { start_after, limit })
 }
 
 /// Returns information about a swap simulation using a [`SimulationResponse`] object.
@@ -179,17 +165,17 @@ pub fn query_pairs_info(
 ///
 /// * **offer_asset** asset that is being swapped.
 pub fn simulate(
-    querier: &QuerierWrapper,
-    pair_contract: impl Into<String>,
-    offer_asset: &Asset,
+	querier: &QuerierWrapper,
+	pair_contract: impl Into<String>,
+	offer_asset: &Asset,
 ) -> StdResult<AstroPairSimulationResponse> {
-    querier.query_wasm_smart(
-        pair_contract,
-        &AstroPairQueryMsg::Simulation {
-            offer_asset: offer_asset.clone(),
-            ask_asset_info: None,
-        },
-    )
+	querier.query_wasm_smart(
+		pair_contract,
+		&AstroPairQueryMsg::Simulation {
+			offer_asset: offer_asset.clone(),
+			ask_asset_info: None,
+		},
+	)
 }
 
 /// Returns information about a reverse swap simulation using a [`ReverseSimulationResponse`] object.
@@ -198,15 +184,15 @@ pub fn simulate(
 ///
 /// * **ask_asset** represents the asset that we swap to.
 pub fn reverse_simulate(
-    querier: &QuerierWrapper,
-    pair_contract: impl Into<String>,
-    ask_asset: &Asset,
+	querier: &QuerierWrapper,
+	pair_contract: impl Into<String>,
+	ask_asset: &Asset,
 ) -> StdResult<AstroPairReverseSimulationResponse> {
-    querier.query_wasm_smart(
-        pair_contract,
-        &AstroPairQueryMsg::ReverseSimulation {
-            offer_asset_info: None,
-            ask_asset: ask_asset.clone(),
-        },
-    )
+	querier.query_wasm_smart(
+		pair_contract,
+		&AstroPairQueryMsg::ReverseSimulation {
+			offer_asset_info: None,
+			ask_asset: ask_asset.clone(),
+		},
+	)
 }

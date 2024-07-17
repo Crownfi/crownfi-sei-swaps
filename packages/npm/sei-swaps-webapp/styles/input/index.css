@@ -1,6 +1,9 @@
 @import url("./buttons.css");
 
-input[type="text"], input[type="number"], input[type="search"], select {
+input[type="text"],
+input[type="number"],
+input[type="search"],
+select {
 	background: #ffffff30;
 	color: #453884;
 	border: none;
@@ -19,7 +22,10 @@ input:read-only {
 	border-top: solid #45388401 1px;
 	background: none;
 }
-input[type="text"], input[type="number"], select, option {
+input[type="text"],
+input[type="number"],
+select,
+option {
 	font-family: "Montserrat-Regular", sans-serif;
 }
 
@@ -29,7 +35,7 @@ input[type="search"].primary {
 	filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
 	padding: 6px 32px;
 	border: 1px solid #453884;
-	background: #EEE; 
+	background: #eee;
 }
 
 input:disabled.primary {

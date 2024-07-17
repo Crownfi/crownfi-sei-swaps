@@ -1,12 +1,12 @@
 button {
 	font-size: 24px;
 	stroke-width: 1px;
-	border: 1px #5C3512 solid;
+	border: 1px #5c3512 solid;
 	border-radius: 20px;
 	filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
 	padding: 6px 32px;
-	background-color: #CBB26A;
-	color: #F1DC9F;
+	background-color: #cbb26a;
+	color: #f1dc9f;
 	font-weight: bold;
 }
 button:not(:disabled):active {
@@ -19,7 +19,7 @@ button:disabled {
 
 button.primary {
 	font-family: "Carattere-Regular";
-	background: radial-gradient(#986EF8 20%, #453884 70%);
-	color: #DFD677;
+	background: radial-gradient(#986ef8 20%, #453884 70%);
+	color: #dfd677;
 	font-weight: normal;
 }
