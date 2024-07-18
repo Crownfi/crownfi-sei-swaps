@@ -187,6 +187,7 @@ export class SwapMarketPair {
 			[(this.totalDeposits[1] * shares) / this.totalShares, this.assets[1]],
 		];
 	}
+	
 	buildProvideLiquidityIxs(
 		token0Amount: bigint,
 		token1Amount: bigint,
@@ -195,19 +196,19 @@ export class SwapMarketPair {
 	): ExecuteInstruction[] {
 		const funds: Coin[] = [];
 		const ixs: ExecuteInstruction[] = [];
+		const getCWAndERC20Msg = (contractAddress: string, tokenAmount: bigint) => ({
+			contractAddress,
+			msg: {
+				increase_allowance: {
+					amount: tokenAmount + "",
+					spender: this.contract.address,
+				},
+			}
+		});
 		matchTokenKind(
 			this.assets[0],
-			(contractAddress) => {
-				ixs.push({
-					contractAddress,
-					msg: {
-						increase_allowance: {
-							amount: token0Amount + "",
-							spender: this.contract.address,
-						},
-					} /* satisfies CW20ExecuteMsg */,
-				});
-			},
+			(contractAddress) => { ixs.push(getCWAndERC20Msg(contractAddress, token0Amount)) },
+			(contractAddress) => { ixs.push(getCWAndERC20Msg(contractAddress, token0Amount)) },
 			(denom) => {
 				funds.push({
 					amount: token0Amount + "",
@@ -217,17 +218,8 @@ export class SwapMarketPair {
 		);
 		matchTokenKind(
 			this.assets[1],
-			(contractAddress) => {
-				ixs.push({
-					contractAddress,
-					msg: {
-						increase_allowance: {
-							amount: token1Amount + "",
-							spender: this.contract.address,
-						},
-					} /* satisfies CW20ExecuteMsg */,
-				});
-			},
+			(contractAddress) => { ixs.push(getCWAndERC20Msg(contractAddress, token1Amount)) },
+			(contractAddress) => { ixs.push(getCWAndERC20Msg(contractAddress, token1Amount)) },
 			(denom) => {
 				funds.push({
 					amount: token1Amount + "",

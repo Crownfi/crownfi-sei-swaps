@@ -25,7 +25,7 @@ export function matchTokenKind<T>(
 		case "cw20":
 			return ifCW20Callback(splitedDenom[1]); // "cw20/".length
 		case "erc20":
-			return ifERC20Callback(splitedDenom[0]);
+			return ifERC20Callback(splitedDenom[1]);
 		case "factory":
 			return ifNativeCallback(unifiedDenom);
 		default:
