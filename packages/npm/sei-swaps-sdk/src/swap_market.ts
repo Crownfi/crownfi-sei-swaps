@@ -66,7 +66,7 @@ export class SwapMarketPair {
 
 	// #pairKind: [TknKind, TknKind]
 	// #astroPairType: AstroPairType
-	constructor(
+	protected constructor(
 		public readonly contract: PoolPairContract<QueryClient & WasmExtension>,
 		/** The amount of tokens deposited in the pool, maps with the `assets` property (Stable for 1.0) */
 		public readonly totalDeposits: [bigint, bigint],
@@ -80,7 +80,7 @@ export class SwapMarketPair {
 		this.assets = poolInfo.assets;
 		this.#poolFeeBasisPoints = poolFeeBasisPoints;
 		this.#makerFeeBasisPoints = makerFeeBasisPoints;
-		this.#totalShares = 0n;
+		this.#totalShares = BigInt(poolInfo.total_shares);
 		this.name = this.assets.map((denom) => getUserTokenInfo(denom).symbol).join("-");
 
 		// this.totalDeposits = poolInfo.assets.map((asset) => BigInt(asset)) as [bigint, bigint];
@@ -106,6 +106,39 @@ export class SwapMarketPair {
 		// this.#makerFeeBasisPoints = factoryConfig.default_maker_fee_bps;
 		// this.#poolFeeBasisPoints = factoryConfig.default_total_fee_bps - factoryConfig.default_maker_fee_bps;
 	}
+
+	static async create(
+		endpoint: QueryClient & WasmExtension,
+		pairAddress: string,
+	) {
+		const pairContract = new PoolPairContract(endpoint, pairAddress);
+
+		const [
+			config,
+			totalShares,
+			poolAssets,
+		] = await Promise.all([
+			pairContract.queryConfig(),
+			pairContract.queryTotalShares(),
+			pairContract.queryPairDenoms(),
+		]);
+
+		const totalDeposits = await pairContract.queryShareValue({ amount: totalShares });
+		const poolFeeBasisPoints = config.total_fee_bps - config.maker_fee_bps;
+
+		return new SwapMarketPair(pairContract,
+															[
+																BigInt(totalDeposits[0].amount),
+																BigInt(totalDeposits[1].amount),
+															],
+															config.maker_fee_bps,
+															poolFeeBasisPoints,
+															{
+																assets: poolAssets,
+																total_shares: totalShares
+															});
+	}
+
 	/**
 	 * Resolves the promise if the factory contract is compatible with this library.
 	 * Otherwise, the promise is rejected with a `ContractVersionNotSatisfiedError`.
@@ -410,26 +443,12 @@ export class SwapMarket {
 		for (const pairInfo of pairs) {
 			const pairKey = pairInfo.canonical_pair.join("\0");
 			if (this.#assetPairMap[pairKey] == null) {
-				const pairContract = new PoolPairContract(this.factoryContract.endpoint, pairInfo.address);
-				const config = await pairContract.queryConfig();
-				const totalShares = await pairContract.queryTotalShares();
-				const totalDeposits = await pairContract.queryShareValue({ amount: totalShares });
-				const poolAssets = await pairContract.queryPairDenoms();
-				const pair = new SwapMarketPair(pairContract,
-																				[
-																					BigInt(totalDeposits.at(0)?.amount || 0),
-																					BigInt(totalDeposits.at(1)?.amount || 0),
-																				],
-																				config.maker_fee_bps,
-																				config.total_fee_bps,
-																				{
-																					assets: poolAssets,
-																					total_shares: totalShares
-																				});
+				const pair = await SwapMarketPair.create(this.factoryContract.endpoint, pairInfo.address);
+
 				this.#assetPairMap[pairKey] = pair;
 				this.#marketingNameToPair[pair.name] = pair;
 			} else {
-				await this.#assetPairMap[pairKey]._refresh(factoryConfig);
+				await this.#assetPairMap[pairKey].refresh();
 			}
 		}
 	}
