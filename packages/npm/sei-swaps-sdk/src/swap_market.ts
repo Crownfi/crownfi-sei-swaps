@@ -6,7 +6,7 @@ import {
 	Uint128,
 	SwapRouterContract,
 } from "./index.js";
-import { Addr, ClientEnv, getBalanceChangesFor, getUserTokenInfo, updateUserTokenInfo } from "@crownfi/sei-utils";
+import { Addr, ClientEnv, getBalanceChangesFor, getUserTokenInfo, stringDecimalToBigInt, updateUserTokenInfo } from "@crownfi/sei-utils";
 import {
 	amountWithDenomToAstroAsset,
 	astroAssetInfoToUniDenom,
@@ -66,7 +66,7 @@ export class SwapMarketPair {
 
 	// #pairKind: [TknKind, TknKind]
 	// #astroPairType: AstroPairType
-	protected constructor(
+	constructor(
 		public readonly contract: PoolPairContract<QueryClient & WasmExtension>,
 		/** The amount of tokens deposited in the pool, maps with the `assets` property (Stable for 1.0) */
 		public readonly totalDeposits: [bigint, bigint],
@@ -355,8 +355,8 @@ export type SwapMarketSwapSimResult = {
  * After constructing this class, the `refresh` method must be called once for this class to be usable.
  */
 export class SwapMarket {
-	readonly factoryContract: PoolFactoryContract;
-	readonly routerContract: SwapRouterContract;
+	readonly factoryContract: PoolFactoryContract<QueryClient & WasmExtension>;
+	readonly routerContract: SwapRouterContract<QueryClient & WasmExtension>;
 	#assetPairMap: { [pair: string]: SwapMarketPair };
 	#marketingNameToPair: { [marketingName: string]: SwapMarketPair };
 	constructor(endpoint: CosmWasmClient, factoryContractAddress: Addr, routerContractAddress: Addr) {
@@ -406,14 +406,26 @@ export class SwapMarket {
 			this.factoryContract.queryConfig(),
 			// FIXME: Skip over pairs we already know about
 			this.factoryContract.queryPairs(),
-			updateUserTokenInfo(),
 		]);
 		for (const pairInfo of pairs) {
 			const pairKey = pairInfo.canonical_pair.join("\0");
 			if (this.#assetPairMap[pairKey] == null) {
 				const pairContract = new PoolPairContract(this.factoryContract.endpoint, pairInfo.address);
-				const poolInfo = await pairContract.queryPool();
-				const pair = new SwapMarketPair(pairContract, factoryConfig, pairInfo, poolInfo);
+				const config = await pairContract.queryConfig();
+				const totalShares = await pairContract.queryTotalShares();
+				const totalDeposits = await pairContract.queryShareValue({ amount: totalShares });
+				const poolAssets = await pairContract.queryPairDenoms();
+				const pair = new SwapMarketPair(pairContract,
+																				[
+																					BigInt(totalDeposits.at(0)?.amount || 0),
+																					BigInt(totalDeposits.at(1)?.amount || 0),
+																				],
+																				config.maker_fee_bps,
+																				config.total_fee_bps,
+																				{
+																					assets: poolAssets,
+																					total_shares: totalShares
+																				});
 				this.#assetPairMap[pairKey] = pair;
 				this.#marketingNameToPair[pair.name] = pair;
 			} else {
