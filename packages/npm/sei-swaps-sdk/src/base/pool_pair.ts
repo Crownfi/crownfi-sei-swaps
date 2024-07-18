@@ -32,7 +32,12 @@ export class PoolPairContract<Q extends QueryClient & WasmExtension> extends Con
 	}
 	/** Config returns contract settings specified in the custom [`ConfigResponse`] structure. */
 	queryConfig(): Promise<PoolPairConfigJsonable> {
-		const msg = {"config": {}} satisfies PoolPairQueryMsg;
+		const msg = "config" satisfies PoolPairQueryMsg;
+		return this.query(msg);
+	}
+	/** Returns the total amount of shares known to the contract */
+	queryTotalShares(): Promise<Uint128> {
+		const msg = "total_shares" satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
 	/** Returns the current value of shares */

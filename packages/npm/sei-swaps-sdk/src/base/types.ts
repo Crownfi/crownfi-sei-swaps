@@ -704,9 +704,8 @@ export type PoolPairQueryMsg =
   | {
       canonical_pair_identifier: {};
     }
-  | {
-      config: {};
-    }
+  | "config"
+  | "total_shares"
   | {
       share_value: {
         amount: Uint128;
