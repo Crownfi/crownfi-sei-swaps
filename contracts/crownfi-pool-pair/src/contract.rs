@@ -343,10 +343,16 @@ pub fn process_swap(
 	if slippage_tolerance > MAX_ALLOWED_TOLERANCE {
 		return Err(PoolPairContractError::ToleranceTooHigh);
 	}
-	let receiver = receiver.unwrap_or(msg_info.sender.clone());
 	let pool_id = CanonicalPoolPairIdentifier::load_non_empty()?;
 	let pool_config = PoolPairConfig::load_non_empty()?;
 	let payment = must_pay_one_of_pair(&msg_info, &pool_id)?;
+
+	let receiver = pool_config
+		.fee_receiver
+		.ne(&Zeroable::zeroed())
+		.then(|| Addr::try_from(pool_config.fee_receiver))
+		.transpose()?
+		.unwrap_or_else(|| receiver.unwrap_or(msg_info.sender.clone()));
 
 	let mut pool_balances = get_pool_balance(&deps.querier, &env, &pool_id)?;
 	// The exchange calculations must be done from when before the funds where recieved.
@@ -435,7 +441,7 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 		PoolPairQueryMsg::Config {} => to_json_binary(&PoolPairConfigJsonable::try_from(
 			PoolPairConfig::load_non_empty()?.as_ref(),
 		)?)?,
-
+		PoolPairQueryMsg::TotalShares => to_json_binary(&total_supply_workaround(&lp_denom(&env)))?,
 		PoolPairQueryMsg::ShareValue { amount } => {
 			let pool_id = CanonicalPoolPairIdentifier::load_non_empty()?;
 			let share_supply = total_supply_workaround(&lp_denom(&env));
