@@ -114,7 +114,7 @@ export class SwapComponentElement extends SwapComponentAutogen {
 	async swapMarket(): Promise<SwapMarket> {
 		if (this.#swapMarket == null) {
 			const client = await ClientEnv.get();
-			const swapMarket = await SwapMarket.getFromChainId(client.wasmClient, client.chainId);
+			const swapMarket = await SwapMarket.getFromChainId(client.queryClient, client.chainId);
 			await swapMarket.refresh();
 			this.#swapMarket = swapMarket;
 		}
@@ -260,7 +260,7 @@ export class SwapComponentElement extends SwapComponentAutogen {
 			})()
 				.catch((ex: any) => {
 					if (isProbablyTxError(ex)) {
-						const errParts = makeTxExecErrLessFugly(ex);
+						const errParts = makeTxExecErrLessFugly(ex.message);
 						if (errParts) {
 							this.refs.inError.innerText = errParts.errorSource + ": " + errParts.errorDetail;
 						} else {

@@ -3,6 +3,7 @@ import { WalletModalAutogen, WalletChoiceAutogen } from "./_autogen.js";
 import {
 	ClientEnv,
 	MaybeSelectedProviderString,
+	SeiChainId,
 	getDefaultNetworkConfig,
 	getNetworkConfig,
 	setDefaultNetwork,
@@ -112,13 +113,13 @@ export async function askUserForWallet() {
 			  : userChoice;
 	try {
 		setLoading(true, "Connecting to wallet...");
-		const testNetwork = getNetworkConfig(walletModal.refs.selectedNetwork.value);
+		const testNetwork = getNetworkConfig(walletModal.refs.selectedNetwork.value as SeiChainId);
 		if (testNetwork == null) {
 			throw new Error("No endpoint known for " + walletModal.refs.selectedNetwork.value);
 		}
-		const testClient = await ClientEnv.get(newProvider, testNetwork);
+		const testClient = await ClientEnv.get(newProvider, testNetwork.chainId);
 		// Test if we know contract addresses for this network
-		const _ = await SwapMarket.getFromChainId(testClient.wasmClient, testNetwork.chainId);
+		const _ = await SwapMarket.getFromChainId(testClient.queryClient, testNetwork.chainId);
 		setDefaultNetwork(testNetwork.chainId);
 		await ClientEnv.setDefaultProvider(newProvider);
 	} finally {

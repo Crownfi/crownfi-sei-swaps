@@ -71,9 +71,6 @@ export async function showError(error: any) {
 							"message: " +
 							(error.message + "").replace(/\t/g, "    ") +
 							"\n" +
-							"stack: " +
-							(error.stack + "").replace(/\t/g, "    ") +
-							"\n" +
 							"\n\n--properties--\n" +
 							JSON.stringify(error, undefined, "    "),
 					});
@@ -88,9 +85,6 @@ export async function showError(error: any) {
 						"\n" +
 						"message: " +
 						(error.message + "").replace(/\t/g, "    ") +
-						"\n" +
-						"stack: " +
-						(error.stack + "").replace(/\t/g, "    ") +
 						"\n" +
 						"\n\n--properties--\n" +
 						JSON.stringify(error, undefined, "    "),

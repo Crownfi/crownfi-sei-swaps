@@ -46,7 +46,7 @@ export class FarmPoolWithdrawDialogElement extends FarmPoolWithdrawDialogAutogen
 	async swapMarket(): Promise<SwapMarket> {
 		if (this.#swapMarket == null) {
 			const client = await ClientEnv.get();
-			const swapMarket = await SwapMarket.getFromChainId(client.wasmClient, client.chainId);
+			const swapMarket = await SwapMarket.getFromChainId(client.queryClient, client.chainId);
 			await swapMarket.refresh();
 			this.#swapMarket = swapMarket;
 		}
@@ -60,7 +60,7 @@ export class FarmPoolWithdrawDialogElement extends FarmPoolWithdrawDialogAutogen
 				const [client, swapMarket] = await Promise.all([ClientEnv.get(), this.swapMarket()]);
 				const pair = swapMarket.getPairFromName(this.refs.form.elements.pool.value)!;
 
-				this.refs.balance.innerText = (await client.getBalance(pair.sharesDenom)).toString();
+				this.refs.balance.innerText = (await client.getBalance(pair.contract.address)).toString();
 			} catch (ex: any) {
 				if (!this.refs.balance.innerText) {
 					this.refs.balance.innerText = "[Error]";

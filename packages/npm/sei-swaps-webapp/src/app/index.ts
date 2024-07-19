@@ -5,7 +5,7 @@ import "./wallet_select/index.js";
 import { SwapComponentElement } from "./components/swap/index.js";
 import { q, qa } from "./util.js";
 import { KNOWN_SEI_PROVIDER_INFO } from "@crownfi/sei-js-core";
-import { ClientEnv, seiUtilEventEmitter, setDefaultNetwork } from "@crownfi/sei-utils";
+import { ClientEnv, SeiChainId, seiUtilEventEmitter, setDefaultNetwork } from "@crownfi/sei-utils";
 import { FarmPoolComponentElement } from "./components/farm/index.js";
 function removeHighlightsFromLinks() {
 	(qa(".header .header-links a") as NodeListOf<HTMLAnchorElement>).forEach((v) => {
@@ -44,7 +44,7 @@ export async function main() {
 				? "sei-chain"
 				: "atlantic-2";
 	}
-	setDefaultNetwork(storedNetworkPref);
+	setDefaultNetwork(storedNetworkPref as SeiChainId);
 	let storedProviderPref = localStorage.getItem("preferred_sei_provider");
 	ClientEnv.setDefaultProvider(storedProviderPref as any, true);
 

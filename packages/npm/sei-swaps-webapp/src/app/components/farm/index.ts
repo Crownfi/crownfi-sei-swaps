@@ -24,7 +24,7 @@ export class FarmPoolComponentElement extends FarmPoolComponentAutogen {
 	async swapMarket(): Promise<SwapMarket> {
 		if (this.#swapMarket == null) {
 			const client = await ClientEnv.get();
-			const swapMarket = await SwapMarket.getFromChainId(client.wasmClient, client.chainId);
+			const swapMarket = await SwapMarket.getFromChainId(client.queryClient, client.chainId);
 			await swapMarket.refresh();
 			this.#swapMarket = swapMarket;
 		}
@@ -244,7 +244,7 @@ export class FarmPoolItemOptionsElement extends FarmPoolItemOptionsAutogen {
 				this.refs.withdrawBtn.disabled = false;
 				this.refs.depositBtn.disabled = false;
 
-				const lpBalance = await client.getBalance(pool.sharesDenom);
+				const lpBalance = await client.getBalance(pool.contract.address);
 
 				this.refs.depositTxt.innerText = lpBalance + "";
 				this.refs.withdrawTxt.innerText = pool

@@ -36,6 +36,6 @@ WalletButtonElement.registerElement();
 
 seiUtilEventEmitter.on("defaultProviderChanged", (ev) => {
 	(qa(`button[is="wallet-button"]`) as NodeListOf<WalletButtonElement>).forEach((elem) => {
-		elem.walletAddress = ev.account?.address ?? null;
+		elem.walletAddress = ev.account?.seiAddress ?? null;
 	});
 });

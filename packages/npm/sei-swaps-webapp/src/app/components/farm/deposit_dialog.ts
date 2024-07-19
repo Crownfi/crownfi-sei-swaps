@@ -77,7 +77,7 @@ export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 	async swapMarket(): Promise<SwapMarket> {
 		if (this.#swapMarket == null) {
 			const client = await ClientEnv.get();
-			const swapMarket = await SwapMarket.getFromChainId(client.wasmClient, client.chainId);
+			const swapMarket = await SwapMarket.getFromChainId(client.queryClient, client.chainId);
 			await swapMarket.refresh();
 			this.#swapMarket = swapMarket;
 		}
@@ -115,7 +115,7 @@ export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 				this.refs.balanceToken1.innerText = UIAmount(await client.getBalance(pair.assets[1]), pair.assets[1]);
 				this.refs.balanceToken1.classList.remove("lazy-loading-text-2");
 
-				this.refs.balanceResult.innerText = (await client.getBalance(pair.sharesDenom)).toString();
+				this.refs.balanceResult.innerText = (await client.getBalance(pair.name)).toString();
 				this.refs.balanceResult.classList.remove("lazy-loading-text-2");
 			} catch (ex: any) {
 				if (!this.refs.balanceToken0.innerText) {
