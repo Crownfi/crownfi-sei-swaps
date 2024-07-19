@@ -385,15 +385,17 @@ export type SwapMarketSwapSimResult = {
 export class SwapMarket {
 	readonly factoryContract: PoolFactoryContract<QueryClient & WasmExtension>;
 	readonly routerContract: SwapRouterContract<QueryClient & WasmExtension>;
+
 	#assetPairMap: { [pair: string]: SwapMarketPair };
 	#marketingNameToPair: { [marketingName: string]: SwapMarketPair };
-	constructor(endpoint: CosmWasmClient, factoryContractAddress: Addr, routerContractAddress: Addr) {
-		const client = endpoint["forceGetQueryClient"]();
-		this.factoryContract = new PoolFactoryContract(client, factoryContractAddress);
-		this.routerContract = new SwapRouterContract(client, routerContractAddress);
+
+	constructor(endpoint: QueryClient & WasmExtension, factoryContractAddress: Addr, routerContractAddress: Addr) {
+		this.factoryContract = new PoolFactoryContract(endpoint, factoryContractAddress);
+		this.routerContract = new SwapRouterContract(endpoint, routerContractAddress);
 		this.#assetPairMap = {};
 		this.#marketingNameToPair = {};
 	}
+
 	/**
 	 * Gets the default SwapMarket. That is, the one with contracts published by CrownFi.
 	 *
@@ -401,8 +403,7 @@ export class SwapMarket {
 	 * @param chainId network ID, if unspecified, the endpoint will be queried.
 	 * @returns The SwapMarket with the default contracts
 	 */
-	static async getFromChainId(endpoint: CosmWasmClient, chainId?: string): Promise<SwapMarket> {
-		chainId = chainId || (await endpoint.getChainId());
+	static async getFromChainId(endpoint: QueryClient & WasmExtension, chainId: string): Promise<SwapMarket> {
 		switch (chainId) {
 			case "atlantic-2":
 				return new SwapMarket(
