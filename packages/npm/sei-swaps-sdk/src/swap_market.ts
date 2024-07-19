@@ -329,18 +329,13 @@ export class SwapMarketPair {
 	): ExecuteInstruction[] {
 		return matchTokenKind(
 			offerDenom,
-			(contractAddress) => [
-				this.contract.buildSwapCw20Ix(contractAddress, offerAmount, {
-					max_spread: slippageTolerance + "",
-					to: receiver,
-				}),
-			],
+			(contractAddress) => [], // TODO: CW20 Callback
+			(contractAddress) => [], // TODO: ERC20 Callback
 			(denom) => [
 				this.contract.buildSwapIx(
 					{
-						offer_asset: amountWithDenomToAstroAsset(offerAmount, denom),
-						max_spread: slippageTolerance + "",
-						to: receiver,
+						receiver,
+						slippage_tolerance: slippageTolerance + "",
 					},
 					[
 						{
@@ -365,7 +360,7 @@ export class SwapMarketPair {
 			throw new Error("Market does not hold assets offered or requested");
 		}
 		const simResult = await client.simulateContractMulti(instructions);
-		const balanceChanges = getBalanceChangesFor(client.account!.address, simResult.result!.events, true);
+		const balanceChanges = getBalanceChangesFor(client.account!.seiAddress, simResult.result!.events, {});
 		const askDenom = offerDenom == this.assets[0] ? this.assets[1] : this.assets[0];
 		const amount = balanceChanges[askDenom] || 0n;
 		return {
@@ -680,7 +675,7 @@ export class SwapMarket {
 			throw new Error("Market does not hold assets offered or requested");
 		}
 		const simResult = await client.simulateContractMulti(instructions);
-		const balanceChanges = getBalanceChangesFor(client.account!.address, simResult.result!.events, true);
+		const balanceChanges = getBalanceChangesFor(client.account!.seiAddress, simResult.result!.events, {});
 		const amount = balanceChanges[askDenom] || 0n;
 		return {
 			instructions,
