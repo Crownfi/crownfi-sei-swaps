@@ -85,16 +85,16 @@ pub struct VolumeQueryResponse {
 pub enum PoolPairQueryMsg {
 	/// Returns the pair denoms as they are marketed.
 	#[returns([String; 2])]
-	PairDenoms {},
+	PairDenoms,
 	/// Returns the pair denoms as it's internally represented (Denoms are in lexicographical order).
 	#[returns([String; 2])]
-	CanonicalPairDenoms {},
+	CanonicalPairDenoms,
 	/// Returns the pair identifier as it's marketed.
 	#[returns(String)]
-	PairIdentifier {},
+	PairIdentifier,
 	/// Returns the pair identifier as it's internally represented (Denoms are in lexicographical order).
 	#[returns(String)]
-	CanonicalPairIdentifier {},
+	CanonicalPairIdentifier,
 	/// Config returns contract settings specified in the custom [`ConfigResponse`] structure.
 	#[returns(PoolPairConfigJsonable)]
 	Config,
