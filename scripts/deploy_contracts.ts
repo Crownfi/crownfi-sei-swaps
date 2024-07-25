@@ -11,6 +11,8 @@ applyEnvVarsToDefaultClientEnv();
 
 const clientEnv = await ContractDeployingClientEnv.get();
 
+const walletSeiAddress = clientEnv.getAccount().seiAddress;
+
 async function readContractBinary(fileName: string) {
   const contractPath = path.resolve(__dirname, "..", "target", "wasm32-unknown-unknown", "release", fileName);
   try {
@@ -36,8 +38,22 @@ async function uploadContractBinary(contractName: string, binary: Buffer) {
   return uploadResult;
 }
 
+async function deployContract(name: string, codeId: number, instantiateMsg: object, label: string) {
+  console.log(`Deploying ${name}...`);
+
+  const deployResult = 
+    await clientEnv.instantiateContract(codeId, instantiateMsg, "swap-router");
+
+  console.log(`${name} deployed`, {
+    transactionHash: deployResult.transactionHash,
+    contractAddress: deployResult.contractAddress,
+  });
+
+  return deployResult;
+}
+
 console.log(`ChainID: ${clientEnv.chainId}`);
-console.log(`Wallet: ${clientEnv.getAccount().seiAddress}`);
+console.log(`Wallet: ${walletSeiAddress}`);
 console.log("Account balance:", UIAmount(await clientEnv.getBalance("usei"), "usei", true));
 
 if (clientEnv.chainId == "sei-chain" && (await clientEnv.getBalance("usei")) < 1000000n) {
@@ -47,16 +63,39 @@ if (clientEnv.chainId == "sei-chain" && (await clientEnv.getBalance("usei")) < 1
 	await fundFromLocalKeychain("admin", clientEnv, coin(100000000, "uatom"));
 }
 
-
-
-const cw20WrapperBinary = await readContractBinary("crownfi_cw20_wrapper.wasm");
-const erc20WrapperBinary = await readContractBinary("crownfi_erc20_wrapper.wasm");
+// const cw20WrapperBinary = await readContractBinary("crownfi_cw20_wrapper.wasm");
+// const erc20WrapperBinary = await readContractBinary("crownfi_erc20_wrapper.wasm");
 const swapRouterBinary = await readContractBinary("crownfi_swap_router_contract.wasm");
 const poolPairsBinary = await readContractBinary("crownfi_pool_pair_contract.wasm");
 const poolFactoryBinary = await readContractBinary("crownfi_pool_factory_contract.wasm");
 
-const cw20Receipt = await uploadContractBinary("CW20 Wrapper", cw20WrapperBinary);
-const erc20Receipt = await uploadContractBinary("ERC20 Wrapper", erc20WrapperBinary);
+// const cw20Receipt = await uploadContractBinary("CW20 Wrapper", cw20WrapperBinary);
+// const erc20Receipt = await uploadContractBinary("ERC20 Wrapper", erc20WrapperBinary);
 const swapRouterReceipt = await uploadContractBinary("Swap Router", swapRouterBinary);
-const poolPairsReceipt = await uploadContractBinary("Pool Pairs", poolPairsBinary);
+const poolPairReceipt = await uploadContractBinary("Pool Pair", poolPairsBinary);
 const poolFactoryReceipt = await uploadContractBinary("Pool Factory", poolFactoryBinary);
+
+const swapRouterDeployResult = await deployContract("Swap Router", swapRouterReceipt.codeId, {}, "swap-router");
+
+const poolFactoryDeployResult = await deployContract("Pool Factory", poolFactoryReceipt.codeId, {
+  config: {
+    admin: walletSeiAddress,
+    fee_receiver: walletSeiAddress,
+    pair_code_id: poolPairReceipt.codeId,
+    default_total_fee_bps: 1,
+    default_maker_fee_bps: 1,
+    permissionless_pool_cration: true,
+  }
+}, "pool-factory");
+
+const poolPairsDeployResult = await deployContract("Pool Pair", poolPairReceipt.codeId, {
+  shares_receiver: walletSeiAddress,
+  config: {
+    admin: poolFactoryDeployResult.contractAddress,
+    fee_receiver: walletSeiAddress,
+    total_fee_bps: 1,
+    maker_fee_bps: 1,
+    inverse: false,
+    endorsed: true,
+  }
+}, "pool-pair");
