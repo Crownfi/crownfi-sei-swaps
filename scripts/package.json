@@ -7,6 +7,7 @@
   "scripts": {
     "start": "echo TODO && exit 1",
     "build": "bash build.sh",
+    "deploy:contracts": "node --loader ts-node/esm ./deploy_contracts.js",
     "deploy:core": "node --loader ts-node/esm ./deploy_core.js",
     "deploy:pools": "node --loader ts-node/esm ./deploy_pools.js",
     "deploy:token": "node --loader ts-node/esm ./deploy_token.js",
