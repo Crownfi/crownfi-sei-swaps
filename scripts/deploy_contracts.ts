@@ -3,7 +3,7 @@ import { promises as fsp } from "node:fs";
 
 import { applyEnvVarsToDefaultClientEnv, fundFromLocalKeychain  } from "@crownfi/sei-cli-utils";
 import { ContractDeployingClientEnv, UIAmount } from "@crownfi/sei-utils";
-import { coin } from "@cosmjs/proto-signing";
+import { Coin, coin } from "@cosmjs/proto-signing";
 
 const __dirname = import.meta.dirname;
 
@@ -38,11 +38,11 @@ async function uploadContractBinary(contractName: string, binary: Buffer) {
   return uploadResult;
 }
 
-async function deployContract(name: string, codeId: number, instantiateMsg: object, label: string) {
+async function deployContract(name: string, codeId: number, instantiateMsg: object, label: string, funds?: Coin[]) {
   console.log(`Deploying ${name}...`);
 
   const deployResult = 
-    await clientEnv.instantiateContract(codeId, instantiateMsg, "swap-router");
+    await clientEnv.instantiateContract(codeId, instantiateMsg, label, funds);
 
   console.log(`${name} deployed`, {
     transactionHash: deployResult.transactionHash,
@@ -77,25 +77,36 @@ const poolFactoryReceipt = await uploadContractBinary("Pool Factory", poolFactor
 
 const swapRouterDeployResult = await deployContract("Swap Router", swapRouterReceipt.codeId, {}, "swap-router");
 
-const poolFactoryDeployResult = await deployContract("Pool Factory", poolFactoryReceipt.codeId, {
-  config: {
-    admin: walletSeiAddress,
-    fee_receiver: walletSeiAddress,
-    pair_code_id: poolPairReceipt.codeId,
-    default_total_fee_bps: 1,
-    default_maker_fee_bps: 1,
-    permissionless_pool_cration: true,
-  }
-}, "pool-factory");
+const poolFactoryDeployResult = await deployContract(
+  "Pool Factory", 
+  poolFactoryReceipt.codeId, 
+  {
+    config: {
+      admin: walletSeiAddress,
+      fee_receiver: walletSeiAddress,
+      pair_code_id: poolPairReceipt.codeId,
+      default_total_fee_bps: 1,
+      default_maker_fee_bps: 1,
+      permissionless_pool_cration: true,
+    },
+  }, 
+  "pool-factory",);
 
-const poolPairsDeployResult = await deployContract("Pool Pair", poolPairReceipt.codeId, {
-  shares_receiver: walletSeiAddress,
-  config: {
-    admin: poolFactoryDeployResult.contractAddress,
-    fee_receiver: walletSeiAddress,
-    total_fee_bps: 1,
-    maker_fee_bps: 1,
-    inverse: false,
-    endorsed: true,
-  }
-}, "pool-pair");
+const poolPairsDeployResult = await deployContract(
+  "Pool Pair", 
+  poolPairReceipt.codeId,
+  {
+    shares_receiver: walletSeiAddress,
+    config: {
+      admin: poolFactoryDeployResult.contractAddress,
+      fee_receiver: walletSeiAddress,
+      total_fee_bps: 1,
+      maker_fee_bps: 1,
+      inverse: false,
+      endorsed: true,
+    }
+  }, 
+  "pool-pair", [
+    coin(1000, "usei"),
+    coin(1000, "uatom"),
+  ]);
