@@ -3,6 +3,7 @@ import { promises as fsp } from "node:fs";
 
 import { applyEnvVarsToDefaultClientEnv, fundFromLocalKeychain  } from "@crownfi/sei-cli-utils";
 import { ContractDeployingClientEnv, UIAmount } from "@crownfi/sei-utils";
+import { PoolFactoryContract } from "@crownfi/sei-swaps-sdk";
 import { Coin, coin } from "@cosmjs/proto-signing";
 
 const __dirname = import.meta.dirname;
@@ -10,8 +11,7 @@ const __dirname = import.meta.dirname;
 applyEnvVarsToDefaultClientEnv();
 
 const clientEnv = await ContractDeployingClientEnv.get();
-
-const walletSeiAddress = clientEnv.getAccount().seiAddress;
+const walletSeiAddress = clientEnv.account?.seiAddress;
 
 async function readContractBinary(fileName: string) {
   const contractPath = path.resolve(__dirname, "..", "target", "wasm32-unknown-unknown", "release", fileName);
@@ -25,10 +25,10 @@ async function readContractBinary(fileName: string) {
   }
 }
 
-async function uploadContractBinary(contractName: string, binary: Buffer) {
+async function uploadContractBinary(contractName: string, binary: Buffer, allowFactories = false) {
   console.log(`Uploading ${contractName} code...`);
 
-  const uploadResult = await clientEnv.uploadContract(binary, false);
+  const uploadResult = await clientEnv.uploadContract(binary, allowFactories);
 
   console.log(`Uploaded ${contractName} code: `, {
     transactionHash: uploadResult.transactionHash,
@@ -72,7 +72,7 @@ const poolFactoryBinary = await readContractBinary("crownfi_pool_factory_contrac
 // const cw20Receipt = await uploadContractBinary("CW20 Wrapper", cw20WrapperBinary);
 // const erc20Receipt = await uploadContractBinary("ERC20 Wrapper", erc20WrapperBinary);
 const swapRouterReceipt = await uploadContractBinary("Swap Router", swapRouterBinary);
-const poolPairReceipt = await uploadContractBinary("Pool Pair", poolPairsBinary);
+const poolPairReceipt = await uploadContractBinary("Pool Pair", poolPairsBinary, true);
 const poolFactoryReceipt = await uploadContractBinary("Pool Factory", poolFactoryBinary);
 
 const swapRouterDeployResult = await deployContract("Swap Router", swapRouterReceipt.codeId, {}, "swap-router");
@@ -92,21 +92,19 @@ const poolFactoryDeployResult = await deployContract(
   }, 
   "pool-factory",);
 
-const poolPairsDeployResult = await deployContract(
-  "Pool Pair", 
-  poolPairReceipt.codeId,
-  {
-    shares_receiver: walletSeiAddress,
-    config: {
-      admin: poolFactoryDeployResult.contractAddress,
-      fee_receiver: walletSeiAddress,
-      total_fee_bps: 1,
-      maker_fee_bps: 1,
-      inverse: false,
-      endorsed: true,
-    }
-  }, 
-  "pool-pair", [
-    coin(1000, "usei"),
-    coin(1000, "uatom"),
-  ]);
+const poolFactory = new PoolFactoryContract(clientEnv.queryClient, poolFactoryDeployResult.contractAddress);
+
+console.log("Creating new Pool Pair with Pool Factory...");
+
+await clientEnv.executeContract(
+  poolFactory.buildCreatePoolIx(
+    { left_denom: "uatom", initial_shares_receiver: walletSeiAddress }, 
+    [ coin(1000, "uatom"), coin(1000, "usei") ]
+  ),
+  "pool-factory",
+  "auto"
+);
+
+console.log("Pool Pair created.")
+
+console.log("Pairs on Pool Factory:", await poolFactory.queryPairs());
