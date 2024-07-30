@@ -7,12 +7,6 @@
   "scripts": {
     "start": "echo TODO && exit 1",
     "build": "bash build.sh",
-    "deploy:contracts": "node --loader ts-node/esm ./deploy_contracts.js",
-    "deploy:core": "node --loader ts-node/esm ./deploy_core.js",
-    "deploy:pools": "node --loader ts-node/esm ./deploy_pools.js",
-    "deploy:token": "node --loader ts-node/esm ./deploy_token.js",
-    "deploy": "npm run deploy:core && npm run deploy:pools",
-    "migrate": "bash migrate.sh",
     "codegen:pairs": "bash ./update_frontend_config.sh",
     "codegen:schema": "ts-node update_frontend_schema.ts"
   },
