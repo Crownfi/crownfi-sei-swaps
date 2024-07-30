@@ -12,8 +12,8 @@
 	"dependencies": {
 		"@cosmjs/cosmwasm-stargate": "^0.32.3",
 		"@cosmjs/stargate": "^0.32.3",
-		"@crownfi/sei-js-core": "^5.2.4",
-		"@crownfi/sei-utils": "^0.3.10",
+		"@crownfi/sei-js-core": "^5.2.5",
+		"@crownfi/sei-utils": "^0.3.17",
 		"hi-base32": "^0.5.1"
 	},
 	"publishConfig": {
