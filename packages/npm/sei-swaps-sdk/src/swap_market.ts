@@ -8,7 +8,7 @@ import {
 import { Addr, ClientEnv, getBalanceChangesFor, getUserTokenInfo } from "@crownfi/sei-utils";
 
 import { UnifiedDenom, UnifiedDenomPair, matchTokenKind } from "./types.js";
-import { Coin } from "@cosmjs/amino";
+import { coin } from "@cosmjs/amino";
 import { bigIntMin } from "math-bigint";
 
 import { WasmExtension } from "@cosmjs/cosmwasm-stargate";
@@ -111,17 +111,13 @@ export class SwapMarketPair {
 		const totalDeposits = await pairContract.queryShareValue({ amount: totalShares });
 		const poolFeeBasisPoints = config.total_fee_bps - config.maker_fee_bps;
 
-		return new SwapMarketPair(pairContract,
-															[
-																BigInt(totalDeposits[0].amount),
-																BigInt(totalDeposits[1].amount),
-															],
-															config.maker_fee_bps,
-															poolFeeBasisPoints,
-															{
-																assets: poolAssets,
-																total_shares: totalShares
-															});
+		return new SwapMarketPair(
+			pairContract,
+			[ BigInt(totalDeposits[0].amount), BigInt(totalDeposits[1].amount) ],
+			config.maker_fee_bps,
+			poolFeeBasisPoints,
+			{ assets: poolAssets, total_shares: totalShares }
+		);
 	}
 
 	/**
@@ -212,45 +208,18 @@ export class SwapMarketPair {
 		slippageTolerance: number = 0.01,
 		receiver?: Addr | null
 	): ExecuteInstruction[] {
-		const funds: Coin[] = [];
 		const ixs: ExecuteInstruction[] = [];
-		const getCWAndERC20Msg = (contractAddress: string, tokenAmount: bigint) => ({
-			contractAddress,
-			msg: {
-				increase_allowance: {
-					amount: tokenAmount + "",
-					spender: this.contract.address,
-				},
-			}
-		});
-		matchTokenKind(
-			this.assets[0],
-			(contractAddress) => { ixs.push(getCWAndERC20Msg(contractAddress, token0Amount)) },
-			(contractAddress) => { ixs.push(getCWAndERC20Msg(contractAddress, token0Amount)) },
-			(denom) => {
-				funds.push({
-					amount: token0Amount + "",
-					denom,
-				});
-			}
-		);
-		matchTokenKind(
-			this.assets[1],
-			(contractAddress) => { ixs.push(getCWAndERC20Msg(contractAddress, token1Amount)) },
-			(contractAddress) => { ixs.push(getCWAndERC20Msg(contractAddress, token1Amount)) },
-			(denom) => {
-				funds.push({
-					amount: token1Amount + "",
-					denom,
-				});
-			}
-		);
+
 		ixs.push(
 			this.contract.buildProvideLiquidityIx({
 				slippage_tolerance: slippageTolerance + "",
 				receiver,
-			})
+			}, [
+				coin(token0Amount.toString(), this.assets[0]),
+				coin(token1Amount.toString(), this.assets[1]),
+			])
 		);
+
 		return ixs;
 	}
 
@@ -312,25 +281,17 @@ export class SwapMarketPair {
 		slippageTolerance: number = 0.01,
 		receiver?: Addr | null
 	): ExecuteInstruction[] {
-		return matchTokenKind(
-			offerDenom,
-			(contractAddress) => [], // TODO: CW20 Callback
-			(contractAddress) => [], // TODO: ERC20 Callback
-			(denom) => [
-				this.contract.buildSwapIx(
-					{
-						receiver,
-						slippage_tolerance: slippageTolerance + "",
-					},
-					[
-						{
-							amount: offerAmount + "",
-							denom,
-						},
-					]
-				),
-			]
-		);
+		return [
+			this.contract.buildSwapIx(
+				{
+					receiver,
+					slippage_tolerance: slippageTolerance + "",
+				},
+				[
+					coin(offerAmount.toString(), offerDenom),
+				]
+			),
+		];
 	}
 
 	async simulateSwap(
