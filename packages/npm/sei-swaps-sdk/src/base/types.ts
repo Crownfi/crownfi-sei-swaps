@@ -692,18 +692,10 @@ export type PoolPairExecuteMsg =
  * via the `definition` "PoolPairQueryMsg".
  */
 export type PoolPairQueryMsg =
-  | {
-      pair_denoms: {};
-    }
-  | {
-      canonical_pair_denoms: {};
-    }
-  | {
-      pair_identifier: {};
-    }
-  | {
-      canonical_pair_identifier: {};
-    }
+  | "pair_denoms"
+  | "canonical_pair_denoms"
+  | "pair_identifier"
+  | "canonical_pair_identifier"
   | "config"
   | "total_shares"
   | {

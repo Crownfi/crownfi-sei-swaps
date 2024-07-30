@@ -12,22 +12,22 @@ import {ContractBase} from "@crownfi/sei-utils";
 export class PoolPairContract<Q extends QueryClient & WasmExtension> extends ContractBase<Q> {
 	/** Returns the pair denoms as they are marketed. */
 	queryPairDenoms(): Promise<ArraySize_2Of_String> {
-		const msg = {"pair_denoms": {}} satisfies PoolPairQueryMsg;
+		const msg = "pair_denoms" satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
 	/** Returns the pair denoms as it's internally represented (Denoms are in lexicographical order). */
 	queryCanonicalPairDenoms(): Promise<ArraySize_2Of_String> {
-		const msg = {"canonical_pair_denoms": {}} satisfies PoolPairQueryMsg;
+		const msg = "canonical_pair_denoms" satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
 	/** Returns the pair identifier as it's marketed. */
 	queryPairIdentifier(): Promise<String> {
-		const msg = {"pair_identifier": {}} satisfies PoolPairQueryMsg;
+		const msg = "pair_identifier" satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
 	/** Returns the pair identifier as it's internally represented (Denoms are in lexicographical order). */
 	queryCanonicalPairIdentifier(): Promise<String> {
-		const msg = {"canonical_pair_identifier": {}} satisfies PoolPairQueryMsg;
+		const msg = "canonical_pair_identifier" satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
 	/** Config returns contract settings specified in the custom [`ConfigResponse`] structure. */
