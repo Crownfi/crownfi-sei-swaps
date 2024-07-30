@@ -1,33 +1,18 @@
-import { CosmWasmClient, ExecuteInstruction } from "@cosmjs/cosmwasm-stargate";
+import { ExecuteInstruction } from "@cosmjs/cosmwasm-stargate";
 import {
 	PoolPairContract,
 	PoolFactoryContract,
-	PoolFactoryConfigJsonable,
 	Uint128,
 	SwapRouterContract,
 } from "./index.js";
-import { Addr, ClientEnv, getBalanceChangesFor, getUserTokenInfo, stringDecimalToBigInt, updateUserTokenInfo } from "@crownfi/sei-utils";
-import {
-	amountWithDenomToAstroAsset,
-	astroAssetInfoToUniDenom,
-	astroAssetToAmountWithDenom,
-	uniDenomToAstroAssetInfo,
-} from "./astro_legacy_conversions.js";
-import {
-	Asset,
-	AstroFactoryConfigResponse,
-	AstroPairContract,
-	AstroPairPoolResponse,
-	AstroPairType,
-	AstroRouterContract,
-	PairInfo,
-} from "./base/index.js";
+import { Addr, ClientEnv, getBalanceChangesFor, getUserTokenInfo } from "@crownfi/sei-utils";
+
 import { UnifiedDenom, UnifiedDenomPair, matchTokenKind } from "./types.js";
 import { Coin } from "@cosmjs/amino";
 import { bigIntMin } from "math-bigint";
-// import { SeiQueryClient } from "@crownfi/sei-js-core"
-import {WasmExtension} from "@cosmjs/cosmwasm-stargate";
-import {QueryClient} from "@cosmjs/stargate";
+
+import { WasmExtension } from "@cosmjs/cosmwasm-stargate";
+import { QueryClient } from "@cosmjs/stargate";
 
 export type SwapMarketDepositCalcResult = {
 	newShares: bigint;
