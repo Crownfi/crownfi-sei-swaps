@@ -4,81 +4,136 @@
  * DO NOT MODIFY IT BY HAND.
  * The Rust definition of the associated structs is the source of truth!!
  */
-import {ArrayOf_Asset, Asset, AssetInfo, AstroPairConfigResponse, AstroPairCumulativePricesResponse, AstroPairCw20HookMsg, AstroPairExecuteMsg, AstroPairPoolResponse, AstroPairQueryMsg, AstroPairReverseSimulationResponse, AstroPairSimulationResponse, Binary, Cw20ReceiveMsg, Decimal, Nullable_Uint128, PairInfo, Uint128, Uint64} from "./types.js";
-import {Coin} from "@cosmjs/amino";
-import {ExecuteInstruction} from "@cosmjs/cosmwasm-stargate";
-import {ContractBase} from "@crownfi/sei-utils";
+import {
+	ArrayOf_Asset,
+	Asset,
+	AssetInfo,
+	AstroPairConfigResponse,
+	AstroPairCumulativePricesResponse,
+	AstroPairCw20HookMsg,
+	AstroPairExecuteMsg,
+	AstroPairPoolResponse,
+	AstroPairQueryMsg,
+	AstroPairReverseSimulationResponse,
+	AstroPairSimulationResponse,
+	Binary,
+	Cw20ReceiveMsg,
+	Decimal,
+	Nullable_Uint128,
+	PairInfo,
+	Uint128,
+	Uint64,
+} from "./types.js";
+import { Coin } from "@cosmjs/amino";
+import { ExecuteInstruction } from "@cosmjs/cosmwasm-stargate";
+import { ContractBase } from "@crownfi/sei-utils";
 export class AstroPairContract extends ContractBase {
 	queryPair(): Promise<PairInfo> {
-		const msg = {"pair": {}} satisfies AstroPairQueryMsg;
+		const msg = { pair: {} } satisfies AstroPairQueryMsg;
 		return this.query(msg);
 	}
 	queryPool(): Promise<AstroPairPoolResponse> {
-		const msg = {"pool": {}} satisfies AstroPairQueryMsg;
+		const msg = { pool: {} } satisfies AstroPairQueryMsg;
 		return this.query(msg);
 	}
 	queryConfig(): Promise<AstroPairConfigResponse> {
-		const msg = {"config": {}} satisfies AstroPairQueryMsg;
+		const msg = { config: {} } satisfies AstroPairQueryMsg;
 		return this.query(msg);
 	}
-	queryShare(args: {"amount": Uint128}): Promise<ArrayOf_Asset> {
-		const msg = {"share": args} satisfies AstroPairQueryMsg;
+	queryShare(args: { amount: Uint128 }): Promise<ArrayOf_Asset> {
+		const msg = { share: args } satisfies AstroPairQueryMsg;
 		return this.query(msg);
 	}
-	querySimulation(args: {"ask_asset_info"?: AssetInfo | null, "offer_asset": Asset}): Promise<AstroPairSimulationResponse> {
-		const msg = {"simulation": args} satisfies AstroPairQueryMsg;
+	querySimulation(args: {
+		ask_asset_info?: AssetInfo | null;
+		offer_asset: Asset;
+	}): Promise<AstroPairSimulationResponse> {
+		const msg = { simulation: args } satisfies AstroPairQueryMsg;
 		return this.query(msg);
 	}
-	queryReverseSimulation(args: {"ask_asset": Asset, "offer_asset_info"?: AssetInfo | null}): Promise<AstroPairReverseSimulationResponse> {
-		const msg = {"reverse_simulation": args} satisfies AstroPairQueryMsg;
+	queryReverseSimulation(args: {
+		ask_asset: Asset;
+		offer_asset_info?: AssetInfo | null;
+	}): Promise<AstroPairReverseSimulationResponse> {
+		const msg = { reverse_simulation: args } satisfies AstroPairQueryMsg;
 		return this.query(msg);
 	}
 	queryCumulativePrices(): Promise<AstroPairCumulativePricesResponse> {
-		const msg = {"cumulative_prices": {}} satisfies AstroPairQueryMsg;
+		const msg = { cumulative_prices: {} } satisfies AstroPairQueryMsg;
 		return this.query(msg);
 	}
 	queryQueryComputeD(): Promise<Uint128> {
-		const msg = {"query_compute_d": {}} satisfies AstroPairQueryMsg;
+		const msg = { query_compute_d: {} } satisfies AstroPairQueryMsg;
 		return this.query(msg);
 	}
-	queryAssetBalanceAt(args: {"asset_info": AssetInfo, "block_height": Uint64}): Promise<Nullable_Uint128> {
-		const msg = {"asset_balance_at": args} satisfies AstroPairQueryMsg;
+	queryAssetBalanceAt(args: { asset_info: AssetInfo; block_height: Uint64 }): Promise<Nullable_Uint128> {
+		const msg = { asset_balance_at: args } satisfies AstroPairQueryMsg;
 		return this.query(msg);
 	}
 	buildReceiveIx(args: Cw20ReceiveMsg, funds?: Coin[]): ExecuteInstruction {
-		const msg = {"receive": args} satisfies AstroPairExecuteMsg;
+		const msg = { receive: args } satisfies AstroPairExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildProvideLiquidityIx(args: {"assets": Asset[], "auto_stake"?: boolean | null, "receiver"?: string | null, "slippage_tolerance"?: Decimal | null}, funds?: Coin[]): ExecuteInstruction {
-		const msg = {"provide_liquidity": args} satisfies AstroPairExecuteMsg;
+	buildProvideLiquidityIx(
+		args: {
+			assets: Asset[];
+			auto_stake?: boolean | null;
+			receiver?: string | null;
+			slippage_tolerance?: Decimal | null;
+		},
+		funds?: Coin[]
+	): ExecuteInstruction {
+		const msg = { provide_liquidity: args } satisfies AstroPairExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildSwapIx(args: {"ask_asset_info"?: AssetInfo | null, "belief_price"?: Decimal | null, "max_spread"?: Decimal | null, "offer_asset": Asset, "to"?: string | null}, funds?: Coin[]): ExecuteInstruction {
-		const msg = {"swap": args} satisfies AstroPairExecuteMsg;
+	buildSwapIx(
+		args: {
+			ask_asset_info?: AssetInfo | null;
+			belief_price?: Decimal | null;
+			max_spread?: Decimal | null;
+			offer_asset: Asset;
+			to?: string | null;
+		},
+		funds?: Coin[]
+	): ExecuteInstruction {
+		const msg = { swap: args } satisfies AstroPairExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildUpdateConfigIx(args: {"params": Binary}, funds?: Coin[]): ExecuteInstruction {
-		const msg = {"update_config": args} satisfies AstroPairExecuteMsg;
+	buildUpdateConfigIx(args: { params: Binary }, funds?: Coin[]): ExecuteInstruction {
+		const msg = { update_config: args } satisfies AstroPairExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildProposeNewOwnerIx(args: {"expires_in": number, "owner": string}, funds?: Coin[]): ExecuteInstruction {
-		const msg = {"propose_new_owner": args} satisfies AstroPairExecuteMsg;
+	buildProposeNewOwnerIx(args: { expires_in: number; owner: string }, funds?: Coin[]): ExecuteInstruction {
+		const msg = { propose_new_owner: args } satisfies AstroPairExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
 	buildDropOwnershipProposalIx(funds?: Coin[]): ExecuteInstruction {
-		const msg = {"drop_ownership_proposal": {}} satisfies AstroPairExecuteMsg;
+		const msg = { drop_ownership_proposal: {} } satisfies AstroPairExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
 	buildClaimOwnershipIx(funds?: Coin[]): ExecuteInstruction {
-		const msg = {"claim_ownership": {}} satisfies AstroPairExecuteMsg;
+		const msg = { claim_ownership: {} } satisfies AstroPairExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildSwapCw20Ix(tokenContractOrUnifiedDenom: string, amount: string | bigint | number, args: {"ask_asset_info"?: AssetInfo | null, "belief_price"?: Decimal | null, "max_spread"?: Decimal | null, "to"?: string | null} = {}): ExecuteInstruction {
-		const msg = {"swap": args} satisfies AstroPairCw20HookMsg;
+	buildSwapCw20Ix(
+		tokenContractOrUnifiedDenom: string,
+		amount: string | bigint | number,
+		args: {
+			ask_asset_info?: AssetInfo | null;
+			belief_price?: Decimal | null;
+			max_spread?: Decimal | null;
+			to?: string | null;
+		} = {}
+	): ExecuteInstruction {
+		const msg = { swap: args } satisfies AstroPairCw20HookMsg;
 		return this.executeIxCw20(msg, tokenContractOrUnifiedDenom, amount);
 	}
-	buildWithdrawLiquidityCw20Ix(tokenContractOrUnifiedDenom: string, amount: string | bigint | number, args: {"assets"?: Asset[]} = {}): ExecuteInstruction {
-		const msg = {"withdraw_liquidity": args} satisfies AstroPairCw20HookMsg;
+	buildWithdrawLiquidityCw20Ix(
+		tokenContractOrUnifiedDenom: string,
+		amount: string | bigint | number,
+		args: { assets?: Asset[] } = {}
+	): ExecuteInstruction {
+		const msg = { withdraw_liquidity: args } satisfies AstroPairCw20HookMsg;
 		return this.executeIxCw20(msg, tokenContractOrUnifiedDenom, amount);
 	}
 }

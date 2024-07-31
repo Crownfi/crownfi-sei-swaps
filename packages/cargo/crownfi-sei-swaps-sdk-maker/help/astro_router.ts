@@ -4,37 +4,74 @@
  * DO NOT MODIFY IT BY HAND.
  * The Rust definition of the associated structs is the source of truth!!
  */
-import {AssetInfo, AstroRouteConfigResponse, AstroRouteCw20HookMsg, AstroRouteExecuteMsg, AstroRouteQueryMsg, AstroRouteSimulateSwapOperationsResponse, AstroRouteSwapOperation, Cw20ReceiveMsg, Decimal, Uint128} from "./types.js";
-import {Coin} from "@cosmjs/amino";
-import {ExecuteInstruction} from "@cosmjs/cosmwasm-stargate";
-import {ContractBase} from "@crownfi/sei-utils";
+import {
+	AssetInfo,
+	AstroRouteConfigResponse,
+	AstroRouteCw20HookMsg,
+	AstroRouteExecuteMsg,
+	AstroRouteQueryMsg,
+	AstroRouteSimulateSwapOperationsResponse,
+	AstroRouteSwapOperation,
+	Cw20ReceiveMsg,
+	Decimal,
+	Uint128,
+} from "./types.js";
+import { Coin } from "@cosmjs/amino";
+import { ExecuteInstruction } from "@cosmjs/cosmwasm-stargate";
+import { ContractBase } from "@crownfi/sei-utils";
 export class AstroRouterContract extends ContractBase {
 	queryConfig(): Promise<AstroRouteConfigResponse> {
-		const msg = {"config": {}} satisfies AstroRouteQueryMsg;
+		const msg = { config: {} } satisfies AstroRouteQueryMsg;
 		return this.query(msg);
 	}
-	querySimulateSwapOperations(args: {"offer_amount": Uint128, "operations": AstroRouteSwapOperation[]}): Promise<AstroRouteSimulateSwapOperationsResponse> {
-		const msg = {"simulate_swap_operations": args} satisfies AstroRouteQueryMsg;
+	querySimulateSwapOperations(args: {
+		offer_amount: Uint128;
+		operations: AstroRouteSwapOperation[];
+	}): Promise<AstroRouteSimulateSwapOperationsResponse> {
+		const msg = { simulate_swap_operations: args } satisfies AstroRouteQueryMsg;
 		return this.query(msg);
 	}
 	buildReceiveIx(args: Cw20ReceiveMsg, funds?: Coin[]): ExecuteInstruction {
-		const msg = {"receive": args} satisfies AstroRouteExecuteMsg;
+		const msg = { receive: args } satisfies AstroRouteExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildExecuteSwapOperationsIx(args: {"max_spread"?: Decimal | null, "minimum_receive"?: Uint128 | null, "operations": AstroRouteSwapOperation[], "to"?: string | null}, funds?: Coin[]): ExecuteInstruction {
-		const msg = {"execute_swap_operations": args} satisfies AstroRouteExecuteMsg;
+	buildExecuteSwapOperationsIx(
+		args: {
+			max_spread?: Decimal | null;
+			minimum_receive?: Uint128 | null;
+			operations: AstroRouteSwapOperation[];
+			to?: string | null;
+		},
+		funds?: Coin[]
+	): ExecuteInstruction {
+		const msg = { execute_swap_operations: args } satisfies AstroRouteExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildExecuteSwapOperationIx(args: {"max_spread"?: Decimal | null, "operation": AstroRouteSwapOperation, "single": boolean, "to"?: string | null}, funds?: Coin[]): ExecuteInstruction {
-		const msg = {"execute_swap_operation": args} satisfies AstroRouteExecuteMsg;
+	buildExecuteSwapOperationIx(
+		args: { max_spread?: Decimal | null; operation: AstroRouteSwapOperation; single: boolean; to?: string | null },
+		funds?: Coin[]
+	): ExecuteInstruction {
+		const msg = { execute_swap_operation: args } satisfies AstroRouteExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildAssertMinimumReceiveIx(args: {"asset_info": AssetInfo, "minimum_receive": Uint128, "prev_balance": Uint128, "receiver": string}, funds?: Coin[]): ExecuteInstruction {
-		const msg = {"assert_minimum_receive": args} satisfies AstroRouteExecuteMsg;
+	buildAssertMinimumReceiveIx(
+		args: { asset_info: AssetInfo; minimum_receive: Uint128; prev_balance: Uint128; receiver: string },
+		funds?: Coin[]
+	): ExecuteInstruction {
+		const msg = { assert_minimum_receive: args } satisfies AstroRouteExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildExecuteSwapOperationsCw20Ix(tokenContractOrUnifiedDenom: string, amount: string | bigint | number, args: {"max_spread"?: Decimal | null, "minimum_receive"?: Uint128 | null, "operations": AstroRouteSwapOperation[], "to"?: string | null}): ExecuteInstruction {
-		const msg = {"execute_swap_operations": args} satisfies AstroRouteCw20HookMsg;
+	buildExecuteSwapOperationsCw20Ix(
+		tokenContractOrUnifiedDenom: string,
+		amount: string | bigint | number,
+		args: {
+			max_spread?: Decimal | null;
+			minimum_receive?: Uint128 | null;
+			operations: AstroRouteSwapOperation[];
+			to?: string | null;
+		}
+	): ExecuteInstruction {
+		const msg = { execute_swap_operations: args } satisfies AstroRouteCw20HookMsg;
 		return this.executeIxCw20(msg, tokenContractOrUnifiedDenom, amount);
 	}
 }
