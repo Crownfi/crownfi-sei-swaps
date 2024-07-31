@@ -16,6 +16,8 @@ pub struct SwapRouterState {
 	pub receiver: SeiCanonicalAddr,
 	/// If == Zeroable::zeroed(), None
 	pub unwrapper: SeiCanonicalAddr,
+	/// 0 == None, 1 == ERC20, 2 = CW20, u128 enums are unstable and anything lower does not align with the struct >:(
+	pub unwrapper_kind: u128,
 	/// If == u128::MAX, ignore. Else, Convert verbatim to Decimal
 	pub intermediate_slippage_tolerance: u128,
 	/// If == 0, ignore
@@ -47,7 +49,5 @@ impl SwapRouterState {
 const SWAPPER_ADDRESSES_NAMESPACE: &str = "swaps";
 
 pub fn get_swapper_addresses<'a>() -> StoredVec<SeiCanonicalAddr> {
-	StoredVec::new(
-		SWAPPER_ADDRESSES_NAMESPACE.as_ref(),
-	)
+	StoredVec::new(SWAPPER_ADDRESSES_NAMESPACE.as_ref())
 }

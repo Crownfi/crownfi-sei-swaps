@@ -28,11 +28,18 @@ pub enum SwapRouterExecuteMsg {
 		/// getting, specify your terms here.
 		expectation: Option<SwapRouterExpectation>,
 		/// If the resulting denom wraps another asset, use this contract to unwrap it
-		unwrapper: Option<Addr>,
+		// unwrapper: Option<Addr>,
 		/// The account receiving the resulting asset, defaults to the sender.
-		receiver: Option<Addr>,
+		receiver: SwapReceiver,
 	},
 	NextStep {},
+}
+
+#[cw_serde]
+pub enum SwapReceiver {
+	Direct(Addr),
+	WasmUnwrap { contract: Addr, receiver: Addr },
+	EvmUnwrap { contract: Addr, evm_receiver: String },
 }
 
 #[cw_serde]
