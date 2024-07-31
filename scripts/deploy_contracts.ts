@@ -101,7 +101,16 @@ await clientEnv.executeContract(
     { left_denom: "uatom", initial_shares_receiver: walletSeiAddress }, 
     [ coin(1000, "uatom"), coin(1000, "usei") ]
   ),
-  "pool-factory",
+  "pool-factory-uatom-usei",
+  "auto"
+);
+
+await clientEnv.executeContract(
+  poolFactory.buildCreatePoolIx(
+    { left_denom: "usei", initial_shares_receiver: walletSeiAddress }, 
+    [ coin(1000, "usei"), coin(1000, "uusdc") ]
+  ),
+  "pool-factory-usei-uusdc",
   "auto"
 );
 
