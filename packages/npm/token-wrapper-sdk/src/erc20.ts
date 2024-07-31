@@ -1,5 +1,5 @@
-import { ExecuteInstruction } from "@cosmjs/cosmwasm-stargate";
-import { Coin } from "@cosmjs/stargate";
+import { ExecuteInstruction, WasmExtension } from "@cosmjs/cosmwasm-stargate";
+import { Coin, QueryClient } from "@cosmjs/stargate";
 import * as sei from "@crownfi/sei-js-core";
 import * as seiutils from "@crownfi/sei-utils";
 import { EvmExecuteInstruction } from "@crownfi/sei-utils";
@@ -8,9 +8,9 @@ import { ERC20WrapperExecMsg } from "./base/types.js";
 import { Erc20WrapperContract } from "./base/erc_20_wrapper.js";
 import { Amount, SigningClient, check_native_denom_factory, validate_native_denom_factory } from "./common.js";
 
-export class ERC20TokenWrapper extends Erc20WrapperContract {
-	constructor(client: SigningClient, contract_address: string) {
-		super(client["forceGetQueryClient"](), contract_address);
+export class ERC20TokenWrapper<Q extends QueryClient & WasmExtension> extends Erc20WrapperContract<Q> {
+	constructor(client: Q, contract_address: string) {
+		super(client, contract_address);
 	}
 
 	private assert_evm_addr(values: Record<any, string>) {

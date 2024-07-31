@@ -4,21 +4,26 @@
  * DO NOT MODIFY IT BY HAND.
  * The Rust definition of the associated structs is the source of truth!!
  */
-import { Addr, CW20WrapperExecMsg, CW20WrapperQueryMsg, Cw20ReceiveMsg, Nullable_Addr } from "./types.js";
-import { Coin } from "@cosmjs/amino";
-import { ExecuteInstruction } from "@cosmjs/cosmwasm-stargate";
-import { ContractBase } from "@crownfi/sei-utils";
-export class Cw20WrapperContract extends ContractBase {
-	queryUnwrappedAddrOf(args: { denom: string }): Promise<Nullable_Addr> {
-		const msg = { unwrapped_addr_of: args } satisfies CW20WrapperQueryMsg;
+import {Addr, CW20WrapperExecMsg, CW20WrapperQueryMsg, Cw20ReceiveMsg, Nullable_Addr} from "./types.js";
+import {Coin} from "@cosmjs/amino";
+import {ExecuteInstruction, WasmExtension} from "@cosmjs/cosmwasm-stargate";
+import {QueryClient} from "@cosmjs/stargate";
+import {ContractBase} from "@crownfi/sei-utils";
+export class Cw20WrapperContract<Q extends QueryClient & WasmExtension> extends ContractBase<Q> {
+	queryUnwrappedAddrOf(args: {
+		"denom": string
+	}): Promise<Nullable_Addr> {
+		const msg = {"unwrapped_addr_of": args} satisfies CW20WrapperQueryMsg;
 		return this.query(msg);
 	}
 	buildReceiveIx(args: Cw20ReceiveMsg, funds?: Coin[]): ExecuteInstruction {
-		const msg = { receive: args } satisfies CW20WrapperExecMsg;
+		const msg = {"receive": args} satisfies CW20WrapperExecMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildUnwrapIx(args: { receiver?: Addr | null } = {}, funds?: Coin[]): ExecuteInstruction {
-		const msg = { unwrap: args } satisfies CW20WrapperExecMsg;
+	buildUnwrapIx(args: {
+		"receiver"?: Addr | null
+	} = {}, funds?: Coin[]): ExecuteInstruction {
+		const msg = {"unwrap": args} satisfies CW20WrapperExecMsg;
 		return this.executeIx(msg, funds);
 	}
 }

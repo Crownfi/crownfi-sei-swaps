@@ -32,14 +32,14 @@ export type Binary = string;
  * via the `definition` "CW20WrapperExecMsg".
  */
 export type CW20WrapperExecMsg =
-	| {
-			receive: Cw20ReceiveMsg;
-	  }
-	| {
-			unwrap: {
-				receiver?: Addr | null;
-			};
-	  };
+  | {
+      receive: Cw20ReceiveMsg;
+    }
+  | {
+      unwrap: {
+        receiver?: Addr | null;
+      };
+    };
 /**
  * A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.
  *
@@ -62,34 +62,34 @@ export type Uint128 = string;
  * via the `definition` "CW20WrapperQueryMsg".
  */
 export type CW20WrapperQueryMsg = {
-	unwrapped_addr_of: {
-		denom: string;
-	};
+  unwrapped_addr_of: {
+    denom: string;
+  };
 };
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "ERC20WrapperExecMsg".
  */
 export type ERC20WrapperExecMsg =
-	| {
-			wrap: {
-				amount: Uint128;
-				evm_sender: Binary;
-				recipient?: Addr | null;
-				token_addr: string;
-			};
-	  }
-	| {
-			unwrap: {
-				evm_recipient: Binary;
-			};
-	  };
+  | {
+      wrap: {
+        amount: Uint128;
+        evm_sender: Binary;
+        recipient?: Addr | null;
+        token_addr: string;
+      };
+    }
+  | {
+      unwrap: {
+        evm_recipient: Binary;
+      };
+    };
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "EmptyQuery".
  */
 export type EmptyQuery = {
-	empty: {};
+  empty: {};
 };
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
@@ -97,9 +97,7 @@ export type EmptyQuery = {
  */
 export type Nullable_Addr = Addr | null;
 
-export interface CrownfiSdkMakerAutogen {
-	[k: string]: unknown;
-}
+export interface CrownfiSdkMakerAutogen {}
 /**
  * Cw20ReceiveMsg should be de/serialized under `Receive()` variant in a ExecuteMsg
  *
@@ -107,9 +105,9 @@ export interface CrownfiSdkMakerAutogen {
  * via the `definition` "Cw20ReceiveMsg".
  */
 export interface Cw20ReceiveMsg {
-	amount: Uint128;
-	msg: Binary;
-	sender: string;
+  amount: Uint128;
+  msg: Binary;
+  sender: string;
 }
 /**
  * An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.
@@ -119,6 +117,4 @@ export interface Cw20ReceiveMsg {
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "Empty".
  */
-export interface Empty {
-	[k: string]: unknown;
-}
+export interface Empty {}
