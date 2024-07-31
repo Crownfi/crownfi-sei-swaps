@@ -545,10 +545,13 @@ export class SwapMarket {
 		receiver?: Addr | null
 	): ExecuteInstruction[] | null {
 		const result: ExecuteInstruction[] = [];
+
 		const route = this.resolveMultiSwapRoute(offerDenom, askDenom);
+
 		if (route == null || route.length == 0) {
 			return null;
 		}
+
 		if (route.length == 1) {
 			return this.getPair([offerDenom, askDenom], true)!.buildSwapIxs(
 				offerAmount,
@@ -557,40 +560,12 @@ export class SwapMarket {
 				receiver
 			);
 		}
-		// const operations = route.map((v) => {
-		// 	return {
-		// 		astro_swap: {
-		// 			offer_asset_info: uniDenomToAstroAssetInfo(v[0]),
-		// 			ask_asset_info: uniDenomToAstroAssetInfo(v[1]),
-		// 		},
-		// 	};
-		// });
-		return matchTokenKind(
-			offerDenom,
-			(contractAddress) => {
-				return [
-					this.routerContract.buildExecuteSwapsIx({ swappers: [this.factoryContract.address] }),
-					// this.routerContract.buildExecuteSwapOperationsCw20Ix(contractAddress, offerAmount, {
-					// 	max_spread: slippageTolerance + "",
-					// 	operations,
-					// }),
-				];
-			},
-			(contractAddress) => [],
-			(denom) => []
-			// this.routerContract.buildExecuteSwapOperationsIx(
-			// 	{
-			// 		max_spread: slippageTolerance + "",
-			// 		operations,
-			// 	},
-			// 	[
-			// 		{
-			// 			amount: offerAmount + "",
-			// 			denom,
-			// 		},
-			// 	]
-			// ),
-		);
+
+		const path = route.flatMap((pair, index) => index === 0 ? pair : [pair[1]]);
+
+		return [
+			this.routerContract.buildExecuteSwapsIx({ swappers: path }),
+		]
 	}
 
 	/**
