@@ -585,24 +585,41 @@ export class SwapMarket {
 		client: ClientEnv,
 		offerAmount: bigint,
 		offerDenom: UnifiedDenom,
-		askDenom: UnifiedDenom,
-		slippageTolerance: number = 0.01,
-		receiver?: Addr | null
-	): Promise<SwapMarketSwapSimResult> {
-		const instructions = this.buildSwapIxs(offerAmount, offerDenom, askDenom, slippageTolerance, receiver);
+		askDenom: UnifiedDenom
+	): Promise<SwapMarketSwapSimResult | void> {	
 		if (offerDenom == askDenom) {
 			throw new Error("Trading input denom must differ from trading output denom");
 		}
-		if (instructions == null) {
+		const route = this.resolveMultiSwapRoute(offerDenom, askDenom);
+
+		if (!route) {
 			throw new Error("Market does not hold assets offered or requested");
 		}
-		const simResult = await client.simulateContractMulti(instructions);
-		const balanceChanges = getBalanceChangesFor(client.account!.seiAddress, simResult.result!.events, {});
-		const amount = balanceChanges[askDenom] || 0n;
-		return {
-			instructions,
-			amount,
-		};
+
+		// if (route.length == 1) {
+		// 	return this.getPair([offerDenom, askDenom], true)!.buildSwapIxs(
+		// 		offerAmount,
+		// 		offerDenom
+		// 	);
+		// }
+
+		const swappers = route.flatMap((pair, index) => index === 0 ? pair : [pair[1]]);
+
+		console.log("swappers", swappers)
+
+		const simulateResult = await this.routerContract.querySimulateSwaps({
+			offer: coin(offerAmount.toString(), offerDenom),
+			swappers
+		});
+
+		console.log("simulateResult", simulateResult);
+
+		// const balanceChanges = getBalanceChangesFor(client.account!.seiAddress, simResult.result!.events, {});
+		// const amount = balanceChanges[askDenom] || 0n;
+		// return {
+		// 	instructions,
+		// 	amount,
+		// };
 	}
 
 	/**
