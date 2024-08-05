@@ -577,7 +577,6 @@ dependencies = [
  "color-eyre",
  "cosmwasm-schema",
  "cosmwasm-std",
- "crownfi-astro-common",
  "crownfi-cw20-wrapper",
  "crownfi-erc20-wrapper",
  "crownfi-pool-factory-contract",
