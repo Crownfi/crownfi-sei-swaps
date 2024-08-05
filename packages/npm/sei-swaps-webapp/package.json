@@ -6,6 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"start": "http-server -p 8080 -c-1 ./dist",
+		"dev": "npm run start & webpack --mode=development --watch",
 		"build": "rm -rf dist/* && mkdir -p dist && npm run build:webpack && npm run build:copy-assets && npm run build:copy-static",
 		"build:webpack": "webpack --mode=development",
 		"build:webpack:final": "webpack --mode=production",
