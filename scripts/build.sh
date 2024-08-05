@@ -2,7 +2,7 @@
 set -e
 projectPath=$(cd "$(dirname "${0}")" && cd ../ && pwd)
 
-for example in ./contracts/*/; do
+for example in ../contracts/*/; do
   echo "Building $example ..."
   (
     cd "$example"
