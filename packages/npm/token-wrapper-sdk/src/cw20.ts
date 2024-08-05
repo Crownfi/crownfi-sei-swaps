@@ -1,6 +1,5 @@
-import {ExecuteInstruction, WasmExtension} from "@cosmjs/cosmwasm-stargate";
-import {QueryClient} from "@cosmjs/stargate";
-import { Coin } from "@cosmjs/stargate";
+import { ExecuteInstruction, WasmExtension } from "@cosmjs/cosmwasm-stargate";
+import { Coin, QueryClient } from "@cosmjs/stargate";
 import * as sei from "@crownfi/sei-js-core";
 import base32 from "hi-base32";
 
@@ -8,9 +7,9 @@ import { Cw20WrapperContract } from "./base/cw_20_wrapper.js";
 import { CW20WrapperExecMsg, Nullable_Addr } from "./base/types.js";
 import { SigningClient, Amount, validate_native_denom_factory, check_native_denom_factory } from "./common.js";
 
-export class CW20TokenWrapper extends Cw20WrapperContract<QueryClient & WasmExtension> {
-	constructor(client: SigningClient, contract_address: string) {
-		super(client["forceGetQueryClient"](), contract_address);
+export class CW20TokenWrapper<Q extends QueryClient & WasmExtension> extends Cw20WrapperContract<Q> {
+	constructor(client: Q, contract_address: string) {
+		super(client, contract_address);
 	}
 
 	native_denom = (addr: string): string =>

@@ -15,7 +15,9 @@ pub mod msg;
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 const BASE32_ALGORITHM: Alphabet = Alphabet::Rfc4648Lower { padding: false };
+const KNOWN_TOKENS_NAMESPACE: &[u8] = b"known_tokens";
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -35,7 +37,7 @@ pub fn execute(
 	info: MessageInfo,
 	msg: CW20WrapperExecMsg,
 ) -> Result<Response<SeiMsg>> {
-	let known_tokens = StoredMap::<String, SeiCanonicalAddr>::new(b"known_tokens");
+	let known_tokens = StoredMap::<String, SeiCanonicalAddr>::new(KNOWN_TOKENS_NAMESPACE);
 
 	Ok(match msg {
 		CW20WrapperExecMsg::Receive(cw20_meta) => {
@@ -120,7 +122,7 @@ pub fn execute(
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn query(_deps: Deps, _env: Env, msg: CW20WrapperQueryMsg) -> Result<Binary> {
-	let known_tokens = StoredMap::<String, SeiCanonicalAddr>::new(b"known_tokens");
+	let known_tokens = StoredMap::<String, SeiCanonicalAddr>::new(KNOWN_TOKENS_NAMESPACE);
 	let CW20WrapperQueryMsg::UnwrappedAddrOf { denom } = msg;
 	let subdenom = denom[denom.len() - 44..].to_string();
 
@@ -132,16 +134,14 @@ pub fn query(_deps: Deps, _env: Env, msg: CW20WrapperQueryMsg) -> Result<Binary>
 
 #[cfg(test)]
 mod tests {
-	use std::marker::PhantomData;
+	// use std::marker::PhantomData;
 
-	use cosmwasm_std::{testing::*, Addr, OwnedDeps};
+	use cosmwasm_std::{testing::*, Addr};
 
 	use super::*;
 
 	const RANDOM_ADDRESS: &str = "sei1zgfgerl8qt9uldlr0y9w7qe97p7zyv5kwg2pge";
-	const RANDOM_ADDRESS2: &str = "sei19rl4cm2hmr8afy4kldpxz3fka4jguq0a3vute5";
-
-	type ContractDeps = OwnedDeps<MockStorage, MockApi, MockQuerier, SeiQueryWrapper>;
+	// const RANDOM_ADDRESS2: &str = "sei19rl4cm2hmr8afy4kldpxz3fka4jguq0a3vute5";
 
 	#[test]
 	fn encode_decode_addr() -> Result<()> {

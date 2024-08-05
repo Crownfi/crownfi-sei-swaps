@@ -16,7 +16,7 @@ use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
 use crate::{
 	error::SwapRouterContractError,
 	msg::{
-		SwapRouterExecuteMsg, SwapRouterExpectation, SwapRouterInstantiateMsg, SwapRouterQueryMsg,
+		SwapReceiver, SwapRouterExecuteMsg, SwapRouterExpectation, SwapRouterInstantiateMsg, SwapRouterQueryMsg,
 		SwapRouterSimulateSwapsResponse,
 	},
 	state::{get_swapper_addresses, SwapRouterState},
@@ -55,7 +55,7 @@ pub fn execute(
 			swappers,
 			intermediate_slippage_tolerance,
 			expectation,
-			unwrapper,
+			// unwrapper,
 			receiver,
 		} => process_execute_swaps(
 			deps,
@@ -63,7 +63,7 @@ pub fn execute(
 			swappers,
 			intermediate_slippage_tolerance,
 			expectation,
-			unwrapper,
+			// unwrapper,
 			receiver,
 		),
 		SwapRouterExecuteMsg::NextStep {} => process_execute_next_step(deps, msg_info),
@@ -71,13 +71,13 @@ pub fn execute(
 }
 
 fn process_execute_swaps(
-	_deps: DepsMut<SeiQueryWrapper>,
+	deps: DepsMut<SeiQueryWrapper>,
 	msg_info: MessageInfo,
 	swappers: Vec<Addr>,
 	intermediate_slippage_tolerance: Option<Decimal>,
 	expectation: Option<SwapRouterExpectation>,
-	unwrapper: Option<Addr>,
-	receiver: Option<Addr>,
+	// unwrapper: Option<Addr>,
+	receiver: SwapReceiver,
 ) -> Result<Response<SeiMsg>, SwapRouterContractError> {
 	if SwapRouterState::load()?.is_some() {
 		return Err(SwapRouterContractError::AlreadyRoutingSwaps);
@@ -85,12 +85,22 @@ fn process_execute_swaps(
 	if expectation.as_ref().is_some_and(|e| e.expected_amount.is_zero()) {
 		return Err(SwapRouterContractError::ExpectingNothing);
 	}
+
+	let querier = sei_cosmwasm::SeiQuerier::new(&deps.querier);
+	let (receiver, unwrapper, unwrapper_kind) = match receiver {
+		SwapReceiver::Direct(addr) => (addr.try_into()?, Zeroable::zeroed(), 0),
+		SwapReceiver::EvmUnwrap { contract, evm_receiver } => {
+			let sei_addr = querier.get_sei_address(evm_receiver)?.sei_address;
+			let sei_addr = Addr::unchecked(sei_addr).try_into()?;
+			(sei_addr, contract.try_into()?, 1)
+		}
+		SwapReceiver::WasmUnwrap { contract, receiver } => (receiver.try_into()?, contract.try_into()?, 2),
+	};
+
 	let new_state = SwapRouterState {
-		receiver: receiver.as_ref().unwrap_or(&msg_info.sender).try_into()?,
-		unwrapper: unwrapper
-			.map(|addr| addr.try_into())
-			.transpose()?
-			.unwrap_or(Zeroable::zeroed()),
+		receiver,
+		unwrapper,
+		unwrapper_kind,
 		intermediate_slippage_tolerance: intermediate_slippage_tolerance
 			.map(|num| num.numerator().u128())
 			.unwrap_or(u128::MAX),
@@ -130,7 +140,7 @@ fn process_execute_swaps(
 }
 
 fn process_execute_next_step(
-	_deps: DepsMut<SeiQueryWrapper>,
+	deps: DepsMut<SeiQueryWrapper>,
 	msg_info: MessageInfo,
 ) -> Result<Response<SeiMsg>, SwapRouterContractError> {
 	let router_state = SwapRouterState::load_non_empty()?;
@@ -154,11 +164,7 @@ fn process_execute_next_step(
 		}))
 	} else {
 		let receiver = Addr::try_from(router_state.receiver)?;
-		let unwrapper = if router_state.unwrapper == Zeroable::zeroed() {
-			None
-		} else {
-			Some(Addr::try_from(router_state.unwrapper)?)
-		};
+
 		let final_result = one_coin(&msg_info)?;
 		if router_state.expected_amount > 0
 			&& Decimal::from_ratio(final_result.amount, router_state.expected_amount).abs_diff(Decimal::one())
@@ -168,21 +174,32 @@ fn process_execute_next_step(
 		}
 		SwapRouterState::remove();
 
-		if let Some(unwrapper) = unwrapper {
-			Ok(Response::new().add_message(WasmMsg::Execute {
+		if router_state.unwrapper != Zeroable::zeroed() {
+			let unwrapper = Addr::try_from(router_state.unwrapper)?;
+			let msg = {
+				let json_msg = match router_state.unwrapper_kind {
+					1 => {
+						let querier = sei_cosmwasm::SeiQuerier::new(&deps.querier);
+						let evm_addr = querier.get_evm_address(receiver.to_string())?.evm_address;
+						format!("{{\"unwrap\":{{\"evm_recipient\":\"{}\"}}}}", evm_addr)
+					}
+					2 => format!("{{\"unwrap\":{{\"receiver\":\"{}\"}}}}", receiver),
+					_ => unreachable!("something is wrong with the state machine"),
+				};
+				Binary::from(Vec::from(json_msg))
+			};
+
+			return Ok(Response::new().add_message(WasmMsg::Execute {
 				contract_addr: unwrapper.into_string(),
-				msg: Binary::from(Vec::from(
-					// We might have a bunch of wrapper contracts and I don't want to import them all
-					format!("{{\"unwrap\":{{\"receiver\":\"{}\"}}}}", receiver),
-				)),
+				msg,
 				funds: vec![final_result],
-			}))
-		} else {
-			Ok(Response::new().add_message(BankMsg::Send {
-				to_address: receiver.into_string(),
-				amount: vec![final_result],
-			}))
+			}));
 		}
+
+		Ok(Response::new().add_message(BankMsg::Send {
+			to_address: receiver.into_string(),
+			amount: vec![final_result],
+		}))
 	}
 }
 
