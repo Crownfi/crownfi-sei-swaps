@@ -24,9 +24,17 @@ export class FarmPoolComponentElement extends FarmPoolComponentAutogen {
 	async swapMarket(): Promise<SwapMarket> {
 		if (this.#swapMarket == null) {
 			const client = await ClientEnv.get();
-			const swapMarket = await SwapMarket.getFromChainId(client.queryClient, client.chainId);
-			await swapMarket.refresh();
-			this.#swapMarket = swapMarket;
+			try {
+				this.#swapMarket = await SwapMarket.getFromChainId(client.queryClient, client.chainId);
+			} catch(e: any) {
+				if (e.message.includes("SwapMarket contract addresses aren't known for chain")) {
+					this.#swapMarket = new SwapMarket(client.queryClient, 
+																						"sei14ejqjyq8um4p3xfqj74yld5waqljf88fz25yxnma0cngspxe3lesmf62df", 
+																						"sei1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjqpeheyc");
+				} else
+					throw e;
+			}
+			await this.#swapMarket.refresh();
 		}
 		return this.#swapMarket;
 	}

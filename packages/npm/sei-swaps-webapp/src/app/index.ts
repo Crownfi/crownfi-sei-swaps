@@ -38,6 +38,7 @@ export async function main() {
 	};
 
 	let storedNetworkPref = localStorage.getItem("preferred_sei_network");
+
 	if (storedNetworkPref == null) {
 		storedNetworkPref =
 			document.location.host.startsWith("127.0.0.1") || document.location.host.startsWith("localhost")
@@ -46,7 +47,7 @@ export async function main() {
 	}
 	setDefaultNetwork(storedNetworkPref as SeiChainId);
 	let storedProviderPref = localStorage.getItem("preferred_sei_provider");
-	ClientEnv.setDefaultProvider(storedProviderPref as any, true);
+	await ClientEnv.setDefaultProvider(storedProviderPref as any, true);
 
 	mainSwapButton.click();
 	setLoading(false);
