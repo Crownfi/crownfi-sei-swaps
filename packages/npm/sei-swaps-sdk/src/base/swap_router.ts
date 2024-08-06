@@ -4,7 +4,7 @@
  * DO NOT MODIFY IT BY HAND.
  * The Rust definition of the associated structs is the source of truth!!
  */
-import {Addr, Decimal, SwapRouterExecuteMsg, SwapRouterExpectation, SwapRouterQueryMsg, SwapRouterSimulateSwapsResponse} from "./types.js";
+import {Addr, Decimal, SwapReceiver, SwapRouterExecuteMsg, SwapRouterExpectation, SwapRouterQueryMsg, SwapRouterSimulateSwapsResponse} from "./types.js";
 import {Coin} from "@cosmjs/amino";
 import {ExecuteInstruction, WasmExtension} from "@cosmjs/cosmwasm-stargate";
 import {QueryClient} from "@cosmjs/stargate";
@@ -22,12 +22,10 @@ export class SwapRouterContract<Q extends QueryClient & WasmExtension> extends C
 		"expectation"?: SwapRouterExpectation | null,
 		/** The slippage tolerance for each step of the way, default value is at the each swapper's discretion, though the CrownFi swap contracts have a default of 0.5%. */
 		"intermediate_slippage_tolerance"?: Decimal | null,
-		/** The account receiving the resulting asset, defaults to the sender. */
-		"receiver"?: Addr | null,
+		/** If the resulting denom wraps another asset, use this contract to unwrap it The account receiving the resulting asset, defaults to the sender. */
+		"receiver": SwapReceiver,
 		/** The contract(s) to use to execute the swaps */
-		"swappers": Addr[],
-		/** If the resulting denom wraps another asset, use this contract to unwrap it */
-		"unwrapper"?: Addr | null
+		"swappers": Addr[]
 	}, funds?: Coin[]): ExecuteInstruction {
 		const msg = {"execute_swaps": args} satisfies SwapRouterExecuteMsg;
 		return this.executeIx(msg, funds);

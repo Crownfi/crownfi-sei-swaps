@@ -327,6 +327,26 @@ export type PoolPairQueryMsg =
 export type String = string;
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
+ * via the `definition` "SwapReceiver".
+ */
+export type SwapReceiver =
+  | {
+      direct: Addr;
+    }
+  | {
+      wasm_unwrap: {
+        contract: Addr;
+        receiver: Addr;
+      };
+    }
+  | {
+      evm_unwrap: {
+        contract: Addr;
+        evm_receiver: string;
+      };
+    };
+/**
+ * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "SwapRouterExecuteMsg".
  */
 export type SwapRouterExecuteMsg =
@@ -341,17 +361,13 @@ export type SwapRouterExecuteMsg =
          */
         intermediate_slippage_tolerance?: Decimal | null;
         /**
-         * The account receiving the resulting asset, defaults to the sender.
+         * If the resulting denom wraps another asset, use this contract to unwrap it The account receiving the resulting asset, defaults to the sender.
          */
-        receiver?: Addr | null;
+        receiver: SwapReceiver;
         /**
          * The contract(s) to use to execute the swaps
          */
         swappers: Addr[];
-        /**
-         * If the resulting denom wraps another asset, use this contract to unwrap it
-         */
-        unwrapper?: Addr | null;
       };
     }
   | {
