@@ -593,32 +593,22 @@ export class SwapMarket {
 			throw new Error("Market does not hold assets offered or requested");
 		}
 
-		const swappers = route.flatMap((pair, index) => index === 0 ? pair : [pair[1]]);
 		const swaps = [];
-		let result_amount = BigInt(0);
-		let naive_result_amount = BigInt(0);
-		let result_denom = "";
+		let result_amount = offerAmount;
+		let naive_result_amount = offerAmount;
 
-		for (const swapper of swappers) {
-			if (!result_denom) {
-				result_amount = offerAmount;
-				naive_result_amount = offerAmount;
-				result_denom = swapper;
-				continue;
-			}
-
-			const poolPair = this.getPair([result_denom, swapper]);
+		for (const [from, to] of route) {
+			const poolPair = this.getPair([from, to]);
 
 			if (!poolPair)
 				throw new Error("Pair not found");
 
-			const swap = await poolPair.simulateSwap(result_amount, result_denom);
-			const naiveSwap = await poolPair.simulateNaiveSwap(result_amount, result_denom);
+			const swap = await poolPair.simulateSwap(result_amount, to);
+			const naiveSwap = await poolPair.simulateNaiveSwap(result_amount, to);
 			
 			swaps.push(swap);
 			
 			result_amount = BigInt(swap.result_amount);
-			result_denom = swapper;
 			naive_result_amount = BigInt(naiveSwap.result_amount);
 		}
 
@@ -626,7 +616,7 @@ export class SwapMarket {
 
 		return {
 			result_amount: result_amount.toString(),
-			result_denom,
+			result_denom: askDenom,
 			slip_amount: slip_amount.toString(),
 			swaps
 		};
