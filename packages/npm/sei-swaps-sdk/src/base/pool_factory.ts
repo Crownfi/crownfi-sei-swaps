@@ -12,7 +12,7 @@ import {ContractBase} from "@crownfi/sei-utils";
 export class PoolFactoryContract<Q extends QueryClient & WasmExtension> extends ContractBase<Q> {
 	/** Config returns contract settings specified in the custom [`ConfigResponse`] structure. */
 	queryConfig(): Promise<PoolFactoryConfigJsonable> {
-		const msg = {"config": {}} satisfies PoolFactoryQueryMsg;
+		const msg = "config" satisfies PoolFactoryQueryMsg;
 		return this.query(msg);
 	}
 	/** Gets the contract address for a pair. The result may include the inverse pair if it exists. */

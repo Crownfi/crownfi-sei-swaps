@@ -131,7 +131,7 @@ pub enum PoolPairQueryMsg {
 	DailyVolumeSum { past_days: Option<u8> },
 	/// Get the all time volume from since the first trade happened.
 	#[returns(VolumeQueryResponse)]
-	TotalVolumeSum {},
+	TotalVolumeSum,
 }
 
 #[cw_serde]

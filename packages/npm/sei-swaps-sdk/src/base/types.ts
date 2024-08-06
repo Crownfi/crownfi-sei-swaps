@@ -151,9 +151,7 @@ export type PoolFactoryExecuteMsg =
  * via the `definition` "PoolFactoryQueryMsg".
  */
 export type PoolFactoryQueryMsg =
-  | {
-      config: {};
-    }
+  | "config"
   | {
       pair_addr: {
         /**
@@ -317,9 +315,7 @@ export type PoolPairQueryMsg =
         past_days?: number | null;
       };
     }
-  | {
-      total_volume_sum: {};
-    };
+  | "total_volume_sum";
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "String".
@@ -350,6 +346,7 @@ export type SwapReceiver =
  * via the `definition` "SwapRouterExecuteMsg".
  */
 export type SwapRouterExecuteMsg =
+  | "next_step"
   | {
       execute_swaps: {
         /**
@@ -369,9 +366,6 @@ export type SwapRouterExecuteMsg =
          */
         swappers: Addr[];
       };
-    }
-  | {
-      next_step: {};
     };
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
