@@ -4,6 +4,9 @@ import {
 	PoolFactoryContract,
 	Uint128,
 	SwapRouterContract,
+	SwapRouterSimulateSwapsResponse,
+	PoolPairCalcSwapResult,
+	PoolPairCalcNaiveSwapResult,
 } from "./index.js";
 import { Addr, ClientEnv, getBalanceChangesFor, getUserTokenInfo } from "@crownfi/sei-utils";
 
@@ -295,31 +298,26 @@ export class SwapMarketPair {
 	}
 
 	async simulateSwap(
-		client: ClientEnv,
 		offerAmount: bigint,
-		offerDenom: UnifiedDenom,
-		slippageTolerance: number = 0.01,
-		receiver?: Addr | null
-	): Promise<SwapMarketSwapSimResult> {
-		const instructions = this.buildSwapIxs(offerAmount, offerDenom, slippageTolerance, receiver);
-		if (instructions == null) {
-			throw new Error("Market does not hold assets offered or requested");
-		}
-		const simResult = await client.simulateContractMulti(instructions);
-		const balanceChanges = getBalanceChangesFor(client.account!.seiAddress, simResult.result!.events, {});
-		const askDenom = offerDenom == this.assets[0] ? this.assets[1] : this.assets[0];
-		const amount = balanceChanges[askDenom] || 0n;
-		return {
-			instructions,
-			amount,
-		};
+		offerDenom: UnifiedDenom
+	): Promise<PoolPairCalcSwapResult> {
+		return this.contract.querySimulateSwap({
+			offer: coin(offerAmount.toString(), offerDenom)
+		});
+	}
+
+	async simulateNaiveSwap(
+		offerAmount: bigint,
+		offerDenom: UnifiedDenom
+	): Promise<PoolPairCalcNaiveSwapResult> {
+		return this.contract.querySimulateNaiveSwap({
+			offer: coin(offerAmount.toString(), offerDenom)
+		});
 	}
 }
 
-export type SwapMarketSwapSimResult = {
-	amount: bigint;
-	// slippage: number,
-	instructions: ExecuteInstruction[];
+export type SwapMarketSwapSimResult = SwapRouterSimulateSwapsResponse & {
+	swaps: PoolPairCalcSwapResult[];
 };
 
 /**
@@ -582,7 +580,6 @@ export class SwapMarket {
 	 * @returns
 	 */
 	async simulateSwap(
-		client: ClientEnv,
 		offerAmount: bigint,
 		offerDenom: UnifiedDenom,
 		askDenom: UnifiedDenom
@@ -596,30 +593,43 @@ export class SwapMarket {
 			throw new Error("Market does not hold assets offered or requested");
 		}
 
-		// if (route.length == 1) {
-		// 	return this.getPair([offerDenom, askDenom], true)!.buildSwapIxs(
-		// 		offerAmount,
-		// 		offerDenom
-		// 	);
-		// }
-
 		const swappers = route.flatMap((pair, index) => index === 0 ? pair : [pair[1]]);
+		const swaps = [];
+		let result_amount = BigInt(0);
+		let naive_result_amount = BigInt(0);
+		let result_denom = "";
 
-		console.log("swappers", swappers)
+		for (const swapper of swappers) {
+			if (!result_denom) {
+				result_amount = offerAmount;
+				naive_result_amount = offerAmount;
+				result_denom = swapper;
+				continue;
+			}
 
-		const simulateResult = await this.routerContract.querySimulateSwaps({
-			offer: coin(offerAmount.toString(), offerDenom),
-			swappers
-		});
+			const poolPair = this.getPair([result_denom, swapper]);
 
-		console.log("simulateResult", simulateResult);
+			if (!poolPair)
+				throw new Error("Pair not found");
 
-		// const balanceChanges = getBalanceChangesFor(client.account!.seiAddress, simResult.result!.events, {});
-		// const amount = balanceChanges[askDenom] || 0n;
-		// return {
-		// 	instructions,
-		// 	amount,
-		// };
+			const swap = await poolPair.simulateSwap(result_amount, result_denom);
+			const naiveSwap = await poolPair.simulateNaiveSwap(result_amount, result_denom);
+			
+			swaps.push(swap);
+			
+			result_amount = BigInt(swap.result_amount);
+			result_denom = swapper;
+			naive_result_amount = BigInt(naiveSwap.result_amount);
+		}
+
+		const slip_amount = result_amount - naive_result_amount;
+
+		return {
+			result_amount: result_amount.toString(),
+			result_denom,
+			slip_amount: slip_amount.toString(),
+			swaps
+		};
 	}
 
 	/**
