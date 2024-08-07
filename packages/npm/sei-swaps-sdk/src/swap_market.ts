@@ -8,6 +8,7 @@ import {
 	PoolPairCalcSwapResult,
 	PoolPairCalcNaiveSwapResult,
 	SwapRouterExpectation,
+	SwapReceiver,
 } from "./index.js";
 import { Addr, ClientEnv, getBalanceChangesFor, getUserTokenInfo } from "@crownfi/sei-utils";
 
@@ -540,10 +541,9 @@ export class SwapMarket {
 		offerAmount: bigint,
 		offerDenom: UnifiedDenom,
 		askDenom: UnifiedDenom,
+		receiver: SwapReceiver,
 		slippageTolerance: number = 0.01,
-		receiver: Addr | null = null,
 		expectation: SwapRouterExpectation | null = null,
-		unwrapper: Addr | null = null,
 	): ExecuteInstruction[] | null {
 		const result: ExecuteInstruction[] = [];
 
@@ -551,15 +551,6 @@ export class SwapMarket {
 
 		if (route == null || route.length == 0) {
 			return null;
-		}
-
-		if (route.length == 1) {
-			return this.getPair([offerDenom, askDenom], true)!.buildSwapIxs(
-				offerAmount,
-				offerDenom,
-				slippageTolerance,
-				receiver
-			);
 		}
 
 		const swappers = route.map(pair => {
@@ -576,7 +567,6 @@ export class SwapMarket {
 			expectation,
 			"intermediate_slippage_tolerance": slippageTolerance.toString(),
 			receiver,
-			unwrapper,
 		}, [ coin(offerAmount.toString(), offerDenom)]));
 
 		return result;
