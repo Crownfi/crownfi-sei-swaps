@@ -339,6 +339,7 @@ pub fn process_swap(
 	receiver: Option<Addr>,
 	receiver_payload: Option<Binary>,
 ) -> Result<Response<SeiMsg>, PoolPairContractError> {
+	let receiver = receiver.unwrap_or(msg_info.sender.clone());
 	let slippage_tolerance = slippage_tolerance.unwrap_or(DEFAULT_SLIPPAGE);
 	if slippage_tolerance > MAX_ALLOWED_TOLERANCE {
 		return Err(PoolPairContractError::ToleranceTooHigh);
@@ -346,13 +347,6 @@ pub fn process_swap(
 	let pool_id = CanonicalPoolPairIdentifier::load_non_empty()?;
 	let pool_config = PoolPairConfig::load_non_empty()?;
 	let payment = must_pay_one_of_pair(&msg_info, &pool_id)?;
-
-	let receiver = pool_config
-		.fee_receiver
-		.ne(&Zeroable::zeroed())
-		.then(|| Addr::try_from(pool_config.fee_receiver))
-		.transpose()?
-		.unwrap_or_else(|| receiver.unwrap_or(msg_info.sender.clone()));
 
 	let mut pool_balances = get_pool_balance(&deps.querier, &env, &pool_id)?;
 	// The exchange calculations must be done from when before the funds where recieved.
@@ -382,7 +376,7 @@ pub fn process_swap(
 	} else {
 		// Because a function that takes `&mut self` and returns `&mut self` is too 5head apparently
 		Response::new().add_message(BankMsg::Send {
-			to_address: receiver.clone().into_string(),
+			to_address: Addr::try_from(pool_config.fee_receiver)?.into_string(),
 			amount: vec![coin(
 				swap_result.maker_fee_amount.u128(),
 				pool_id.denom(!payment.inverse),
