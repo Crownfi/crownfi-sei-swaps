@@ -10,7 +10,7 @@ use crownfi_pool_pair_contract::{
 };
 use crownfi_swaps_common::data_types::pair_id::CanonicalPoolPairIdentifier;
 use cw2::set_contract_version;
-use cw_utils::{nonpayable, one_coin, parse_reply_instantiate_data, ParseReplyError};
+use cw_utils::{nonpayable, one_coin, parse_reply_execute_data, parse_reply_instantiate_data, ParseReplyError};
 use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
 
 use crate::{
@@ -208,7 +208,7 @@ fn process_execute_next_step(
 pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>, SwapRouterContractError> {
 	match msg.id {
 		SWAP_COMPLETE_REPLY_ID => {
-			let _ = parse_reply_instantiate_data(msg)?;
+			let _ = parse_reply_execute_data(msg)?;
 			if SwapRouterState::load()?.is_some() || get_swapper_addresses().len() > 0 {
 				return Err(SwapRouterContractError::IncompleteRoute);
 			}
