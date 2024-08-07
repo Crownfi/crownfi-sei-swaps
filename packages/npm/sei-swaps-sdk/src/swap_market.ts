@@ -541,7 +541,7 @@ export class SwapMarket {
 		offerAmount: bigint,
 		offerDenom: UnifiedDenom,
 		askDenom: UnifiedDenom,
-		receiver: SwapReceiver,
+		receiver: Addr,
 		slippageTolerance: number = 0.01,
 		expectation: SwapRouterExpectation | null = null,
 	): ExecuteInstruction[] | null {
@@ -566,7 +566,7 @@ export class SwapMarket {
 			swappers,
 			expectation,
 			"intermediate_slippage_tolerance": slippageTolerance.toString(),
-			receiver,
+			receiver: { direct: receiver },
 		}, [ coin(offerAmount.toString(), offerDenom)]));
 
 		return result;
