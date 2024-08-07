@@ -92,7 +92,7 @@ Data older than 30 days is not guaranteed. */
 	}
 	/** Get the all time volume from since the first trade happened. */
 	queryTotalVolumeSum(): Promise<VolumeQueryResponse> {
-		const msg = {"total_volume_sum": {}} satisfies PoolPairQueryMsg;
+		const msg = "total_volume_sum" satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
 	/** Update the pair configuration */

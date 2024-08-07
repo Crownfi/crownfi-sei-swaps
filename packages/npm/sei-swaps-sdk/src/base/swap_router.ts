@@ -17,6 +17,10 @@ export class SwapRouterContract<Q extends QueryClient & WasmExtension> extends C
 		const msg = {"simulate_swaps": args} satisfies SwapRouterQueryMsg;
 		return this.query(msg);
 	}
+	buildNextStepIx(funds?: Coin[]): ExecuteInstruction {
+		const msg = "next_step" satisfies SwapRouterExecuteMsg;
+		return this.executeIx(msg, funds);
+	}
 	buildExecuteSwapsIx(args: {
 		/** If you want the swap to fail due to an excessive difference between what you're expecting and what you're getting, specify your terms here. */
 		"expectation"?: SwapRouterExpectation | null,
@@ -28,10 +32,6 @@ export class SwapRouterContract<Q extends QueryClient & WasmExtension> extends C
 		"swappers": Addr[]
 	}, funds?: Coin[]): ExecuteInstruction {
 		const msg = {"execute_swaps": args} satisfies SwapRouterExecuteMsg;
-		return this.executeIx(msg, funds);
-	}
-	buildNextStepIx(funds?: Coin[]): ExecuteInstruction {
-		const msg = {"next_step": {}} satisfies SwapRouterExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
 }
