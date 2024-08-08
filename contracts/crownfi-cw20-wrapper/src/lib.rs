@@ -131,7 +131,6 @@ pub fn query(_deps: Deps, _env: Env, msg: CW20WrapperQueryMsg) -> Result<Binary>
 
 	Ok(to_json_binary(&cw20_addr)?)
 }
-
 #[cfg(test)]
 mod tests {
 	// use std::marker::PhantomData;

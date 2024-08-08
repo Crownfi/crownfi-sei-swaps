@@ -12,4 +12,6 @@ pub enum CW20WrapperExecMsg {
 pub enum CW20WrapperQueryMsg {
 	#[returns(Option<Addr>)]
 	UnwrappedAddrOf { denom: String },
+	#[returns(Option<String>)]
+	WrappedDenomOf { cw20: Addr },
 }

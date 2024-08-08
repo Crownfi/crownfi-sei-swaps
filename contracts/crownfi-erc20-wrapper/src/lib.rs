@@ -2,6 +2,7 @@ use anyhow::Result;
 use cosmwasm_std::{
 	BankMsg, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Reply, ReplyOn, Response, SubMsg, Uint128,
 };
+
 use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, storage::map::StoredMap};
 use sei_cosmwasm::{SeiMsg, SeiQuerier, SeiQueryWrapper};
 
@@ -56,7 +57,8 @@ pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>> 
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn execute(
-	deps: DepsMut<SeiQueryWrapper>,
+	deps: DepsMut<Sei
+  Wrapper>,
 	env: Env,
 	info: MessageInfo,
 	msg: ERC20WrapperExecMsg,
