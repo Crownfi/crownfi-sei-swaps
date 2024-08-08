@@ -1,5 +1,8 @@
 use anyhow::Result;
-use cosmwasm_std::{BankMsg, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Response, SubMsg, Uint128};
+use cosmwasm_std::{
+	BankMsg, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Reply, ReplyOn, Response, SubMsg, Uint128,
+};
+
 use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, storage::map::StoredMap};
 use sei_cosmwasm::{SeiMsg, SeiQuerier, SeiQueryWrapper};
 
@@ -11,6 +14,9 @@ pub mod msg;
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+const WRAP_EVM_CALL_ID: u64 = 2571182633660066190;
+const UNWRAP_EVM_CALL_ID: u64 = 13078395618759265986;
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -24,8 +30,35 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>> {
+	const TRUE_BUT_IN_32_BYTES: [u8; 32] = [
+		0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
+		0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 1u8,
+	];
+
+	match msg.id {
+		WRAP_EVM_CALL_ID | UNWRAP_EVM_CALL_ID => {
+			let data = msg
+				.result
+				.into_result()
+				.map_err(|err| anyhow::Error::msg(err))?
+				.data
+				.map(|x| x.0 == TRUE_BUT_IN_32_BYTES);
+
+			if !matches!(data, Some(true)) {
+				Ok(Response::new())
+			} else {
+				Err(Error::InvalidERC20Contract.into())
+			}
+		}
+		id => Err(Error::InvalidReplyId(id).into()),
+	}
+}
+
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn execute(
-	deps: DepsMut<SeiQueryWrapper>,
+	deps: DepsMut<Sei
+  Wrapper>,
 	env: Env,
 	info: MessageInfo,
 	msg: ERC20WrapperExecMsg,
@@ -52,7 +85,7 @@ pub fn execute(
 				.erc20_token_info(token_addr.clone(), env.contract.address.to_string())
 				.map_err(|_| Error::InvalidERC20Contract)?;
 
-			let capped_tkn_addr = token_addr[2..].to_string();
+			let capped_tkn_addr = token_addr[2..].to_uppercase();
 			let bare_addr: [u8; 20] =
 				hex::FromHex::from_hex(&capped_tkn_addr).map_err(|_| Error::InvalidEvmAddress(token_addr.clone()))?;
 
@@ -71,10 +104,16 @@ pub fn execute(
 
 			let recipient = recipient.unwrap_or(info.sender);
 			Response::new()
-				.add_message(SeiMsg::CallEvm {
-					to: token_addr,
-					data: payload,
-					value: Uint128::zero(),
+				.add_submessage(SubMsg {
+					id: WRAP_EVM_CALL_ID,
+					msg: SeiMsg::CallEvm {
+						to: token_addr,
+						data: payload,
+						value: Uint128::zero(),
+					}
+					.into(),
+					gas_limit: None,
+					reply_on: ReplyOn::Always,
 				})
 				.add_messages(extra_msg)
 				.add_message(SeiMsg::MintTokens { amount: amount.clone() })
@@ -84,7 +123,7 @@ pub fn execute(
 				})))
 		}
 		ERC20WrapperExecMsg::Unwrap { evm_recipient } => {
-			let mut msgs: Vec<CosmosMsg<SeiMsg>> = Vec::with_capacity(info.funds.len() * 2);
+			let mut msgs = Vec::with_capacity(info.funds.len() * 2);
 
 			for fund in info.funds {
 				let splited_denom = fund.denom.split('/').collect::<Box<[_]>>();
@@ -95,18 +134,22 @@ pub fn execute(
 
 				let token_addr = splited_denom[2].replace("crwn", "0x");
 				let evm_payload = encode_transfer_payload(evm_recipient.as_slice().try_into()?, fund.amount);
-				msgs.push(
-					SeiMsg::CallEvm {
+
+				msgs.push(SubMsg {
+					id: UNWRAP_EVM_CALL_ID,
+					msg: SeiMsg::CallEvm {
 						to: token_addr,
 						data: evm_payload,
 						value: 0u128.into(),
 					}
 					.into(),
-				);
-				msgs.push(BankMsg::Burn { amount: vec![fund] }.into());
+					gas_limit: None,
+					reply_on: ReplyOn::Always,
+				});
+				msgs.push(SubMsg::new(BankMsg::Burn { amount: vec![fund] }));
 			}
 
-			Response::new().add_messages(msgs)
+			Response::new().add_submessages(msgs)
 		}
 	};
 

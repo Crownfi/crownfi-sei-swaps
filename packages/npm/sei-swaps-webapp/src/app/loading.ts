@@ -1,8 +1,8 @@
 import { q } from "./util.js";
 
-export function setLoading(isLoading: boolean, text: string = ""){
+export function setLoading(isLoading: boolean, text: string = "") {
 	const loadCover = q("#loading-cover") as HTMLElement;
-	const loadingText = q("#loading-text") as (HTMLElement | null);
+	const loadingText = q("#loading-text") as HTMLElement | null;
 	// TODO: Block tab navigation
 	// TOOD: Fade animation
 	if (isLoading) {
@@ -10,11 +10,10 @@ export function setLoading(isLoading: boolean, text: string = ""){
 		if (loadingText) {
 			loadingText.innerText = text;
 		}
-	}else{
+	} else {
 		loadCover.style.display = "none";
 		if (loadingText) {
 			loadingText.innerText = "";
 		}
 	}
-	
 }

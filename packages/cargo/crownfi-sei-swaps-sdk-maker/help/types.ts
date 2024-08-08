@@ -42,16 +42,16 @@ export type Uint128 = string;
  * via the `definition` "AssetInfo".
  */
 export type AssetInfo =
-  | {
-      token: {
-        contract_addr: Addr;
-      };
-    }
-  | {
-      native_token: {
-        denom: string;
-      };
-    };
+	| {
+			token: {
+				contract_addr: Addr;
+			};
+	  }
+	| {
+			native_token: {
+				denom: string;
+			};
+	  };
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "Array_of_Asset".
@@ -64,15 +64,15 @@ export type ArrayOf_Asset = Asset[];
  * via the `definition` "AstroPairType".
  */
 export type AstroPairType =
-  | {
-      xyk: {};
-    }
-  | {
-      stable: {};
-    }
-  | {
-      custom: string;
-    };
+	| {
+			xyk: {};
+	  }
+	| {
+			stable: {};
+	  }
+	| {
+			custom: string;
+	  };
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "Array_of_AstroPairType".
@@ -85,72 +85,72 @@ export type ArrayOf_AstroPairType = AstroPairType[];
  * via the `definition` "AstroFactoryExecuteMsg".
  */
 export type AstroFactoryExecuteMsg =
-  | {
-      update_config: {
-        /**
-         * Contract address to send governance fees to (the Maker)
-         */
-        fee_address?: string | null;
-        /**
-         * Whether to prevent the public from creating pairs
-         */
-        permissioned?: boolean | null;
-        /**
-         * CW20 token contract code identifier
-         */
-        token_code_id?: number | null;
-      };
-    }
-  | {
-      update_pair_config: {
-        /**
-         * New [`PairConfig`] settings for a pair type
-         */
-        config: AstroFactoryPairConfig;
-      };
-    }
-  | {
-      create_pair: {
-        /**
-         * The assets to create the pool for
-         */
-        asset_infos: AssetInfo[];
-        /**
-         * Optional binary serialised parameters for custom pool types
-         */
-        init_params?: Binary | null;
-        /**
-         * The pair type (exposed in [`PairType`])
-         */
-        pair_type: AstroPairType;
-      };
-    }
-  | {
-      deregister: {
-        /**
-         * The assets for which we deregister a pool
-         */
-        asset_infos: AssetInfo[];
-      };
-    }
-  | {
-      propose_new_owner: {
-        /**
-         * The date after which this proposal expires
-         */
-        expires_in: number;
-        /**
-         * Newly proposed contract owner
-         */
-        owner: string;
-      };
-    }
-  | {
-      drop_ownership_proposal: {};
-    }
-  | {
-      claim_ownership: {};
-    };
+	| {
+			update_config: {
+				/**
+				 * Contract address to send governance fees to (the Maker)
+				 */
+				fee_address?: string | null;
+				/**
+				 * Whether to prevent the public from creating pairs
+				 */
+				permissioned?: boolean | null;
+				/**
+				 * CW20 token contract code identifier
+				 */
+				token_code_id?: number | null;
+			};
+	  }
+	| {
+			update_pair_config: {
+				/**
+				 * New [`PairConfig`] settings for a pair type
+				 */
+				config: AstroFactoryPairConfig;
+			};
+	  }
+	| {
+			create_pair: {
+				/**
+				 * The assets to create the pool for
+				 */
+				asset_infos: AssetInfo[];
+				/**
+				 * Optional binary serialised parameters for custom pool types
+				 */
+				init_params?: Binary | null;
+				/**
+				 * The pair type (exposed in [`PairType`])
+				 */
+				pair_type: AstroPairType;
+			};
+	  }
+	| {
+			deregister: {
+				/**
+				 * The assets for which we deregister a pool
+				 */
+				asset_infos: AssetInfo[];
+			};
+	  }
+	| {
+			propose_new_owner: {
+				/**
+				 * The date after which this proposal expires
+				 */
+				expires_in: number;
+				/**
+				 * Newly proposed contract owner
+				 */
+				owner: string;
+			};
+	  }
+	| {
+			drop_ownership_proposal: {};
+	  }
+	| {
+			claim_ownership: {};
+	  };
 /**
  * Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.
  *
@@ -167,40 +167,40 @@ export type Binary = string;
  * via the `definition` "AstroFactoryQueryMsg".
  */
 export type AstroFactoryQueryMsg =
-  | {
-      config: {};
-    }
-  | {
-      pair: {
-        /**
-         * The assets for which we return a pair
-         */
-        asset_infos: AssetInfo[];
-      };
-    }
-  | {
-      pairs: {
-        /**
-         * The number of pairs to read and return. It is an [`Option`] type.
-         */
-        limit?: number | null;
-        /**
-         * The pair item to start reading from. It is an [`Option`] type that accepts [`AssetInfo`] elements.
-         */
-        start_after?: AssetInfo[] | null;
-      };
-    }
-  | {
-      fee_info: {
-        /**
-         * The pair type for which we return fee information. Pair type is a [`PairType`] struct
-         */
-        pair_type: AstroPairType;
-      };
-    }
-  | {
-      blacklisted_pair_types: {};
-    };
+	| {
+			config: {};
+	  }
+	| {
+			pair: {
+				/**
+				 * The assets for which we return a pair
+				 */
+				asset_infos: AssetInfo[];
+			};
+	  }
+	| {
+			pairs: {
+				/**
+				 * The number of pairs to read and return. It is an [`Option`] type.
+				 */
+				limit?: number | null;
+				/**
+				 * The pair item to start reading from. It is an [`Option`] type that accepts [`AssetInfo`] elements.
+				 */
+				start_after?: AssetInfo[] | null;
+			};
+	  }
+	| {
+			fee_info: {
+				/**
+				 * The pair type for which we return fee information. Pair type is a [`PairType`] struct
+				 */
+				pair_type: AstroPairType;
+			};
+	  }
+	| {
+			blacklisted_pair_types: {};
+	  };
 /**
  * This structure describes a CW20 hook message.
  *
@@ -208,19 +208,19 @@ export type AstroFactoryQueryMsg =
  * via the `definition` "AstroPairCw20HookMsg".
  */
 export type AstroPairCw20HookMsg =
-  | {
-      swap: {
-        ask_asset_info?: AssetInfo | null;
-        belief_price?: Decimal | null;
-        max_spread?: Decimal | null;
-        to?: string | null;
-      };
-    }
-  | {
-      withdraw_liquidity: {
-        assets?: Asset[];
-      };
-    };
+	| {
+			swap: {
+				ask_asset_info?: AssetInfo | null;
+				belief_price?: Decimal | null;
+				max_spread?: Decimal | null;
+				to?: string | null;
+			};
+	  }
+	| {
+			withdraw_liquidity: {
+				assets?: Asset[];
+			};
+	  };
 /**
  * A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0
  *
@@ -237,61 +237,61 @@ export type Decimal = string;
  * via the `definition` "AstroPairExecuteMsg".
  */
 export type AstroPairExecuteMsg =
-  | {
-      receive: Cw20ReceiveMsg;
-    }
-  | {
-      provide_liquidity: {
-        /**
-         * The assets available in the pool
-         */
-        assets: Asset[];
-        /**
-         * Determines whether the LP tokens minted for the user is auto_staked in the Generator contract
-         */
-        auto_stake?: boolean | null;
-        /**
-         * The receiver of LP tokens
-         */
-        receiver?: string | null;
-        /**
-         * The slippage tolerance that allows liquidity provision only if the price in the pool doesn't move too much
-         */
-        slippage_tolerance?: Decimal | null;
-      };
-    }
-  | {
-      swap: {
-        ask_asset_info?: AssetInfo | null;
-        belief_price?: Decimal | null;
-        max_spread?: Decimal | null;
-        offer_asset: Asset;
-        to?: string | null;
-      };
-    }
-  | {
-      update_config: {
-        params: Binary;
-      };
-    }
-  | {
-      propose_new_owner: {
-        /**
-         * The date after which this proposal expires
-         */
-        expires_in: number;
-        /**
-         * Newly proposed contract owner
-         */
-        owner: string;
-      };
-    }
-  | {
-      drop_ownership_proposal: {};
-    }
-  | {
-      claim_ownership: {};
-    };
+	| {
+			receive: Cw20ReceiveMsg;
+	  }
+	| {
+			provide_liquidity: {
+				/**
+				 * The assets available in the pool
+				 */
+				assets: Asset[];
+				/**
+				 * Determines whether the LP tokens minted for the user is auto_staked in the Generator contract
+				 */
+				auto_stake?: boolean | null;
+				/**
+				 * The receiver of LP tokens
+				 */
+				receiver?: string | null;
+				/**
+				 * The slippage tolerance that allows liquidity provision only if the price in the pool doesn't move too much
+				 */
+				slippage_tolerance?: Decimal | null;
+			};
+	  }
+	| {
+			swap: {
+				ask_asset_info?: AssetInfo | null;
+				belief_price?: Decimal | null;
+				max_spread?: Decimal | null;
+				offer_asset: Asset;
+				to?: string | null;
+			};
+	  }
+	| {
+			update_config: {
+				params: Binary;
+			};
+	  }
+	| {
+			propose_new_owner: {
+				/**
+				 * The date after which this proposal expires
+				 */
+				expires_in: number;
+				/**
+				 * Newly proposed contract owner
+				 */
+				owner: string;
+			};
+	  }
+	| {
+			drop_ownership_proposal: {};
+	  }
+	| {
+			claim_ownership: {};
+	  };
 /**
  * This structure describes the query messages available in the contract.
  *
@@ -299,44 +299,44 @@ export type AstroPairExecuteMsg =
  * via the `definition` "AstroPairQueryMsg".
  */
 export type AstroPairQueryMsg =
-  | {
-      pair: {};
-    }
-  | {
-      pool: {};
-    }
-  | {
-      config: {};
-    }
-  | {
-      share: {
-        amount: Uint128;
-      };
-    }
-  | {
-      simulation: {
-        ask_asset_info?: AssetInfo | null;
-        offer_asset: Asset;
-      };
-    }
-  | {
-      reverse_simulation: {
-        ask_asset: Asset;
-        offer_asset_info?: AssetInfo | null;
-      };
-    }
-  | {
-      cumulative_prices: {};
-    }
-  | {
-      query_compute_d: {};
-    }
-  | {
-      asset_balance_at: {
-        asset_info: AssetInfo;
-        block_height: Uint64;
-      };
-    };
+	| {
+			pair: {};
+	  }
+	| {
+			pool: {};
+	  }
+	| {
+			config: {};
+	  }
+	| {
+			share: {
+				amount: Uint128;
+			};
+	  }
+	| {
+			simulation: {
+				ask_asset_info?: AssetInfo | null;
+				offer_asset: Asset;
+			};
+	  }
+	| {
+			reverse_simulation: {
+				ask_asset: Asset;
+				offer_asset_info?: AssetInfo | null;
+			};
+	  }
+	| {
+			cumulative_prices: {};
+	  }
+	| {
+			query_compute_d: {};
+	  }
+	| {
+			asset_balance_at: {
+				asset_info: AssetInfo;
+				block_height: Uint64;
+			};
+	  };
 /**
  * A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.
  *
@@ -357,24 +357,24 @@ export type Uint64 = string;
  * via the `definition` "AstroRouteCw20HookMsg".
  */
 export type AstroRouteCw20HookMsg = {
-  execute_swap_operations: {
-    /**
-     * Max spread
-     */
-    max_spread?: Decimal | null;
-    /**
-     * The minimum amount of tokens to get from a swap
-     */
-    minimum_receive?: Uint128 | null;
-    /**
-     * A vector of swap operations
-     */
-    operations: AstroRouteSwapOperation[];
-    /**
-     * The recipient
-     */
-    to?: string | null;
-  };
+	execute_swap_operations: {
+		/**
+		 * Max spread
+		 */
+		max_spread?: Decimal | null;
+		/**
+		 * The minimum amount of tokens to get from a swap
+		 */
+		minimum_receive?: Uint128 | null;
+		/**
+		 * A vector of swap operations
+		 */
+		operations: AstroRouteSwapOperation[];
+		/**
+		 * The recipient
+		 */
+		to?: string | null;
+	};
 };
 /**
  * This enum describes a swap operation.
@@ -383,30 +383,30 @@ export type AstroRouteCw20HookMsg = {
  * via the `definition` "AstroRouteSwapOperation".
  */
 export type AstroRouteSwapOperation =
-  | {
-      native_swap: {
-        /**
-         * The name (denomination) of the native asset to swap to
-         */
-        ask_denom: string;
-        /**
-         * The name (denomination) of the native asset to swap from
-         */
-        offer_denom: string;
-      };
-    }
-  | {
-      astro_swap: {
-        /**
-         * Information about the asset we swap to
-         */
-        ask_asset_info: AssetInfo;
-        /**
-         * Information about the asset being swapped
-         */
-        offer_asset_info: AssetInfo;
-      };
-    };
+	| {
+			native_swap: {
+				/**
+				 * The name (denomination) of the native asset to swap to
+				 */
+				ask_denom: string;
+				/**
+				 * The name (denomination) of the native asset to swap from
+				 */
+				offer_denom: string;
+			};
+	  }
+	| {
+			astro_swap: {
+				/**
+				 * Information about the asset we swap to
+				 */
+				ask_asset_info: AssetInfo;
+				/**
+				 * Information about the asset being swapped
+				 */
+				offer_asset_info: AssetInfo;
+			};
+	  };
 /**
  * This structure describes the execute messages available in the contract.
  *
@@ -414,33 +414,33 @@ export type AstroRouteSwapOperation =
  * via the `definition` "AstroRouteExecuteMsg".
  */
 export type AstroRouteExecuteMsg =
-  | {
-      receive: Cw20ReceiveMsg;
-    }
-  | {
-      execute_swap_operations: {
-        max_spread?: Decimal | null;
-        minimum_receive?: Uint128 | null;
-        operations: AstroRouteSwapOperation[];
-        to?: string | null;
-      };
-    }
-  | {
-      execute_swap_operation: {
-        max_spread?: Decimal | null;
-        operation: AstroRouteSwapOperation;
-        single: boolean;
-        to?: string | null;
-      };
-    }
-  | {
-      assert_minimum_receive: {
-        asset_info: AssetInfo;
-        minimum_receive: Uint128;
-        prev_balance: Uint128;
-        receiver: string;
-      };
-    };
+	| {
+			receive: Cw20ReceiveMsg;
+	  }
+	| {
+			execute_swap_operations: {
+				max_spread?: Decimal | null;
+				minimum_receive?: Uint128 | null;
+				operations: AstroRouteSwapOperation[];
+				to?: string | null;
+			};
+	  }
+	| {
+			execute_swap_operation: {
+				max_spread?: Decimal | null;
+				operation: AstroRouteSwapOperation;
+				single: boolean;
+				to?: string | null;
+			};
+	  }
+	| {
+			assert_minimum_receive: {
+				asset_info: AssetInfo;
+				minimum_receive: Uint128;
+				prev_balance: Uint128;
+				receiver: string;
+			};
+	  };
 /**
  * This structure describes the query messages available in the contract.
  *
@@ -448,21 +448,21 @@ export type AstroRouteExecuteMsg =
  * via the `definition` "AstroRouteQueryMsg".
  */
 export type AstroRouteQueryMsg =
-  | {
-      config: {};
-    }
-  | {
-      simulate_swap_operations: {
-        /**
-         * The amount of tokens to swap
-         */
-        offer_amount: Uint128;
-        /**
-         * The swap operations to perform, each swap involving a specific pool
-         */
-        operations: AstroRouteSwapOperation[];
-      };
-    };
+	| {
+			config: {};
+	  }
+	| {
+			simulate_swap_operations: {
+				/**
+				 * The amount of tokens to swap
+				 */
+				offer_amount: Uint128;
+				/**
+				 * The swap operations to perform, each swap involving a specific pool
+				 */
+				operations: AstroRouteSwapOperation[];
+			};
+	  };
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "Nullable_Uint128".
@@ -473,14 +473,14 @@ export type Nullable_Uint128 = Uint128 | null;
  * via the `definition` "TokenWrapperExecMsg".
  */
 export type TokenWrapperExecMsg =
-  | {
-      receive: Cw20ReceiveMsg;
-    }
-  | {
-      unwrap: {
-        receiver?: Addr | null;
-      };
-    };
+	| {
+			receive: Cw20ReceiveMsg;
+	  }
+	| {
+			unwrap: {
+				receiver?: Addr | null;
+			};
+	  };
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "TokenWrapperQueryMsg".
@@ -488,7 +488,7 @@ export type TokenWrapperExecMsg =
 export type TokenWrapperQueryMsg = "empty";
 
 export interface CrownfiSdkMakerAutogen {
-  [k: string]: unknown;
+	[k: string]: unknown;
 }
 /**
  * This enum describes a Terra asset (native or CW20).
@@ -497,14 +497,14 @@ export interface CrownfiSdkMakerAutogen {
  * via the `definition` "Asset".
  */
 export interface Asset {
-  /**
-   * A token amount
-   */
-  amount: Uint128;
-  /**
-   * Information about an asset stored in a [`AssetInfo`] struct
-   */
-  info: AssetInfo;
+	/**
+	 * A token amount
+	 */
+	amount: Uint128;
+	/**
+	 * Information about an asset stored in a [`AssetInfo`] struct
+	 */
+	info: AssetInfo;
 }
 /**
  * A custom struct for each query response that returns general contract settings/configs.
@@ -513,22 +513,22 @@ export interface Asset {
  * via the `definition` "AstroFactoryConfigResponse".
  */
 export interface AstroFactoryConfigResponse {
-  /**
-   * Address of contract to send governance fees to (the Maker)
-   */
-  fee_address?: Addr | null;
-  /**
-   * Addres of owner that is allowed to change contract parameters
-   */
-  owner: Addr;
-  /**
-   * IDs of contracts which are allowed to create pairs
-   */
-  pair_configs: AstroFactoryPairConfig[];
-  /**
-   * CW20 token contract code identifier
-   */
-  token_code_id: number;
+	/**
+	 * Address of contract to send governance fees to (the Maker)
+	 */
+	fee_address?: Addr | null;
+	/**
+	 * Addres of owner that is allowed to change contract parameters
+	 */
+	owner: Addr;
+	/**
+	 * IDs of contracts which are allowed to create pairs
+	 */
+	pair_configs: AstroFactoryPairConfig[];
+	/**
+	 * CW20 token contract code identifier
+	 */
+	token_code_id: number;
 }
 /**
  * This structure stores a pair type's configuration.
@@ -537,34 +537,34 @@ export interface AstroFactoryConfigResponse {
  * via the `definition` "AstroFactoryPairConfig".
  */
 export interface AstroFactoryPairConfig {
-  /**
-   * ID of contract which is allowed to create pairs of this type
-   */
-  code_id: number;
-  /**
-   * Whether a pair type is disabled or not. If it is disabled, new pairs cannot be created, but existing ones can still read the pair configuration
-   */
-  is_disabled: boolean;
-  /**
-   * Setting this to true means that pairs of this type will not be able to get an ASTRO generator
-   */
-  is_generator_disabled: boolean;
-  /**
-   * The amount of fees (in bps) collected by the Maker contract from this pair type
-   */
-  maker_fee_bps: number;
-  /**
-   * The pair type (provided in a [`PairType`])
-   */
-  pair_type: AstroPairType;
-  /**
-   * If pool type is permissioned, only factory owner can create pairs of this type. Default is false.
-   */
-  permissioned?: boolean;
-  /**
-   * The total fees (in bps) charged by a pair of this type
-   */
-  total_fee_bps: number;
+	/**
+	 * ID of contract which is allowed to create pairs of this type
+	 */
+	code_id: number;
+	/**
+	 * Whether a pair type is disabled or not. If it is disabled, new pairs cannot be created, but existing ones can still read the pair configuration
+	 */
+	is_disabled: boolean;
+	/**
+	 * Setting this to true means that pairs of this type will not be able to get an ASTRO generator
+	 */
+	is_generator_disabled: boolean;
+	/**
+	 * The amount of fees (in bps) collected by the Maker contract from this pair type
+	 */
+	maker_fee_bps: number;
+	/**
+	 * The pair type (provided in a [`PairType`])
+	 */
+	pair_type: AstroPairType;
+	/**
+	 * If pool type is permissioned, only factory owner can create pairs of this type. Default is false.
+	 */
+	permissioned?: boolean;
+	/**
+	 * The total fees (in bps) charged by a pair of this type
+	 */
+	total_fee_bps: number;
 }
 /**
  * A custom struct for each query response that returns an object of type [`FeeInfoResponse`].
@@ -573,18 +573,18 @@ export interface AstroFactoryPairConfig {
  * via the `definition` "AstroFactoryFeeInfoResponse".
  */
 export interface AstroFactoryFeeInfoResponse {
-  /**
-   * Contract address to send governance fees to
-   */
-  fee_address?: Addr | null;
-  /**
-   * Amount of fees (in bps) sent to the Maker contract
-   */
-  maker_fee_bps: number;
-  /**
-   * Total amount of fees (in bps) charged on a swap
-   */
-  total_fee_bps: number;
+	/**
+	 * Contract address to send governance fees to
+	 */
+	fee_address?: Addr | null;
+	/**
+	 * Amount of fees (in bps) sent to the Maker contract
+	 */
+	maker_fee_bps: number;
+	/**
+	 * Total amount of fees (in bps) charged on a swap
+	 */
+	total_fee_bps: number;
 }
 /**
  * This structure stores the basic settings for creating a new factory contract.
@@ -593,26 +593,26 @@ export interface AstroFactoryFeeInfoResponse {
  * via the `definition` "AstroFactoryInstantiateMsg".
  */
 export interface AstroFactoryInstantiateMsg {
-  /**
-   * Contract address to send governance fees to (the Maker)
-   */
-  fee_address?: string | null;
-  /**
-   * Address of contract that is used to auto_stake LP tokens once someone provides liquidity in a pool
-   */
-  generator_address?: string | null;
-  /**
-   * Address of owner that is allowed to change factory contract parameters
-   */
-  owner: string;
-  /**
-   * IDs of contracts that are allowed to instantiate pairs
-   */
-  pair_configs: AstroFactoryPairConfig[];
-  /**
-   * CW20 token contract code identifier
-   */
-  token_code_id: number;
+	/**
+	 * Contract address to send governance fees to (the Maker)
+	 */
+	fee_address?: string | null;
+	/**
+	 * Address of contract that is used to auto_stake LP tokens once someone provides liquidity in a pool
+	 */
+	generator_address?: string | null;
+	/**
+	 * Address of owner that is allowed to change factory contract parameters
+	 */
+	owner: string;
+	/**
+	 * IDs of contracts that are allowed to instantiate pairs
+	 */
+	pair_configs: AstroFactoryPairConfig[];
+	/**
+	 * CW20 token contract code identifier
+	 */
+	token_code_id: number;
 }
 /**
  * This structure stores the parameters used in a migration message.
@@ -621,7 +621,7 @@ export interface AstroFactoryInstantiateMsg {
  * via the `definition` "AstroFactoryMigrateMsg".
  */
 export interface AstroFactoryMigrateMsg {
-  params: Binary;
+	params: Binary;
 }
 /**
  * A custom struct for each query response that returns an array of objects of type [`PairInfo`].
@@ -630,10 +630,10 @@ export interface AstroFactoryMigrateMsg {
  * via the `definition` "AstroFactoryPairsResponse".
  */
 export interface AstroFactoryPairsResponse {
-  /**
-   * Arrays of structs containing information about multiple pairs
-   */
-  pairs: PairInfo[];
+	/**
+	 * Arrays of structs containing information about multiple pairs
+	 */
+	pairs: PairInfo[];
 }
 /**
  * This structure stores the main parameters for an Astroport pair
@@ -642,22 +642,22 @@ export interface AstroFactoryPairsResponse {
  * via the `definition` "PairInfo".
  */
 export interface PairInfo {
-  /**
-   * Asset information for the assets in the pool
-   */
-  asset_infos: AssetInfo[];
-  /**
-   * Pair contract address
-   */
-  contract_addr: Addr;
-  /**
-   * Pair LP token address
-   */
-  liquidity_token: Addr;
-  /**
-   * The pool type (xyk, stableswap etc) available in [`PairType`]
-   */
-  pair_type: AstroPairType;
+	/**
+	 * Asset information for the assets in the pool
+	 */
+	asset_infos: AssetInfo[];
+	/**
+	 * Pair contract address
+	 */
+	contract_addr: Addr;
+	/**
+	 * Pair LP token address
+	 */
+	liquidity_token: Addr;
+	/**
+	 * The pool type (xyk, stableswap etc) available in [`PairType`]
+	 */
+	pair_type: AstroPairType;
 }
 /**
  * This struct is used to return a query result with the general contract configuration.
@@ -666,22 +666,22 @@ export interface PairInfo {
  * via the `definition` "AstroPairConfigResponse".
  */
 export interface AstroPairConfigResponse {
-  /**
-   * Last timestamp when the cumulative prices in the pool were updated
-   */
-  block_time_last: number;
-  /**
-   * The factory contract address
-   */
-  factory_addr: Addr;
-  /**
-   * The contract owner
-   */
-  owner: Addr;
-  /**
-   * The pool's parameters
-   */
-  params?: Binary | null;
+	/**
+	 * Last timestamp when the cumulative prices in the pool were updated
+	 */
+	block_time_last: number;
+	/**
+	 * The factory contract address
+	 */
+	factory_addr: Addr;
+	/**
+	 * The contract owner
+	 */
+	owner: Addr;
+	/**
+	 * The pool's parameters
+	 */
+	params?: Binary | null;
 }
 /**
  * This structure is used to return a cumulative prices query response.
@@ -690,18 +690,18 @@ export interface AstroPairConfigResponse {
  * via the `definition` "AstroPairCumulativePricesResponse".
  */
 export interface AstroPairCumulativePricesResponse {
-  /**
-   * The assets in the pool to query
-   */
-  assets: Asset[];
-  /**
-   * The vector contains cumulative prices for each pair of assets in the pool
-   */
-  cumulative_prices: [AssetInfo, AssetInfo, Uint128][];
-  /**
-   * The total amount of LP tokens currently issued
-   */
-  total_share: Uint128;
+	/**
+	 * The assets in the pool to query
+	 */
+	assets: Asset[];
+	/**
+	 * The vector contains cumulative prices for each pair of assets in the pool
+	 */
+	cumulative_prices: [AssetInfo, AssetInfo, Uint128][];
+	/**
+	 * The total amount of LP tokens currently issued
+	 */
+	total_share: Uint128;
 }
 /**
  * Cw20ReceiveMsg should be de/serialized under `Receive()` variant in a ExecuteMsg
@@ -710,9 +710,9 @@ export interface AstroPairCumulativePricesResponse {
  * via the `definition` "Cw20ReceiveMsg".
  */
 export interface Cw20ReceiveMsg {
-  amount: Uint128;
-  msg: Binary;
-  sender: string;
+	amount: Uint128;
+	msg: Binary;
+	sender: string;
 }
 /**
  * This structure describes the parameters used for creating a contract.
@@ -721,22 +721,22 @@ export interface Cw20ReceiveMsg {
  * via the `definition` "AstroPairInstantiateMsg".
  */
 export interface AstroPairInstantiateMsg {
-  /**
-   * Information about assets in the pool
-   */
-  asset_infos: AssetInfo[];
-  /**
-   * The factory contract address
-   */
-  factory_addr: string;
-  /**
-   * Optional binary serialised parameters for custom pool types
-   */
-  init_params?: Binary | null;
-  /**
-   * The token contract code ID used for the tokens in the pool
-   */
-  token_code_id: number;
+	/**
+	 * Information about assets in the pool
+	 */
+	asset_infos: AssetInfo[];
+	/**
+	 * The factory contract address
+	 */
+	factory_addr: string;
+	/**
+	 * Optional binary serialised parameters for custom pool types
+	 */
+	init_params?: Binary | null;
+	/**
+	 * The token contract code ID used for the tokens in the pool
+	 */
+	token_code_id: number;
 }
 /**
  * This structure describes a migration message. We currently take no arguments for migrations.
@@ -752,14 +752,14 @@ export interface AstroPairMigrateMsg {}
  * via the `definition` "AstroPairPoolResponse".
  */
 export interface AstroPairPoolResponse {
-  /**
-   * The assets in the pool together with asset amounts
-   */
-  assets: Asset[];
-  /**
-   * The total amount of LP tokens currently issued
-   */
-  total_share: Uint128;
+	/**
+	 * The assets in the pool together with asset amounts
+	 */
+	assets: Asset[];
+	/**
+	 * The total amount of LP tokens currently issued
+	 */
+	total_share: Uint128;
 }
 /**
  * This structure holds the parameters that are returned from a reverse swap simulation response.
@@ -768,18 +768,18 @@ export interface AstroPairPoolResponse {
  * via the `definition` "AstroPairReverseSimulationResponse".
  */
 export interface AstroPairReverseSimulationResponse {
-  /**
-   * The amount of fees charged by the transaction
-   */
-  commission_amount: Uint128;
-  /**
-   * The amount of offer assets returned by the reverse swap
-   */
-  offer_amount: Uint128;
-  /**
-   * The spread used in the swap operation
-   */
-  spread_amount: Uint128;
+	/**
+	 * The amount of fees charged by the transaction
+	 */
+	commission_amount: Uint128;
+	/**
+	 * The amount of offer assets returned by the reverse swap
+	 */
+	offer_amount: Uint128;
+	/**
+	 * The spread used in the swap operation
+	 */
+	spread_amount: Uint128;
 }
 /**
  * This structure holds the parameters that are returned from a swap simulation response
@@ -788,18 +788,18 @@ export interface AstroPairReverseSimulationResponse {
  * via the `definition` "AstroPairSimulationResponse".
  */
 export interface AstroPairSimulationResponse {
-  /**
-   * The amount of fees charged by the transaction
-   */
-  commission_amount: Uint128;
-  /**
-   * The amount of ask assets returned by the swap
-   */
-  return_amount: Uint128;
-  /**
-   * The spread used in the swap operation
-   */
-  spread_amount: Uint128;
+	/**
+	 * The amount of fees charged by the transaction
+	 */
+	commission_amount: Uint128;
+	/**
+	 * The amount of ask assets returned by the swap
+	 */
+	return_amount: Uint128;
+	/**
+	 * The spread used in the swap operation
+	 */
+	spread_amount: Uint128;
 }
 /**
  * This structure describes a custom struct to return a query response containing the base contract configuration.
@@ -808,10 +808,10 @@ export interface AstroPairSimulationResponse {
  * via the `definition` "AstroRouteConfigResponse".
  */
 export interface AstroRouteConfigResponse {
-  /**
-   * The Astroport factory contract address
-   */
-  astroport_factory: string;
+	/**
+	 * The Astroport factory contract address
+	 */
+	astroport_factory: string;
 }
 /**
  * This structure holds the parameters used for creating a contract.
@@ -820,10 +820,10 @@ export interface AstroRouteConfigResponse {
  * via the `definition` "AstroRouteInstantiateMsg".
  */
 export interface AstroRouteInstantiateMsg {
-  /**
-   * The astroport factory contract address
-   */
-  astroport_factory: string;
+	/**
+	 * The astroport factory contract address
+	 */
+	astroport_factory: string;
 }
 /**
  * This structure describes a migration message. We currently take no arguments for migrations.
@@ -839,10 +839,10 @@ export interface AstroRouteMigrateMsg {}
  * via the `definition` "AstroRouteSimulateSwapOperationsResponse".
  */
 export interface AstroRouteSimulateSwapOperationsResponse {
-  /**
-   * The amount of tokens received in a swap simulation
-   */
-  amount: Uint128;
+	/**
+	 * The amount of tokens received in a swap simulation
+	 */
+	amount: Uint128;
 }
 /**
  * An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.
@@ -853,5 +853,5 @@ export interface AstroRouteSimulateSwapOperationsResponse {
  * via the `definition` "Empty".
  */
 export interface Empty {
-  [k: string]: unknown;
+	[k: string]: unknown;
 }

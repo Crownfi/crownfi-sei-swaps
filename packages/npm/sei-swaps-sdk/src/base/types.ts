@@ -151,9 +151,7 @@ export type PoolFactoryExecuteMsg =
  * via the `definition` "PoolFactoryQueryMsg".
  */
 export type PoolFactoryQueryMsg =
-  | {
-      config: {};
-    }
+  | "config"
   | {
       pair_addr: {
         /**
@@ -277,21 +275,12 @@ export type PoolPairExecuteMsg =
  * via the `definition` "PoolPairQueryMsg".
  */
 export type PoolPairQueryMsg =
-  | {
-      pair_denoms: {};
-    }
-  | {
-      canonical_pair_denoms: {};
-    }
-  | {
-      pair_identifier: {};
-    }
-  | {
-      canonical_pair_identifier: {};
-    }
-  | {
-      config: {};
-    }
+  | "pair_denoms"
+  | "canonical_pair_denoms"
+  | "pair_identifier"
+  | "canonical_pair_identifier"
+  | "config"
+  | "total_shares"
   | {
       share_value: {
         amount: Uint128;
@@ -326,9 +315,7 @@ export type PoolPairQueryMsg =
         past_days?: number | null;
       };
     }
-  | {
-      total_volume_sum: {};
-    };
+  | "total_volume_sum";
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "String".
@@ -336,9 +323,30 @@ export type PoolPairQueryMsg =
 export type String = string;
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
+ * via the `definition` "SwapReceiver".
+ */
+export type SwapReceiver =
+  | {
+      direct: Addr;
+    }
+  | {
+      wasm_unwrap: {
+        contract: Addr;
+        receiver: Addr;
+      };
+    }
+  | {
+      evm_unwrap: {
+        contract: Addr;
+        evm_receiver: string;
+      };
+    };
+/**
+ * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "SwapRouterExecuteMsg".
  */
 export type SwapRouterExecuteMsg =
+  | "next_step"
   | {
       execute_swaps: {
         /**
@@ -350,21 +358,14 @@ export type SwapRouterExecuteMsg =
          */
         intermediate_slippage_tolerance?: Decimal | null;
         /**
-         * The account receiving the resulting asset, defaults to the sender.
+         * If the resulting denom wraps another asset, use this contract to unwrap it The account receiving the resulting asset, defaults to the sender.
          */
-        receiver?: Addr | null;
+        receiver: SwapReceiver;
         /**
          * The contract(s) to use to execute the swaps
          */
         swappers: Addr[];
-        /**
-         * If the resulting denom wraps another asset, use this contract to unwrap it
-         */
-        unwrapper?: Addr | null;
       };
-    }
-  | {
-      next_step: {};
     };
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
@@ -377,9 +378,7 @@ export type SwapRouterQueryMsg = {
   };
 };
 
-export interface CrownfiSdkMakerAutogen {
-  [k: string]: unknown;
-}
+export interface CrownfiSdkMakerAutogen {}
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "PoolFactoryCreatedPair".
@@ -399,7 +398,6 @@ export interface PoolFactoryCreatedPair {
 export interface Coin {
   amount: Uint128;
   denom: string;
-  [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
@@ -430,7 +428,6 @@ export interface PoolFactoryConfigJsonable {
    * If true, everyone will be able to create new trading pairs
    */
   permissionless_pool_cration: boolean;
-  [k: string]: unknown;
 }
 /**
  * This structure stores the basic settings for creating a new factory contract.
@@ -510,7 +507,6 @@ export interface PoolPairConfigJsonable {
    * The total fees (in bps) charged by a pair of this type
    */
   total_fee_bps: number;
-  [k: string]: unknown;
 }
 /**
  * This structure stores the basic settings for creating a new factory contract.

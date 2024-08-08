@@ -26,13 +26,19 @@ fn main() -> color_eyre::Result<()> {
 		.into_iter()
 		.take_while(|x| *x != "csswap-mvp")
 		.collect::<PathBuf>();
-	dist_dir.push("csswap-mvp/packages/npm");
+	dist_dir.push("csswap-mvp");
+	dist_dir.push("packages");
+	dist_dir.push("npm");
 
 	let mut wrapper_dist = dist_dir.clone();
-	wrapper_dist.push("token-wrapper-sdk/src/base");
+	wrapper_dist.push("token-wrapper-sdk");
+	wrapper_dist.push("src");
+	wrapper_dist.push("base");
 
 	let mut swaps_dist = dist_dir;
-	swaps_dist.push("sei-swaps-sdk/src/base");
+	swaps_dist.push("sei-swaps-sdk");
+	swaps_dist.push("src");
+	swaps_dist.push("base");
 
 	CrownfiSdkMaker::new()
 		.add_contract::<PoolFactoryInstantiateMsg, PoolFactoryExecuteMsg, PoolFactoryQueryMsg, Void, Void, Void>(

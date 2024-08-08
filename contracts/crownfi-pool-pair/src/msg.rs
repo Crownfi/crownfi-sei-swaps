@@ -97,7 +97,10 @@ pub enum PoolPairQueryMsg {
 	CanonicalPairIdentifier {},
 	/// Config returns contract settings specified in the custom [`ConfigResponse`] structure.
 	#[returns(PoolPairConfigJsonable)]
-	Config {},
+	Config,
+	/// Returns the total amount of shares known to the contract
+	#[returns(Uint128)]
+	TotalShares,
 	/// Returns the current value of shares
 	#[returns([Coin; 2])]
 	ShareValue { amount: Uint128 },

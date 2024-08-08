@@ -10,30 +10,30 @@
 				<span>Balance: <span cewt-ref="in-balance">[Unknown]</span></span>
 			</div>
 			<div class="swap-coin-inputs">
-				<img class="swap-coin-icon" cewt-ref="in-icon" src="/assets/placeholder.svg">
+				<img class="swap-coin-icon" cewt-ref="in-icon" src="/assets/placeholder.svg" />
 				<!-- Defined at runtime -->
 				<select is="select-changes" name="in-token"></select>
 				<button cewt-ref="btn-in-max">Max</button>
 				<button cewt-ref="btn-in-half">Half</button>
-				<input name="in-amount" type="number">
+				<input name="in-amount" type="number" />
 			</div>
 			<div class="input-error" cewt-ref="in-error"></div>
 		</div>
-		<img src="/assets/swaps-swords.svg">
+		<img src="/assets/swaps-swords.svg" />
 		<div class="swap-coin">
 			<div class="left-right-text">
 				<span>To</span>
 				<span>Balance: <span cewt-ref="out-balance">[Unknown]</span></span>
 			</div>
 			<div class="swap-coin-inputs">
-				<img class="swap-coin-icon" cewt-ref="out-icon" src="/assets/placeholder.svg">
+				<img class="swap-coin-icon" cewt-ref="out-icon" src="/assets/placeholder.svg" />
 				<!-- Defined at runtime -->
 				<select is="select-changes" name="out-token"></select>
-				<input name="out-amount" type="number" readonly>
+				<input name="out-amount" type="number" readonly />
 			</div>
 			<div class="input-error" cewt-ref="out-error"></div>
 		</div>
-		<button class="primary" cewt-ref="btn-swap", disabled>Swap</button>
+		<button class="primary" cewt-ref="btn-swap" , disabled>Swap</button>
 	</form>
-	<img class="seal" src="/assets/seal.svg">
+	<img class="seal" src="/assets/seal.svg" />
 </template>

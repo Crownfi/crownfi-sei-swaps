@@ -4,21 +4,34 @@
  * DO NOT MODIFY IT BY HAND.
  * The Rust definition of the associated structs is the source of truth!!
  */
-import {Addr, Decimal, SwapRouterExecuteMsg, SwapRouterExpectation, SwapRouterQueryMsg, SwapRouterSimulateSwapsResponse} from "./types.js";
+import {Addr, Decimal, SwapReceiver, SwapRouterExecuteMsg, SwapRouterExpectation, SwapRouterQueryMsg, SwapRouterSimulateSwapsResponse} from "./types.js";
 import {Coin} from "@cosmjs/amino";
-import {ExecuteInstruction} from "@cosmjs/cosmwasm-stargate";
+import {ExecuteInstruction, WasmExtension} from "@cosmjs/cosmwasm-stargate";
+import {QueryClient} from "@cosmjs/stargate";
 import {ContractBase} from "@crownfi/sei-utils";
-export class SwapRouterContract extends ContractBase {
-	querySimulateSwaps(args: {"offer": Coin, "swappers": Addr[]}): Promise<SwapRouterSimulateSwapsResponse> {
+export class SwapRouterContract<Q extends QueryClient & WasmExtension> extends ContractBase<Q> {
+	querySimulateSwaps(args: {
+		"offer": Coin,
+		"swappers": Addr[]
+	}): Promise<SwapRouterSimulateSwapsResponse> {
 		const msg = {"simulate_swaps": args} satisfies SwapRouterQueryMsg;
 		return this.query(msg);
 	}
-	buildExecuteSwapsIx(args: {"expectation"?: SwapRouterExpectation | null, "intermediate_slippage_tolerance"?: Decimal | null, "receiver"?: Addr | null, "swappers": Addr[], "unwrapper"?: Addr | null}, funds?: Coin[]): ExecuteInstruction {
-		const msg = {"execute_swaps": args} satisfies SwapRouterExecuteMsg;
+	buildNextStepIx(funds?: Coin[]): ExecuteInstruction {
+		const msg = "next_step" satisfies SwapRouterExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
-	buildNextStepIx(funds?: Coin[]): ExecuteInstruction {
-		const msg = {"next_step": {}} satisfies SwapRouterExecuteMsg;
+	buildExecuteSwapsIx(args: {
+		/** If you want the swap to fail due to an excessive difference between what you're expecting and what you're getting, specify your terms here. */
+		"expectation"?: SwapRouterExpectation | null,
+		/** The slippage tolerance for each step of the way, default value is at the each swapper's discretion, though the CrownFi swap contracts have a default of 0.5%. */
+		"intermediate_slippage_tolerance"?: Decimal | null,
+		/** If the resulting denom wraps another asset, use this contract to unwrap it The account receiving the resulting asset, defaults to the sender. */
+		"receiver": SwapReceiver,
+		/** The contract(s) to use to execute the swaps */
+		"swappers": Addr[]
+	}, funds?: Coin[]): ExecuteInstruction {
+		const msg = {"execute_swaps": args} satisfies SwapRouterExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
 }

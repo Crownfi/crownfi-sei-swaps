@@ -14,7 +14,7 @@
 	padding-top: 32px;
 	padding-bottom: 120px;
 
-	color: #CBB26A;
+	color: #cbb26a;
 	text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 	font-style: normal;
 	font-weight: 700;
@@ -37,13 +37,12 @@ div[is="farm-pool-component"] .pool-list {
 	display: grid;
 	grid-template-columns: min-content 72px auto auto auto auto auto auto min-content;
 }
-div[is="farm-pool-component"] .pool-list-headings  {
+div[is="farm-pool-component"] .pool-list-headings {
 	color: #339;
 	font-size: 20px;
 	font-style: normal;
-	font-weight: 800; 
-	display: contents; 
-
+	font-weight: 800;
+	display: contents;
 }
 div[is="farm-pool-component"] .pool-list-headings > * {
 	margin: 8px;
@@ -64,9 +63,9 @@ div[is="farm-pool-component"] .pool-list-headings > * {
 
 div[is="farm-pool-item"] {
 	border-radius: 20px;
-	background: #FFEBB0;
-	border: 1px solid #339; 
-	box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25); 
+	background: #ffebb0;
+	border: 1px solid #339;
+	box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
 	/*
 		an alternative method that would work on versions of Chromium older than September 2023 would involve
 		display:contents and setting the top and bottom border of farm-pool-item's children, with the side borders
@@ -86,16 +85,20 @@ div[is="farm-pool-item"].expanded {
 div[is="farm-pool-item"].expanded .pool-expand {
 	transform: rotate(180deg);
 }
-.pool-stats-name, .pool-stat {
+.pool-stats-name,
+.pool-stat {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
-div[is="farm-pool-item"] .pool-star, div[is="farm-pool-item"] .pool-expand {
+div[is="farm-pool-item"] .pool-star,
+div[is="farm-pool-item"] .pool-expand {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
+	transition:
+		transform 0.2s ease-in-out,
+		filter 0.2s ease-in-out;
 	font-size: 24px;
 	margin: 8px;
 }
@@ -130,9 +133,9 @@ div[is="farm-pool-item"] .pool-expand {
 	width: 32px;
 }
 .pool-stats-name {
-	font-size:20px;
-	color: #653B14;
-	font-weight: 800; 
+	font-size: 20px;
+	color: #653b14;
+	font-weight: 800;
 }
 
 div[is="farm-pool-item-options"] {
@@ -140,9 +143,9 @@ div[is="farm-pool-item-options"] {
 	display: flex;
 	justify-content: space-around;
 	align-items: center;
-	border: 1px solid #339; 
-	background: linear-gradient(0deg, #FFE8A5 94%, #000 116%);
-	box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25); 
+	border: 1px solid #339;
+	background: linear-gradient(0deg, #ffe8a5 94%, #000 116%);
+	box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
 	border-bottom-left-radius: 20px;
 	border-bottom-right-radius: 20px;
 	margin: 16px;

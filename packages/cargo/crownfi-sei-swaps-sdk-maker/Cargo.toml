@@ -24,3 +24,5 @@ bpaf = {workspace = true}
 color-eyre = {workspace = true}
 cosmwasm-schema = { workspace = true }
 cosmwasm-std = { workspace = true }
+
+# crownfi-astro-common = {path = "../crownfi-astro-common"}

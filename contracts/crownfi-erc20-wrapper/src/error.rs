@@ -10,4 +10,6 @@ pub enum Error {
 	// UnfundedCall,
 	#[error("The ERC20 Contract is not valid")]
 	InvalidERC20Contract,
+	#[error("The reply id {0} is invalid")]
+	InvalidReplyId(u64),
 }
