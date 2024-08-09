@@ -472,17 +472,15 @@ dependencies = [
 name = "crownfi-cw20-wrapper"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "base32",
  "cosmwasm-schema",
  "cosmwasm-std",
- "crownfi-astro-common",
  "crownfi-cw-common",
+ "crownfi-swaps-common",
  "cw-multi-test 0.20.1",
- "cw-storage-plus 1.2.0",
+ "cw-utils 1.0.3",
  "cw2 1.1.2",
  "cw20",
- "schemars",
  "sei-cosmwasm",
  "thiserror",
 ]
@@ -491,17 +489,13 @@ dependencies = [
 name = "crownfi-erc20-wrapper"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",
- "crownfi-astro-common",
  "crownfi-cw-common",
- "cw-storage-plus 1.2.0",
+ "crownfi-swaps-common",
  "cw-utils 1.0.3",
  "cw2 1.1.2",
- "cw20",
  "hex",
- "schemars",
  "sei-cosmwasm",
  "thiserror",
 ]

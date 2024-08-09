@@ -1,4 +1,3 @@
-use anyhow::Result;
 use base32::Alphabet;
 use cosmwasm_std::{
 	to_json_binary, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Response, SubMsg,
@@ -7,7 +6,7 @@ use cosmwasm_std::{
 use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, storage::map::StoredMap};
 use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
 
-use error::Error;
+use error::Cw20WrapperError;
 use msg::*;
 
 mod error;
@@ -25,7 +24,7 @@ pub fn instantiate(
 	_env: Env,
 	_info: MessageInfo,
 	_msg: Empty,
-) -> Result<Response<SeiMsg>> {
+) -> Result<Response<SeiMsg>, Cw20WrapperError> {
 	cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 	Ok(Response::new())
 }
@@ -44,13 +43,13 @@ pub fn execute(
 	env: Env,
 	info: MessageInfo,
 	msg: CW20WrapperExecMsg,
-) -> Result<Response<SeiMsg>> {
+) -> Result<Response<SeiMsg>, Cw20WrapperError> {
 	let known_tokens = StoredMap::<String, SeiCanonicalAddr>::new(KNOWN_TOKENS_NAMESPACE);
 
 	Ok(match msg {
 		CW20WrapperExecMsg::Receive(cw20_meta) => {
 			if cw20_meta.amount == Uint128::zero() {
-				return Err(Error::UnfundedCall.into());
+				return Err(Cw20WrapperError::UnfundedCall.into());
 			}
 
 			let receiver = SeiCanonicalAddr::try_from(cw20_meta.msg.as_slice())
@@ -86,7 +85,7 @@ pub fn execute(
 		CW20WrapperExecMsg::Unwrap { receiver } => {
 			let funds_len = info.funds.len();
 			if funds_len == 0 {
-				return Err(Error::UnfundedCall.into());
+				return Err(Cw20WrapperError::UnfundedCall.into());
 			}
 
 			let receiver = receiver.unwrap_or(info.sender);
@@ -104,11 +103,11 @@ pub fn execute(
 							None
 						}
 					})
-					.ok_or(Error::TokenDoesntBelongToContract)?;
+					.ok_or(Cw20WrapperError::TokenDoesntBelongToContract)?;
 
 				let subdenom = splited_denom[2].to_string();
 				let Some(addr) = known_tokens.get(&subdenom)? else {
-					return Err(Error::TokenDoesntBelongToContract.into());
+					return Err(Cw20WrapperError::TokenDoesntBelongToContract.into());
 				};
 
 				messages.push(SeiMsg::BurnTokens { amount: fund.clone() });
@@ -128,12 +127,12 @@ pub fn execute(
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
-pub fn query(_deps: Deps, env: Env, msg: CW20WrapperQueryMsg) -> Result<Binary> {
+pub fn query(_deps: Deps, env: Env, msg: CW20WrapperQueryMsg) -> Result<Binary, Cw20WrapperError> {
 	match msg {
 		CW20WrapperQueryMsg::UnwrappedAddrOf { denom } => {
 			let known_tokens = StoredMap::<String, SeiCanonicalAddr>::new(KNOWN_TOKENS_NAMESPACE);
 			let subdenom = denom[denom.len() - 44..].to_string();
-			let cw20_canon_addr = known_tokens.get(&subdenom)?.ok_or(Error::TokenDoesntBelongToContract)?;
+			let cw20_canon_addr = known_tokens.get(&subdenom)?.ok_or(Cw20WrapperError::TokenDoesntBelongToContract)?;
 			let cw20_addr: cosmwasm_std::Addr = cw20_canon_addr.as_ref().try_into()?;
 			Ok(to_json_binary(&cw20_addr)?)
 		},
@@ -156,7 +155,7 @@ mod tests {
 	// const RANDOM_ADDRESS2: &str = "sei19rl4cm2hmr8afy4kldpxz3fka4jguq0a3vute5";
 
 	#[test]
-	fn encode_decode_addr() -> Result<()> {
+	fn encode_decode_addr() -> Result<(), Cw20WrapperError> {
 		crownfi_cw_common::storage::base::set_global_storage(Box::new(MockStorage::new()));
 		let known_tokens = crownfi_cw_common::storage::map::StoredMap::new(b"banana");
 
