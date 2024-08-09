@@ -589,7 +589,7 @@ export class SwapMarket {
 		offerAmount: bigint,
 		offerDenom: UnifiedDenom,
 		askDenom: UnifiedDenom
-	): Promise<SwapMarketSwapSimResult | void> {	
+	): Promise<SwapMarketSwapSimResult> {	
 		if (offerDenom == askDenom) {
 			throw new Error("Trading input denom must differ from trading output denom");
 		}
