@@ -29,6 +29,9 @@ export class SwapMarketPair {
 	readonly name: string;
 	/** The assets in the pair (Stable for 1.0) */
 	readonly assets: UnifiedDenomPair;
+	/** The shares denom */
+	readonly sharesDenom: string;
+
 	/** Maker fee in basis points. 10000‱ = 100% (Stable for 1.0) */
 	get makerFeeBasisPoints() {
 		return this.#makerFeeBasisPoints;
@@ -72,6 +75,7 @@ export class SwapMarketPair {
 		this.#makerFeeBasisPoints = makerFeeBasisPoints;
 		this.#totalShares = BigInt(poolInfo.total_shares);
 		this.name = this.assets.map((denom) => getUserTokenInfo(denom).symbol).join("-");
+		this.sharesDenom = "factory/" + contract.address + "/lp";
 
 		// this.totalDeposits = poolInfo.assets.map((asset) => BigInt(asset)) as [bigint, bigint];
 
@@ -133,7 +137,6 @@ export class SwapMarketPair {
 	 */
 	async checkVersion() {
 		await this.contract.checkVersion({
-			"astroport-pair": "^1.4",
 			"crownfi-astro-pair": "^0.9",
 		});
 	}
@@ -211,14 +214,15 @@ export class SwapMarketPair {
 		token0Amount: bigint,
 		token1Amount: bigint,
 		slippageTolerance: number = 0.01,
-		receiver?: Addr | null
+		receiver?: Addr | null,
+		receiverPayload?: Buffer | null
 	): ExecuteInstruction[] {
 		const ixs: ExecuteInstruction[] = [];
-
 		ixs.push(
 			this.contract.buildProvideLiquidityIx({
 				slippage_tolerance: slippageTolerance + "",
 				receiver,
+				receiver_payload: receiverPayload ? receiverPayload.toString("base64") : undefined
 			}, [
 				coin(token0Amount.toString(), this.assets[0]),
 				coin(token1Amount.toString(), this.assets[1]),
@@ -257,12 +261,19 @@ export class SwapMarketPair {
 		};
 	}
 
-	buildWithdrawLiquidityIxs(shares: bigint): ExecuteInstruction[] {
-		// Still returning an array cuz there's fancy stuff that's in store for the major contracts upgrade
-		// this.contract.buildWithdrawLiquidityIx({})
-		// this.contract.buildWithdrawAndSplitLiquidityIx optinionally unwraps the tokens
-		// return [this.contract.buildWithdrawLiquidityCw20Ix(this.sharesDenom, shares)];
-		process.exit(1);
+	buildWithdrawLiquidityIxs(
+		shares: bigint,
+		receiver?: Addr | null,
+		receiverPayload?: Buffer | null
+	): ExecuteInstruction[] {
+		return [
+			this.contract.buildWithdrawLiquidityIx({
+				receiver,
+				receiver_payload: receiverPayload ? receiverPayload.toString("base64") : undefined
+			}, [
+				coin(shares + "", this.sharesDenom)
+			])
+		]
 	}
 
 	/**
@@ -284,7 +295,8 @@ export class SwapMarketPair {
 		offerAmount: bigint,
 		offerDenom: UnifiedDenom,
 		slippageTolerance: number = 0.01,
-		receiver?: Addr | null
+		receiver?: Addr | null,
+		receiverPayload?: Buffer | null
 	): ExecuteInstruction[] {
 		return [
 			this.contract.buildSwapIx(
