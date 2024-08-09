@@ -77,7 +77,10 @@ pub fn execute(
 		} => process_update_fees_for_pool(deps, msg_info, pair, total_fee_bps, maker_fee_bps),
 		PoolFactoryExecuteMsg::UpdateGlobalConfigForPool { after, limit } => {
 			process_update_global_config_for_pool(deps, msg_info, after, limit)
-		}
+		},
+		PoolFactoryExecuteMsg::UpdatePoolCode { pair, payload } => {
+			process_update_pool_code(deps, msg_info, pair, payload)
+		},
 	}
 }
 
@@ -257,6 +260,24 @@ fn process_update_global_config_for_pool(
 			})
 			.take(limit.unwrap_or(u32::MAX) as usize),
 	))
+}
+
+fn process_update_pool_code(
+	_deps: DepsMut<SeiQueryWrapper>,
+	msg_info: MessageInfo,
+	pair: [String; 2],
+	payload: Option<Binary>,
+) -> Result<Response<SeiMsg>, PoolFactoryContractError> {
+	nonpayable(&msg_info)?;
+	let config = PoolFactoryConfig::load_non_empty()?;
+	let pool_addr = get_pool_addresses_store()
+		.get(&pair.into())?
+		.ok_or(StdError::not_found("pair address"))?;
+	Ok(Response::new().add_message(WasmMsg::Migrate {
+		contract_addr: pool_addr.to_string(),
+		new_code_id: config.pair_code_id,
+		msg: payload.unwrap_or_default()
+	}))
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
