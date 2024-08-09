@@ -1,4 +1,3 @@
-import { execSync } from "child_process";
 import { resolve as pathResolve } from "path";
 import { fileURLToPath } from "url";
 

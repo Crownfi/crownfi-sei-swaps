@@ -1,0 +1,13 @@
+div[is="navbar-component"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 64px 80px;
+}
+
+div[is="navbar-component"] > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

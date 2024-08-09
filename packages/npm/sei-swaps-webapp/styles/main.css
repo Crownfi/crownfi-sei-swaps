@@ -1,3 +1,8 @@
-@import url("./common.css");
-@import url("./desktop.css");
+@import url("~@crownfi/css-gothic-fantasy");
+@import url("~@crownfi/sei-webui-utils");
+
+@import url("./components.css");
+
+/* @import url("./common.css"); */
+/* @import url("./desktop.css"); */
 /* TODO: MOBILE */
