@@ -30,6 +30,14 @@ pub fn instantiate(
 	Ok(Response::new())
 }
 
+fn token_contract_addr_to_subdenom(
+	token_contract: &SeiCanonicalAddr,
+) -> String {
+	let mut subdenom = base32::encode(BASE32_ALGORITHM, token_contract.as_slice());
+	subdenom.truncate(44);
+	subdenom
+}
+
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn execute(
 	deps: DepsMut<SeiQueryWrapper>,
@@ -51,8 +59,7 @@ pub fn execute(
 			let token_contract = cw20::Cw20Contract(info.sender);
 
 			let canon_addr = SeiCanonicalAddr::try_from(token_contract.addr())?;
-			let mut subdenom = base32::encode(BASE32_ALGORITHM, canon_addr.as_slice());
-			subdenom.truncate(44);
+			let subdenom = token_contract_addr_to_subdenom(&canon_addr);
 			let denom = format!("factory/{}/{subdenom}", env.contract.address);
 
 			let extra_msg = if !known_tokens.has(&subdenom) {
@@ -121,15 +128,21 @@ pub fn execute(
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
-pub fn query(_deps: Deps, _env: Env, msg: CW20WrapperQueryMsg) -> Result<Binary> {
-	let known_tokens = StoredMap::<String, SeiCanonicalAddr>::new(KNOWN_TOKENS_NAMESPACE);
-	let CW20WrapperQueryMsg::UnwrappedAddrOf { denom } = msg;
-	let subdenom = denom[denom.len() - 44..].to_string();
-
-	let cw20_canon_addr = known_tokens.get(&subdenom)?.ok_or(Error::TokenDoesntBelongToContract)?;
-	let cw20_addr: cosmwasm_std::Addr = cw20_canon_addr.into_inner().try_into()?;
-
-	Ok(to_json_binary(&cw20_addr)?)
+pub fn query(_deps: Deps, env: Env, msg: CW20WrapperQueryMsg) -> Result<Binary> {
+	match msg {
+		CW20WrapperQueryMsg::UnwrappedAddrOf { denom } => {
+			let known_tokens = StoredMap::<String, SeiCanonicalAddr>::new(KNOWN_TOKENS_NAMESPACE);
+			let subdenom = denom[denom.len() - 44..].to_string();
+			let cw20_canon_addr = known_tokens.get(&subdenom)?.ok_or(Error::TokenDoesntBelongToContract)?;
+			let cw20_addr: cosmwasm_std::Addr = cw20_canon_addr.as_ref().try_into()?;
+			Ok(to_json_binary(&cw20_addr)?)
+		},
+		CW20WrapperQueryMsg::WrappedDenomOf { cw20 } => {
+			let subdenom = token_contract_addr_to_subdenom(&cw20.try_into()?);
+			let denom = format!("factory/{}/{subdenom}", env.contract.address);
+			Ok(to_json_binary(&denom)?)
+		},
+	}
 }
 #[cfg(test)]
 mod tests {

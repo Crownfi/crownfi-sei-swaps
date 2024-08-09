@@ -57,8 +57,7 @@ pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>> 
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn execute(
-	deps: DepsMut<Sei
-  Wrapper>,
+	deps: DepsMut<SeiQueryWrapper>,
 	env: Env,
 	info: MessageInfo,
 	msg: ERC20WrapperExecMsg,
