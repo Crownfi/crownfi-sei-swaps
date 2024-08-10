@@ -1,0 +1,12 @@
+main[is="app-container-component"] {
+  margin: 0 auto;
+  width: max-content;
+}
+
+main[is="app-container-component"] > .container {
+  padding: 64px;
+}
+
+main[is="app-container-component"] > .container >  menu[is="fantasy-tabs"] {
+  gap: 64px;
+}
