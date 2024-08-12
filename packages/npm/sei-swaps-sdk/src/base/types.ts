@@ -125,23 +125,46 @@ export type PoolFactoryExecuteMsg =
     }
   | {
       update_fees_for_pool: {
+        /**
+         * The maker fee, where 10000 is 100%. Must be less than `total_fee_bps`.
+         */
         maker_fee_bps?: number | null;
         /**
+         * The trading pair to change. The associated pool contract must have already been created.
+         *
          * @minItems 2
          * @maxItems 2
          */
         pair: [string, string];
+        /**
+         * The total fee, where 10000 is 100%. This value subtracted by `total_fee_bps` will be the pool fee.
+         */
         total_fee_bps?: number | null;
       };
     }
   | {
       update_global_config_for_pool: {
         /**
+         * Pool pair config is updated in lexicographical order. If you need to execute this instruction accross multiple transactions, this is where you can specify to pick up where you left off.
+         *
          * @minItems 2
          * @maxItems 2
          */
         after?: [string, string] | null;
+        /**
+         * The limit amount of pools to update, by default, all pools will be updated.
+         */
         limit?: number | null;
+      };
+    }
+  | {
+      update_pool_code: {
+        /**
+         * @minItems 2
+         * @maxItems 2
+         */
+        pair: [string, string];
+        payload?: Binary | null;
       };
     };
 /**
@@ -572,6 +595,8 @@ export interface SwapRouterSimulateSwapsResponse {
  * via the `definition` "VolumeQueryResponse".
  */
 export interface VolumeQueryResponse {
+  exchange_rate_high: number;
+  exchange_rate_low: number;
   from_timestamp_ms: number;
   to_timestamp_ms: number;
   /**
