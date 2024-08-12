@@ -76,6 +76,8 @@ pub enum PoolPairExecuteMsg {
 #[derive(Default)]
 pub struct VolumeQueryResponse {
 	pub volume: [Uint128; 2],
+	pub exchange_rate_low: f64,
+	pub exchange_rate_high: f64,
 	pub from_timestamp_ms: u64,
 	pub to_timestamp_ms: u64,
 }
@@ -85,16 +87,16 @@ pub struct VolumeQueryResponse {
 pub enum PoolPairQueryMsg {
 	/// Returns the pair denoms as they are marketed.
 	#[returns([String; 2])]
-	PairDenoms {},
+	PairDenoms,
 	/// Returns the pair denoms as it's internally represented (Denoms are in lexicographical order).
 	#[returns([String; 2])]
-	CanonicalPairDenoms {},
+	CanonicalPairDenoms,
 	/// Returns the pair identifier as it's marketed.
 	#[returns(String)]
-	PairIdentifier {},
+	PairIdentifier,
 	/// Returns the pair identifier as it's internally represented (Denoms are in lexicographical order).
 	#[returns(String)]
-	CanonicalPairIdentifier {},
+	CanonicalPairIdentifier,
 	/// Config returns contract settings specified in the custom [`ConfigResponse`] structure.
 	#[returns(PoolPairConfigJsonable)]
 	Config,
@@ -131,7 +133,7 @@ pub enum PoolPairQueryMsg {
 	DailyVolumeSum { past_days: Option<u8> },
 	/// Get the all time volume from since the first trade happened.
 	#[returns(VolumeQueryResponse)]
-	TotalVolumeSum {},
+	TotalVolumeSum,
 }
 
 #[cw_serde]
