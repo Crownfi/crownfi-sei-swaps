@@ -1,12 +1,12 @@
-use anyhow::Result;
 use cosmwasm_std::{
 	BankMsg, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Reply, ReplyOn, Response, SubMsg, Uint128,
 };
 
 use crownfi_cw_common::{data_types::canonical_addr::SeiCanonicalAddr, storage::map::StoredMap};
+use cw_utils::{nonpayable, ParseReplyError};
 use sei_cosmwasm::{SeiMsg, SeiQuerier, SeiQueryWrapper};
 
-use error::Error;
+use error::Erc20WrapperError;
 use msg::ERC20WrapperExecMsg;
 
 mod error;
@@ -24,13 +24,13 @@ pub fn instantiate(
 	_env: Env,
 	_info: MessageInfo,
 	_msg: Empty,
-) -> Result<Response<SeiMsg>> {
+) -> Result<Response<SeiMsg>, Erc20WrapperError> {
 	cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 	Ok(Response::new())
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
-pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>> {
+pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>, Erc20WrapperError> {
 	const TRUE_BUT_IN_32_BYTES: [u8; 32] = [
 		0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
 		0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 1u8,
@@ -41,28 +41,27 @@ pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>> 
 			let data = msg
 				.result
 				.into_result()
-				.map_err(|err| anyhow::Error::msg(err))?
+				.map_err(ParseReplyError::SubMsgFailure)?
 				.data
 				.map(|x| x.0 == TRUE_BUT_IN_32_BYTES);
 
 			if !matches!(data, Some(true)) {
 				Ok(Response::new())
 			} else {
-				Err(Error::InvalidERC20Contract.into())
+				Err(Erc20WrapperError::InvalidERC20Contract)
 			}
 		}
-		id => Err(Error::InvalidReplyId(id).into()),
+		id => Err(Erc20WrapperError::InvalidReplyId(id)),
 	}
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn execute(
-	deps: DepsMut<Sei
-  Wrapper>,
+	deps: DepsMut<SeiQueryWrapper>,
 	env: Env,
 	info: MessageInfo,
 	msg: ERC20WrapperExecMsg,
-) -> Result<Response<SeiMsg>> {
+) -> Result<Response<SeiMsg>, Erc20WrapperError> {
 	let known_tokens = StoredMap::<[u8; 20], bool>::new(b"known_tokens");
 	let querier = SeiQuerier::new(&deps.querier);
 
@@ -73,21 +72,19 @@ pub fn execute(
 			amount,
 			recipient,
 		} => {
-			if info.funds.len() > 0 {
-				return Err(Error::UnexpectedFunds.into());
-			}
+			nonpayable(&info)?;
 
 			if &token_addr[..2] != "0x" {
-				return Err(Error::InvalidEvmAddress(token_addr).into());
+				return Err(Erc20WrapperError::InvalidEvmAddress(token_addr));
 			}
 
 			querier
 				.erc20_token_info(token_addr.clone(), env.contract.address.to_string())
-				.map_err(|_| Error::InvalidERC20Contract)?;
+				.map_err(|_| Erc20WrapperError::InvalidERC20Contract)?;
 
 			let capped_tkn_addr = token_addr[2..].to_uppercase();
 			let bare_addr: [u8; 20] =
-				hex::FromHex::from_hex(&capped_tkn_addr).map_err(|_| Error::InvalidEvmAddress(token_addr.clone()))?;
+				hex::FromHex::from_hex(&capped_tkn_addr).map_err(|_| Erc20WrapperError::InvalidEvmAddress(token_addr.clone()))?;
 
 			let subdenom = format!("crwn{capped_tkn_addr}");
 			let denom = format!("factory/{}/{subdenom}", env.contract.address);
@@ -130,10 +127,13 @@ pub fn execute(
 				splited_denom
 					.get(1)
 					.and_then(|x| if *x == env.contract.address { Some(x) } else { None })
-					.ok_or(Error::TokenDoesntBelongToContract)?;
+					.ok_or(Erc20WrapperError::TokenDoesntBelongToContract)?;
 
 				let token_addr = splited_denom[2].replace("crwn", "0x");
-				let evm_payload = encode_transfer_payload(evm_recipient.as_slice().try_into()?, fund.amount);
+				let evm_payload = encode_transfer_payload(
+					evm_recipient.as_slice().try_into().map_err(|_| {Erc20WrapperError::InvalidRecipient})?,
+					fund.amount
+				);
 
 				msgs.push(SubMsg {
 					id: UNWRAP_EVM_CALL_ID,
@@ -159,9 +159,13 @@ pub fn execute(
 const TRANSFER_SIG: &[u8] = b"\xa9\x05\x9c\xbb";
 const TRANSFER_FROM_SIG: &[u8] = b"\x23\xb8\x72\xdd";
 
-fn encode_transfer_from_payload(owner: Binary, recipient: SeiCanonicalAddr, amount: Uint128) -> Result<String, Error> {
+fn encode_transfer_from_payload(
+	owner: Binary,
+	recipient: SeiCanonicalAddr,
+	amount: Uint128
+) -> Result<String, Erc20WrapperError> {
 	if owner.len() != 20 {
-		return Err(Error::InvalidEvmAddress(owner.to_string()));
+		return Err(Erc20WrapperError::InvalidEvmAddress(["0x", &hex::encode(owner)].join("")));
 	}
 
 	let mut buff = Vec::with_capacity(100);

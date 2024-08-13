@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Binary};
 
 use crate::state::PoolFactoryConfigJsonable;
 
@@ -35,15 +35,30 @@ pub enum PoolFactoryExecuteMsg {
 		left_denom: String,
 		initial_shares_receiver: Option<Addr>,
 	},
+	/// Sets the specified trading pair to have the specified fees.
 	UpdateFeesForPool {
+		/// The trading pair to change. The associated pool contract must have already been created.
 		pair: [String; 2],
+		/// The total fee, where 10000 is 100%. This value subtracted by `total_fee_bps` will be the pool fee.
 		total_fee_bps: Option<u16>,
+		/// The maker fee, where 10000 is 100%. Must be less than `total_fee_bps`.
 		maker_fee_bps: Option<u16>,
 	},
+	/// Syncs the non-fee-amount configuration options for all pools.
+	/// 
+	/// Currently this only syncs the maker fee receiver.
 	UpdateGlobalConfigForPool {
+		/// Pool pair config is updated in lexicographical order. If you need to execute this instruction accross
+		/// multiple transactions, this is where you can specify to pick up where you left off.
 		after: Option<[String; 2]>,
+		/// The limit amount of pools to update, by default, all pools will be updated.
 		limit: Option<u32>,
 	},
+	/// Upgrades the specified pool pair to the `pair_code_id` as specified in this contract's config.
+	UpdatePoolCode {
+		pair: [String; 2],
+		payload: Option<Binary>
+	}
 }
 
 /// This structure describes the available query messages for the factory contract.
