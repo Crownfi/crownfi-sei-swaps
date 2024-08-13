@@ -99,7 +99,8 @@ export class SwapComponentElement extends SwapComponentAutogen {
 					setLoading(true, "Waiting for transaction confirmation...");
 					const swapMarket = await this.swapMarket();
 					const client = await ClientEnv.get();
-					await client.executeContractMulti(swapMarket.buildSwapIxs(inAmount, inDenom, outDenom, 0.5)!);
+					const wallet = client.getAccount().seiAddress;
+					await client.executeContractMulti(swapMarket.buildSwapIxs(inAmount, inDenom, outDenom, wallet, 0.5)!);
 				} finally {
 					setLoading(false);
 				}
@@ -249,12 +250,12 @@ export class SwapComponentElement extends SwapComponentAutogen {
 						continue;
 					}
 					const swapMarket = await this.swapMarket();
-					const simResult = await swapMarket.simulateSwap(client, tokenInAmount, inDenom, outDenom, 0.5);
+					const simResult = await swapMarket.simulateSwap(tokenInAmount, inDenom, outDenom);
 					const sloppyResult = swapMarket.exchangeValue(tokenInAmount, inDenom, outDenom, true) ?? 0n;
-					const approxSlippageRate = 1 - Number(simResult.amount) / Number(sloppyResult);
+					const approxSlippageRate = 1 - Number(simResult.result_amount) / Number(sloppyResult);
 
 					tokenOutAmountElem.value = bigIntToStringDecimal(
-						simResult.amount,
+						BigInt(simResult.result_amount),
 						getUserTokenInfo(outDenom).decimals,
 						true
 					);
