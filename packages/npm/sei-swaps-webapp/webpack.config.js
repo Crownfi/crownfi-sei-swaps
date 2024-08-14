@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import webpack from "webpack";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
+import DotEnvWebpack from "dotenv-webpack";
 
 const __dirname = import.meta.dirname;
 
@@ -51,7 +52,11 @@ export default (env, argv) => {
 			new MiniCssExtractPlugin(),
 			new webpack.ProvidePlugin({
 				Buffer: ["buffer-lite", "Buffer"],
-			})
+			}),
+			new DotEnvWebpack({
+				safe: true,
+				allowEmptyValues: false,
+			}),
 		],
 		optimization: {
 			minimizer: [`...`, new CssMinimizerPlugin()],
