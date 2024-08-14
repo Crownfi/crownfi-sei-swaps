@@ -4,7 +4,7 @@
  * DO NOT MODIFY IT BY HAND.
  * The Rust definition of the associated structs is the source of truth!!
  */
-import {Addr, CW20WrapperExecMsg, CW20WrapperQueryMsg, Cw20ReceiveMsg, Nullable_Addr} from "./types.js";
+import {Addr, CW20WrapperExecMsg, CW20WrapperQueryMsg, Cw20ReceiveMsg, Nullable_Addr, Nullable_String} from "./types.js";
 import {Coin} from "@cosmjs/amino";
 import {ExecuteInstruction, WasmExtension} from "@cosmjs/cosmwasm-stargate";
 import {QueryClient} from "@cosmjs/stargate";
@@ -14,6 +14,12 @@ export class Cw20WrapperContract<Q extends QueryClient & WasmExtension> extends 
 		"denom": string
 	}): Promise<Nullable_Addr> {
 		const msg = {"unwrapped_addr_of": args} satisfies CW20WrapperQueryMsg;
+		return this.query(msg);
+	}
+	queryWrappedDenomOf(args: {
+		"cw20": Addr
+	}): Promise<Nullable_String> {
+		const msg = {"wrapped_denom_of": args} satisfies CW20WrapperQueryMsg;
 		return this.query(msg);
 	}
 	buildReceiveIx(args: Cw20ReceiveMsg, funds?: Coin[]): ExecuteInstruction {

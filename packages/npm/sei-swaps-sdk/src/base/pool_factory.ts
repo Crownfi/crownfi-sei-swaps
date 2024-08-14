@@ -4,7 +4,7 @@
  * DO NOT MODIFY IT BY HAND.
  * The Rust definition of the associated structs is the source of truth!!
  */
-import {Addr, ArrayOf_PoolFactoryCreatedPair, Nullable_Addr, PoolFactoryConfigJsonable, PoolFactoryExecuteMsg, PoolFactoryQueryMsg} from "./types.js";
+import {Addr, ArrayOf_PoolFactoryCreatedPair, Binary, Nullable_Addr, PoolFactoryConfigJsonable, PoolFactoryExecuteMsg, PoolFactoryQueryMsg} from "./types.js";
 import {Coin} from "@cosmjs/amino";
 import {ExecuteInstruction, WasmExtension} from "@cosmjs/cosmwasm-stargate";
 import {QueryClient} from "@cosmjs/stargate";
@@ -57,19 +57,36 @@ export class PoolFactoryContract<Q extends QueryClient & WasmExtension> extends 
 		const msg = {"create_pool": args} satisfies PoolFactoryExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
+	/** Sets the specified trading pair to have the specified fees. */
 	buildUpdateFeesForPoolIx(args: {
+		/** The maker fee, where 10000 is 100%. Must be less than `total_fee_bps`. */
 		"maker_fee_bps"?: number | null,
+		/** The trading pair to change. The associated pool contract must have already been created. */
 		"pair": [string, string],
+		/** The total fee, where 10000 is 100%. This value subtracted by `total_fee_bps` will be the pool fee. */
 		"total_fee_bps"?: number | null
 	}, funds?: Coin[]): ExecuteInstruction {
 		const msg = {"update_fees_for_pool": args} satisfies PoolFactoryExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
+	/** Syncs the non-fee-amount configuration options for all pools.
+
+Currently this only syncs the maker fee receiver. */
 	buildUpdateGlobalConfigForPoolIx(args: {
+		/** Pool pair config is updated in lexicographical order. If you need to execute this instruction accross multiple transactions, this is where you can specify to pick up where you left off. */
 		"after"?: [string, string],
+		/** The limit amount of pools to update, by default, all pools will be updated. */
 		"limit"?: number | null
 	} = {}, funds?: Coin[]): ExecuteInstruction {
 		const msg = {"update_global_config_for_pool": args} satisfies PoolFactoryExecuteMsg;
+		return this.executeIx(msg, funds);
+	}
+	/** Upgrades the specified pool pair to the `pair_code_id` as specified in this contract's config. */
+	buildUpdatePoolCodeIx(args: {
+		"pair": [string, string],
+		"payload"?: Binary | null
+	}, funds?: Coin[]): ExecuteInstruction {
+		const msg = {"update_pool_code": args} satisfies PoolFactoryExecuteMsg;
 		return this.executeIx(msg, funds);
 	}
 }

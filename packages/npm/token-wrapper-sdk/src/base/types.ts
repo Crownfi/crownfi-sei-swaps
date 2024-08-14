@@ -61,11 +61,17 @@ export type Uint128 = string;
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "CW20WrapperQueryMsg".
  */
-export type CW20WrapperQueryMsg = {
-  unwrapped_addr_of: {
-    denom: string;
-  };
-};
+export type CW20WrapperQueryMsg =
+  | {
+      unwrapped_addr_of: {
+        denom: string;
+      };
+    }
+  | {
+      wrapped_denom_of: {
+        cw20: Addr;
+      };
+    };
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "ERC20WrapperExecMsg".
@@ -96,6 +102,11 @@ export type EmptyQuery = {
  * via the `definition` "Nullable_Addr".
  */
 export type Nullable_Addr = Addr | null;
+/**
+ * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
+ * via the `definition` "Nullable_String".
+ */
+export type Nullable_String = string | null;
 
 export interface CrownfiSdkMakerAutogen {}
 /**
