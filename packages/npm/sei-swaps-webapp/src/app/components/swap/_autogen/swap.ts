@@ -5,12 +5,26 @@ export class SwapComponentRefs {
 	constructor(element: HTMLElement | ShadowRoot) {
 		this.#element = element;
 	}
+	#balanceAmount?: HTMLSpanElement;
+	get balanceAmount() {
+		if (this.#balanceAmount === undefined) {
+			this.#balanceAmount = this.#element.querySelector("[cewt-ref=\"balance-amount\"]:not(:scope [is] *)")!;
+		}
+		return this.#balanceAmount;
+	}
 	#fromToken?: HTMLDivElement;
 	get fromToken() {
 		if (this.#fromToken === undefined) {
 			this.#fromToken = this.#element.querySelector("[cewt-ref=\"from-token\"]:not(:scope [is] *)")!;
 		}
 		return this.#fromToken;
+	}
+	#availableAmount?: HTMLSpanElement;
+	get availableAmount() {
+		if (this.#availableAmount === undefined) {
+			this.#availableAmount = this.#element.querySelector("[cewt-ref=\"available-amount\"]:not(:scope [is] *)")!;
+		}
+		return this.#availableAmount;
 	}
 	#toToken?: HTMLDivElement;
 	get toToken() {
@@ -24,7 +38,7 @@ let _templateSwapComponent: HTMLTemplateElement | null = null;
 function getSwapComponentTemplate(): HTMLTemplateElement {
 	if (_templateSwapComponent == null) {
 		 _templateSwapComponent = document.createElement("template")
-		 _templateSwapComponent.innerHTML = "\n  <div cewt-ref=\"from-token\"></div>\n  <button class=\"fantasy-circular arrow\">\n    <span class=\"cicon cicon-size-medium cicon-gradient cicon-fantasy-arrow-down primary\"></span>\n  </button>\n  <div cewt-ref=\"to-token\"></div>\n";
+		 _templateSwapComponent.innerHTML = "\n  <div class=\"labels-row\">\n    <span>From:</span>\n    <span>\n      Balance: <span cewt-ref=\"balance-amount\">0</span>\n    </span>\n  </div>\n\n  <div cewt-ref=\"from-token\"></div>\n\n  <button class=\"fantasy-circular arrow\">\n    <span class=\"cicon cicon-size-medium cicon-gradient cicon-fantasy-arrow-down primary\"></span>\n  </button>\n\n  <div class=\"labels-row\">\n    <span>To:</span>\n    <span>\n      Available: <span cewt-ref=\"available-amount\">0</span>\n    </span>\n  </div>\n\n  <div cewt-ref=\"to-token\"></div>\n";
 	}
 	return _templateSwapComponent;
 }

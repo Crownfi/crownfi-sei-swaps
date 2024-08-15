@@ -1,7 +1,23 @@
 <template cewt-name="swap-component" cewt-extends="div">
+  <div class="labels-row">
+    <span>From:</span>
+    <span>
+      Balance: <span cewt-ref="balance-amount">0</span>
+    </span>
+  </div>
+
   <div cewt-ref="from-token"></div>
+
   <button class="fantasy-circular arrow">
     <span class="cicon cicon-size-medium cicon-gradient cicon-fantasy-arrow-down primary"></span>
   </button>
+
+  <div class="labels-row">
+    <span>To:</span>
+    <span>
+      Available: <span cewt-ref="available-amount">0</span>
+    </span>
+  </div>
+
   <div cewt-ref="to-token"></div>
 </template>

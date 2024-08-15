@@ -13,6 +13,20 @@ export class SwapItemComponentRefs {
 		}
 		return this.#selectedToken;
 	}
+	#selectedAmount?: HTMLSpanElement;
+	get selectedAmount() {
+		if (this.#selectedAmount === undefined) {
+			this.#selectedAmount = this.#element.querySelector("[cewt-ref=\"selected-amount\"]:not(:scope [is] *)")!;
+		}
+		return this.#selectedAmount;
+	}
+	#selectedConvertedAmount?: HTMLSpanElement;
+	get selectedConvertedAmount() {
+		if (this.#selectedConvertedAmount === undefined) {
+			this.#selectedConvertedAmount = this.#element.querySelector("[cewt-ref=\"selected-converted-amount\"]:not(:scope [is] *)")!;
+		}
+		return this.#selectedConvertedAmount;
+	}
 	#tokensDropdown?: HTMLElement;
 	get tokensDropdown() {
 		if (this.#tokensDropdown === undefined) {
@@ -25,7 +39,7 @@ let _templateSwapItemComponent: HTMLTemplateElement | null = null;
 function getSwapItemComponentTemplate(): HTMLTemplateElement {
 	if (_templateSwapItemComponent == null) {
 		 _templateSwapItemComponent = document.createElement("template")
-		 _templateSwapItemComponent.innerHTML = "\n  <div class=\"fantasy-input-group\">\n    <button class=\"fantasy primary\">\n      <span cewt-ref=\"selected-token\" is=\"token-display\"></span>\n      <i class=\"cicon cicon-size-xsmall cicon-gradient cicon-fantasy-chevron-down\"></i>\n    </button>\n\n    <dropdown-menu click-trigger=\"primary\" linked-elements=\"*:has(+ #this)\" cewt-ref=\"tokens-dropdown\">\n    </dropdown-menu>\n  </div>\n";
+		 _templateSwapItemComponent.innerHTML = "\n  <div class=\"fantasy-input-group\">\n    <button class=\"fantasy primary\">\n      <span cewt-ref=\"selected-token\" is=\"token-display\"></span>\n      <i class=\"cicon cicon-size-xsmall cicon-gradient cicon-fantasy-chevron-down\"></i>\n    </button>\n\n    <div class=\"slider-container\">\n      <div class=\"slider-amounts\">\n        <span cewt-ref=\"selected-amount\" class=\"text-fantasy amount\">0</span>\n        <span cewt-ref=\"selected-converted-amount\" class=\"text-fantasy converted-amount\">~ $0</span>\n      </div>\n      <input type=\"range\" name=\"\" id=\"\">\n    </div>\n\n    <dropdown-menu click-trigger=\"primary\" linked-elements=\"*:has(+ * + #this)\" cewt-ref=\"tokens-dropdown\">\n    </dropdown-menu>\n  </div>\n";
 	}
 	return _templateSwapItemComponent;
 }

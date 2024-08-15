@@ -5,7 +5,15 @@
       <i class="cicon cicon-size-xsmall cicon-gradient cicon-fantasy-chevron-down"></i>
     </button>
 
-    <dropdown-menu click-trigger="primary" linked-elements="*:has(+ #this)" cewt-ref="tokens-dropdown">
+    <div class="slider-container">
+      <div class="slider-amounts">
+        <span cewt-ref="selected-amount" class="text-fantasy amount">0</span>
+        <span cewt-ref="selected-converted-amount" class="text-fantasy converted-amount">~ $0</span>
+      </div>
+      <input type="range" name="" id="">
+    </div>
+
+    <dropdown-menu click-trigger="primary" linked-elements="*:has(+ * + #this)" cewt-ref="tokens-dropdown">
     </dropdown-menu>
   </div>
 </template>
