@@ -1,12 +1,21 @@
 main[is="app-container-component"] {
-  margin: 0 auto;
-  width: max-content;
+  width: 763px;
 }
 
 main[is="app-container-component"] > .container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 80px;
+  width: 100%;
   padding: 64px;
+  box-sizing: border-box;
 }
 
 main[is="app-container-component"] > .container >  menu[is="fantasy-tabs"] {
   gap: 64px;
+}
+
+main[is="app-container-component"] #app-content {
+  width: 100%;
 }

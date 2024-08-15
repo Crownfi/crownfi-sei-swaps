@@ -24,7 +24,7 @@ let _templateAppContainerComponent: HTMLTemplateElement | null = null;
 function getAppContainerComponentTemplate(): HTMLTemplateElement {
 	if (_templateAppContainerComponent == null) {
 		 _templateAppContainerComponent = document.createElement("template")
-		 _templateAppContainerComponent.innerHTML = "\n  <div class=\"container framed-box-small-smooth\">\n    <menu is=\"fantasy-tabs\" cewt-ref=\"app-tabs\">\n      <li data-value=\"farm\">\n        <span class=\"cicon cicon-size-large cicon-fantasy-farm cicon-gradient primary\"></span>\n        <span class=\"text-large\">FARM</span>\n      </li>\n  \n      <li data-value=\"swap\">\n        <span class=\"cicon cicon-size-large cicon-fantasy-arrows-clockwise cicon-gradient primary\"></span>\n        <span class=\"text-large\">SWAP</span>\n      </li>\n    </menu>\n\n    <div cewt-ref=\"app-content\"></div>\n  </div>\n";
+		 _templateAppContainerComponent.innerHTML = "\n  <div class=\"container framed-box-small-smooth\">\n    <menu is=\"fantasy-tabs\" cewt-ref=\"app-tabs\">\n      <li data-value=\"farm\">\n        <span class=\"cicon cicon-size-large cicon-fantasy-farm cicon-gradient primary\"></span>\n        <span class=\"text-large\">FARM</span>\n      </li>\n  \n      <li data-value=\"swap\">\n        <span class=\"cicon cicon-size-large cicon-fantasy-arrows-clockwise cicon-gradient primary\"></span>\n        <span class=\"text-large\">SWAP</span>\n      </li>\n    </menu>\n\n    <div cewt-ref=\"app-content\" id=\"app-content\"></div>\n  </div>\n";
 	}
 	return _templateAppContainerComponent;
 }
