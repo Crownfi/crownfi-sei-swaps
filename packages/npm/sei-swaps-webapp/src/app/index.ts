@@ -9,8 +9,12 @@ import { alert, errorDialogIfRejected } from "./dialogs/index.js";
 import { SwapComponentElement } from "./components/swap/index.js";
 import { q, qa } from "./util.js";
 import { KNOWN_SEI_PROVIDER_INFO } from "@crownfi/sei-js-core";
-import { ClientEnv, SeiChainId, seiUtilEventEmitter, setDefaultNetwork } from "@crownfi/sei-utils";
+import { ClientEnv, SeiChainId, seiUtilEventEmitter, setDefaultNetwork, setNetworkConfig } from "@crownfi/sei-utils";
 import { FarmPoolComponentElement } from "./components/farm/index.js";
+import { SwapService } from "./services/swap-service.js";
+
+import { env } from "../env/index.js";
+import { AppContainer } from "./components/exports.js";
 
 function removeHighlightsFromLinks() {
 	(qa(".header .header-links a") as NodeListOf<HTMLAnchorElement>).forEach((v) => {
@@ -18,7 +22,21 @@ function removeHighlightsFromLinks() {
 	});
 }
 
+export let swapService: SwapService;
+
 export async function main() {
+	setDefaultNetwork(env.CHAIN_ID);
+
+	let storedProviderPref = localStorage.getItem("preferred_sei_provider");
+	await ClientEnv.setDefaultProvider(storedProviderPref as any, true);
+	const client = await ClientEnv.get(undefined, env.CHAIN_ID);
+
+	swapService = await SwapService.create(client.queryClient, env.POOL_FACTORY_CONTRACT_ADDRESS, env.ROUTER_CONTRACT_ADDRESS);
+
+	const mainContent = q("#main-content") as HTMLElement;
+	mainContent.innerHTML = "";
+	mainContent.appendChild(new AppContainer());
+
 	// const mainSwapButton = q("#swap-link") as HTMLAnchorElement;
 	// const mainFarmButton = q("#farm-link") as HTMLAnchorElement;
 	// const mainContent = q("#main-content") as HTMLElement;
@@ -51,9 +69,6 @@ export async function main() {
 	// 			? "sei-chain"
 	// 			: "atlantic-2";
 	// }
-	// setDefaultNetwork(storedNetworkPref as SeiChainId);
-	// let storedProviderPref = localStorage.getItem("preferred_sei_provider");
-	// await ClientEnv.setDefaultProvider(storedProviderPref as any, true);
 
 	// mainSwapButton.click();
 	// setLoading(false);
