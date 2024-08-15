@@ -1,0 +1,13 @@
+div[is="swap-item-component"] {
+  width: 100%;
+}
+
+div[is="swap-item-component"] button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+div[is="swap-item-component"] span[is="token-display"]  {
+  color: var(--colour-secondary-500);
+}

@@ -1,0 +1,11 @@
+<template cewt-name="swap-item-component" cewt-extends="div" cewt-attributes="token, tokens">
+  <div class="fantasy-input-group">
+    <button class="fantasy primary">
+      <span cewt-ref="selected-token" is="token-display"></span>
+      <i class="cicon cicon-size-xsmall cicon-gradient cicon-fantasy-chevron-down"></i>
+    </button>
+
+    <dropdown-menu click-trigger="primary" linked-elements="*:has(+ #this)" cewt-ref="tokens-dropdown">
+    </dropdown-menu>
+  </div>
+</template>
