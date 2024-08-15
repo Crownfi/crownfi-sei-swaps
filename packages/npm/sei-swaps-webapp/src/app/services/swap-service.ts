@@ -3,15 +3,9 @@ import { QueryClient } from "@cosmjs/stargate";
 import { SwapMarket } from "@crownfi/sei-swaps-sdk";
 
 export class SwapService {
-  readonly swapMarket: SwapMarket;
-
   private constructor(
-    readonly client: QueryClient & WasmExtension,
-    readonly factoryContractAddress: string,
-    readonly routerContractAddress: string,
-  ) {
-    this.swapMarket = new SwapMarket(client, factoryContractAddress, routerContractAddress);
-  }
+    protected swapMarket: SwapMarket
+  ) {}
 
   static async create(
     client: QueryClient & WasmExtension,
@@ -20,7 +14,7 @@ export class SwapService {
   ) {
     const swapMarket = new SwapMarket(client, factoryContractAddress, routerContractAddress);
     await swapMarket.refresh();
-    return swapMarket;
+    return new SwapService(swapMarket);
   }
 
   async getPairs() {
