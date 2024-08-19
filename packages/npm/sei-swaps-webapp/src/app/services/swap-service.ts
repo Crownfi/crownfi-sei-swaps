@@ -1,6 +1,6 @@
 import { WasmExtension } from "@cosmjs/cosmwasm-stargate";
 import { QueryClient } from "@cosmjs/stargate";
-import { SwapMarket } from "@crownfi/sei-swaps-sdk";
+import { SwapMarket, UnifiedDenom, UnifiedDenomPair } from "@crownfi/sei-swaps-sdk";
 
 export class SwapService {
   private constructor(
@@ -17,7 +17,23 @@ export class SwapService {
     return new SwapService(swapMarket);
   }
 
-  async getPairs() {
+  getPairs() {
     return this.swapMarket.getAllPairs();
+  }
+
+  getPair(pair: UnifiedDenomPair) {
+    return this.swapMarket.getPair(pair) ?? this.swapMarket.getPair(pair, true);
+  }
+
+  async getAvailableAmountForSwap(from: UnifiedDenom, to: UnifiedDenom) {
+    await this.swapMarket.refresh();
+    const tradeMap = this.swapMarket.resolveMultiSwapRoute(from, to);
+    const lastPair = tradeMap?.at(-1);
+    if (!tradeMap || !lastPair)
+      return BigInt(0);
+    const pair = this.getPair(lastPair);
+    if (!pair)
+      return BigInt(0);
+    return pair.totalDeposits[1];
   }
 }

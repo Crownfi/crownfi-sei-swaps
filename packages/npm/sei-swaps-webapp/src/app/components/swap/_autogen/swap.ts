@@ -12,6 +12,13 @@ export class SwapComponentRefs {
 		}
 		return this.#balanceAmount;
 	}
+	#balanceAmountSpinner?: HTMLSpanElement;
+	get balanceAmountSpinner() {
+		if (this.#balanceAmountSpinner === undefined) {
+			this.#balanceAmountSpinner = this.#element.querySelector("[cewt-ref=\"balance-amount-spinner\"]:not(:scope [is] *)")!;
+		}
+		return this.#balanceAmountSpinner;
+	}
 	#fromToken?: HTMLDivElement;
 	get fromToken() {
 		if (this.#fromToken === undefined) {
@@ -26,6 +33,13 @@ export class SwapComponentRefs {
 		}
 		return this.#availableAmount;
 	}
+	#availableAmountSpinner?: HTMLSpanElement;
+	get availableAmountSpinner() {
+		if (this.#availableAmountSpinner === undefined) {
+			this.#availableAmountSpinner = this.#element.querySelector("[cewt-ref=\"available-amount-spinner\"]:not(:scope [is] *)")!;
+		}
+		return this.#availableAmountSpinner;
+	}
 	#toToken?: HTMLDivElement;
 	get toToken() {
 		if (this.#toToken === undefined) {
@@ -38,7 +52,7 @@ let _templateSwapComponent: HTMLTemplateElement | null = null;
 function getSwapComponentTemplate(): HTMLTemplateElement {
 	if (_templateSwapComponent == null) {
 		 _templateSwapComponent = document.createElement("template")
-		 _templateSwapComponent.innerHTML = "\n  <div class=\"labels-row\">\n    <span>From:</span>\n    <span>\n      Balance: <span cewt-ref=\"balance-amount\">0</span>\n    </span>\n  </div>\n\n  <div cewt-ref=\"from-token\"></div>\n\n  <button class=\"fantasy-circular arrow\">\n    <span class=\"cicon cicon-size-medium cicon-gradient cicon-fantasy-arrow-down primary\"></span>\n  </button>\n\n  <div class=\"labels-row\">\n    <span>To:</span>\n    <span>\n      Available: <span cewt-ref=\"available-amount\">0</span>\n    </span>\n  </div>\n\n  <div cewt-ref=\"to-token\"></div>\n";
+		 _templateSwapComponent.innerHTML = "\n  <div class=\"labels-row\">\n    <span>From:</span>\n    <div>\n      Balance: <span cewt-ref=\"balance-amount\">0</span>\n      <span cewt-ref=\"balance-amount-spinner\" class=\"loading-spinner-inline\" style=\"display: none;\"></span>\n    </div>\n  </div>\n\n  <div cewt-ref=\"from-token\"></div>\n\n  <button class=\"fantasy-circular arrow\">\n    <span class=\"cicon cicon-size-medium cicon-gradient cicon-fantasy-arrow-down primary\"></span>\n  </button>\n\n  <div class=\"labels-row\">\n    <span>To:</span>\n    <div>\n      Available: <span cewt-ref=\"available-amount\">0</span>\n      <span cewt-ref=\"available-amount-spinner\" class=\"loading-spinner-inline\" style=\"display: none;\"></span>\n    </div>\n  </div>\n\n  <div cewt-ref=\"to-token\"></div>\n";
 	}
 	return _templateSwapComponent;
 }

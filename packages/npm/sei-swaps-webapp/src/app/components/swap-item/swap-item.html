@@ -10,7 +10,14 @@
         <span cewt-ref="selected-amount" class="text-fantasy amount">0</span>
         <span cewt-ref="selected-converted-amount" class="text-fantasy converted-amount">~ $0</span>
       </div>
-      <input type="range" name="" id="">
+      <input type="range" list="token_range_tickmarks" min="0" max="100" value="0">
+      <datalist id="token_range_tickmarks">
+        <option value="0"></option>
+        <option value="25"></option>
+        <option value="50"></option>
+        <option value="75"></option>
+        <option value="100"></option>
+      </datalist>
     </div>
 
     <dropdown-menu click-trigger="primary" linked-elements="*:has(+ * + #this)" cewt-ref="tokens-dropdown">

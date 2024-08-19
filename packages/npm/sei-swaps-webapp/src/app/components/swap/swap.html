@@ -1,9 +1,10 @@
 <template cewt-name="swap-component" cewt-extends="div">
   <div class="labels-row">
     <span>From:</span>
-    <span>
+    <div>
       Balance: <span cewt-ref="balance-amount">0</span>
-    </span>
+      <span cewt-ref="balance-amount-spinner" class="loading-spinner-inline" style="display: none;"></span>
+    </div>
   </div>
 
   <div cewt-ref="from-token"></div>
@@ -14,9 +15,10 @@
 
   <div class="labels-row">
     <span>To:</span>
-    <span>
+    <div>
       Available: <span cewt-ref="available-amount">0</span>
-    </span>
+      <span cewt-ref="available-amount-spinner" class="loading-spinner-inline" style="display: none;"></span>
+    </div>
   </div>
 
   <div cewt-ref="to-token"></div>
