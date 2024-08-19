@@ -6,14 +6,14 @@ main[is="app-container-component"] > .container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 80px;
+  gap: var(--spacing-6);
   width: 100%;
-  padding: 64px;
+  padding: var(--spacing-7);
   box-sizing: border-box;
 }
 
 main[is="app-container-component"] > .container >  menu[is="fantasy-tabs"] {
-  gap: 64px;
+  gap: var(--spacing-7);
 }
 
 main[is="app-container-component"] #app-content {
