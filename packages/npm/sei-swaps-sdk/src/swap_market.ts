@@ -10,15 +10,112 @@ import {
 	SwapRouterExpectation,
 	SwapReceiver,
 } from "./index.js";
-import { Addr, ClientEnv, getBalanceChangesFor, getUserTokenInfo } from "@crownfi/sei-utils";
+import { Addr, BigIntCoin, BigIntCoinObj, ClientEnv, getBalanceChangesFor, getUserTokenInfo } from "@crownfi/sei-utils";
 
-import { UnifiedDenom, UnifiedDenomPair, matchTokenKind } from "./types.js";
-import { coin } from "@cosmjs/amino";
+import { AddrWithPayload, UnifiedDenom, UnifiedDenomPair, matchTokenKind } from "./types.js";
+import { Coin, coin } from "@cosmjs/amino";
 import { bigIntMin } from "math-bigint";
 
 import { WasmExtension } from "@cosmjs/cosmwasm-stargate";
 import { QueryClient } from "@cosmjs/stargate";
+import { InvalidDenomError } from "./error.js";
 
+// Copypasta'd from stackvoerflow
+// https://stackoverflow.com/questions/9383593/extracting-the-exponent-and-mantissa-of-a-javascript-number/78431217#78431217
+function getNumberParts(x: number) {
+	const asDouble = new Float64Array(1);
+	const asBytes = new Uint8Array(asDouble.buffer);
+
+	asDouble[0] = x;
+
+	const sign = asBytes[7] >> 7;
+	const exponent = ((asBytes[7] & 0x7f) << 4 | asBytes[6] >> 4);
+
+	asBytes[7] = 0x43;
+	asBytes[6] &= 0x0f;
+	asBytes[6] |= 0x30;
+
+	return {
+		negative: Boolean(sign),
+		exponent: BigInt(exponent - 1023),
+		mantissa: BigInt(asDouble[0]) - 2n ** 52n
+	};
+}
+function bigIntMulNumber(input: bigint, num: number) {
+	const {
+		negative,
+		exponent,
+		mantissa
+	} = getNumberParts(num);
+	return ((input * (0x10000000000000n + mantissa)) << (exponent - 52n)) * (negative ? -1n : 1n);
+}
+function normalizePayloadCoin(amount: string | bigint | Coin | BigIntCoinObj, fallbackDenom: string): Coin {
+	return (typeof amount == "object" ? new BigIntCoin(amount) : new BigIntCoin(amount, fallbackDenom)).intoCosmCoin();
+}
+function assertValidDenom(amount: string | bigint | Coin | BigIntCoinObj, ...validDenoms: string[]) {
+	if (typeof amount == "object" && validDenoms.indexOf(amount.denom) != -1) {
+		throw new InvalidDenomError(amount.denom, validDenoms);
+	}
+}
+
+export type SwapMarketAssetVolumeResult = {
+	/** The trade volume of each individual asset */
+	coins: Coin[],
+	/** The earliest data point used to calculate the volume. This may be less than what was requested. */
+	from: Date,
+	/** The latest data point used to calculate the volume.  */
+	to: Date
+}
+export type SwapMarketNormalizedVolumeResult = {
+	/** Volume normalized to the currency requested */
+	amount: bigint,
+	/** The earliest data point used to calculate the volume. This may be less than what was requested. */
+	from: Date,
+	/** The latest data point used to calculate the volume. */
+	to: Date
+}
+export type SwapMarketExchangeRateResult = {
+	/**
+	 * The highest exchange ratio for the returned time period.
+	 * 
+	 * The contract stores this in a lossy format, and is more accurate as the exchange ratio approaches 1:1.
+	 * Ratios beyond approx. 2000000000:1 are will be shown as 0 or Infinity.
+	 * 
+	 * Rough accuracy guide:
+	 * - near 1:1 - 10 significant digits
+	 * - 1:1 to 10:1 - 9 significant digits
+	 * - 10:1 to 100:1 - 8 significant digits
+	 * - 100:1 to 1000:1 - 7 significant digits
+	 * - 1000:1 to 10000:1 - 6 significant digits
+	 * - 10000:1 to 100000:1 - 5 significant digits
+	 * - ...
+	 * - 10000000:1 to 100000000:1 - 2 significant digits
+	 */
+	rateHigh: number,
+	/** Average exchange rate for the returned time period. This should be as accurate as an f64 can be. */
+	rateAverage: number,
+	/**
+	 * The lowest exchange ratio for the returned time period.
+	 * 
+	 * The contract stores this in a lossy format, and is more accurate as the exchange ratio approaches 1:1.
+	 * Ratios beyond approx. 2000000000:1 are will be shown as 0 or Infinity.
+	 * 
+	 * Rough accuracy guide:
+	 * - near 1:1 - 10 significant digits
+	 * - 1:1 to 10:1 - 9 significant digits
+	 * - 10:1 to 100:1 - 8 significant digits
+	 * - 100:1 to 1000:1 - 7 significant digits
+	 * - 1000:1 to 10000:1 - 6 significant digits
+	 * - 10000:1 to 100000:1 - 5 significant digits
+	 * - ...
+	 * - 10000000:1 to 100000000:1 - 2 significant digits
+	 */
+	rateLow: number,
+	/** The earliest data point used to calculate the min/max/avg exchange rates. */
+	from: Date,
+	/** The latest data point used to calculate the min/max/avg exchange rates. */
+	to: Date
+}
 export type SwapMarketDepositCalcResult = {
 	newShares: bigint;
 	newShareValue: [[bigint, UnifiedDenom], [bigint, UnifiedDenom]];
@@ -31,6 +128,7 @@ export class SwapMarketPair {
 	readonly assets: UnifiedDenomPair;
 	/** The shares denom */
 	readonly sharesDenom: string;
+	readonly #canonAssets: UnifiedDenomPair;
 
 	/** Maker fee in basis points. 10000‱ = 100% (Stable for 1.0) */
 	get makerFeeBasisPoints() {
@@ -76,6 +174,7 @@ export class SwapMarketPair {
 		this.#totalShares = BigInt(poolInfo.total_shares);
 		this.name = this.assets.map((denom) => getUserTokenInfo(denom).symbol).join("-");
 		this.sharesDenom = "factory/" + contract.address + "/lp";
+		this.#canonAssets = [...poolInfo.assets].sort() as UnifiedDenomPair;
 
 		// this.totalDeposits = poolInfo.assets.map((asset) => BigInt(asset)) as [bigint, bigint];
 
@@ -159,11 +258,11 @@ export class SwapMarketPair {
 		this.totalDeposits[1] = BigInt(totalDeposits[1].amount);
 	}
 	/**
-	 * Returns an approximate exchange rate between assets[0] and assets[1].
+	 * Returns an approximate exchange rate between `this.assets[0]` and `this.assets[1]`.
 	 *
 	 * Stable for `1.0`
 	 *
-	 * @param inverse return assets[1] -> assets[0] rate instead
+	 * @param inverse return `assets[1]` -> `assets[0]` rate instead
 	 * @returns The approximate exchange rate
 	 */
 	exchangeRate(inverse?: boolean): number {
@@ -175,12 +274,12 @@ export class SwapMarketPair {
 	}
 
 	/**
-	 * Performs a "dumb" exchange quote from assets[0] to assets[1] assuming infinite liquidity and no slippage
+	 * Performs a "dumb" exchange quote from `assets[0]` to `assets[1]` assuming infinite liquidity and no slippage
 	 *
 	 * Stable for `1.0`
 	 *
 	 * @param value input value
-	 * @param inverse return assets[1] -> assets[0] rate instead
+	 * @param inverse return `assets[1]` -> `assets[0]` rate instead
 	 * @param includeFees subtract swap fees from the input
 	 */
 	exchangeValue(value: bigint, inverse?: boolean, includeFees?: boolean) {
@@ -198,6 +297,7 @@ export class SwapMarketPair {
 	 * Calculates the value of the shares amount specified
 	 */
 	shareValue(shares: bigint): [[bigint, UnifiedDenom], [bigint, UnifiedDenom]] {
+		// TODO: unwrapped?: boolean param to return the unwrapped representation of the denom
 		if (this.totalShares == 0n) {
 			return [
 				[0n, this.assets[0]],
@@ -211,21 +311,24 @@ export class SwapMarketPair {
 	}
 	
 	buildProvideLiquidityIxs(
-		token0Amount: bigint,
-		token1Amount: bigint,
+		token0Amount: string | bigint | Coin | BigIntCoinObj,
+		token1Amount: string | bigint | Coin | BigIntCoinObj,
 		slippageTolerance: number = 0.01,
-		receiver?: Addr | null,
-		receiverPayload?: Buffer | null
+		receiver?: Addr | AddrWithPayload
 	): ExecuteInstruction[] {
 		const ixs: ExecuteInstruction[] = [];
+		// TODO: Unwrapped token variant should be considered valid
+		// TODO: If passed denom is unwrapped variant, prepend wrap instructions.
+		assertValidDenom(token0Amount, this.assets[0]);
+		assertValidDenom(token1Amount, this.assets[1]);
 		ixs.push(
 			this.contract.buildProvideLiquidityIx({
 				slippage_tolerance: slippageTolerance + "",
-				receiver,
-				receiver_payload: receiverPayload ? receiverPayload.toString("base64") : undefined
+				receiver: typeof receiver == "string" ? receiver : receiver?.address,
+				receiver_payload: typeof receiver == "object" ? receiver?.payload?.toString("base64") : undefined
 			}, [
-				coin(token0Amount.toString(), this.assets[0]),
-				coin(token1Amount.toString(), this.assets[1]),
+				normalizePayloadCoin(token0Amount, this.assets[0]),
+				normalizePayloadCoin(token1Amount, this.assets[1])
 			])
 		);
 
@@ -263,13 +366,13 @@ export class SwapMarketPair {
 
 	buildWithdrawLiquidityIxs(
 		shares: bigint,
-		receiver?: Addr | null,
-		receiverPayload?: Buffer | null
+		receiver?: Addr | AddrWithPayload
 	): ExecuteInstruction[] {
+		// TODO: Requested denoms param which signals whether or not to append an unwrap instruction
 		return [
 			this.contract.buildWithdrawLiquidityIx({
-				receiver,
-				receiver_payload: receiverPayload ? receiverPayload.toString("base64") : undefined
+				receiver: typeof receiver == "string" ? receiver : receiver?.address,
+				receiver_payload: typeof receiver == "object" ? receiver?.payload?.toString("base64") : undefined
 			}, [
 				coin(shares + "", this.sharesDenom)
 			])
@@ -281,8 +384,7 @@ export class SwapMarketPair {
 	 *
 	 * Stable for `1.0`
 	 *
-	 * @param offerAmount The amount of tokens to swap
-	 * @param offerDenom The denom (or "cw20/{contractAddress}") to swap must match one of the pairs
+	 * @param offer The tokens to swap
 	 * @param slippageTolerance The contract will throw an error and the transaction will be reverted if the exchange
 	 * rate changes by the following amount, defaults to 1% (0.01).
 	 * @param receiver If you want the resulting tokens to be sent to an address that differs from the message sender,
@@ -292,41 +394,170 @@ export class SwapMarketPair {
 	 * instructions generated including the contracts sent to may change in future updates.
 	 */
 	buildSwapIxs(
-		offerAmount: bigint,
-		offerDenom: UnifiedDenom,
+		offer: Coin | BigIntCoinObj,
 		slippageTolerance: number = 0.01,
-		receiver?: Addr | null,
-		receiverPayload?: Buffer | null
+		receiver?: Addr | AddrWithPayload
 	): ExecuteInstruction[] {
+		// TODO: If passed denom is unwrapped variant, prepend wrap instructions.
 		return [
 			this.contract.buildSwapIx(
 				{
-					receiver,
+					receiver: typeof receiver == "string" ? receiver : receiver?.address,
+					receiver_payload: typeof receiver == "object" ? receiver?.payload?.toString("base64") : undefined,
 					slippage_tolerance: slippageTolerance + "",
 				},
 				[
-					coin(offerAmount.toString(), offerDenom),
+					(new BigIntCoin(offer)).intoCosmCoin(),
 				]
 			),
 		];
 	}
 
 	async simulateSwap(
-		offerAmount: bigint,
-		offerDenom: UnifiedDenom
+		offer: Coin | BigIntCoinObj
 	): Promise<PoolPairCalcSwapResult> {
+		// TODO: convert offer to wrapped variant if it is an erc20 or cw20 token.
 		return this.contract.querySimulateSwap({
-			offer: coin(offerAmount.toString(), offerDenom)
+			offer: (new BigIntCoin(offer)).intoCosmCoin()
 		});
 	}
 
 	async simulateNaiveSwap(
-		offerAmount: bigint,
-		offerDenom: UnifiedDenom
+		offer: Coin | BigIntCoinObj
 	): Promise<PoolPairCalcNaiveSwapResult> {
+		// TODO: convert offer to wrapped variant if it is an erc20 or cw20 token.
 		return this.contract.querySimulateNaiveSwap({
-			offer: coin(offerAmount.toString(), offerDenom)
+			offer: (new BigIntCoin(offer)).intoCosmCoin()
 		});
+	}
+
+	/**
+	 * @returns the total volume since the first trade happened
+	 */
+	async assetTradeVolumeAllTime(): Promise<SwapMarketAssetVolumeResult> {
+		const result = await this.contract.queryTotalVolumeSum();
+		// TODO: Convert returned denoms to unwrapped variants if specified
+		return {
+			coins: result.volume.map((amount, index) => {return {amount, denom: this.#canonAssets[index]}}),
+			from: new Date(result.from_timestamp_ms),
+			to: new Date(result.to_timestamp_ms)
+		}
+	}
+	/**
+	 * If `hours` is a number greater than 0, this returns the total volume in the past specified hours, updated every
+	 * hour (UTC). For example, a value of `12` will get the volume for the previous 12 hours.
+	 * 
+	 * If 0 or undefined, this will return the trading volume since the UTC hour started.
+	 * 
+	 * Note that the contract may not store data older than 24 hours.
+	 * @param hours how far back to look
+	 */
+	async assetTradeVolumePastHours(hours?: number): Promise<SwapMarketAssetVolumeResult> {
+		const result = await this.contract.queryHourlyVolumeSum({past_hours: hours});
+		// TODO: Convert returned denoms to unwrapped variants if specified
+		return {
+			coins: result.volume.map((amount, index) => {return {amount, denom: this.#canonAssets[index]}}),
+			from: new Date(result.from_timestamp_ms),
+			to: new Date(result.to_timestamp_ms)
+		}
+	}
+	/**
+	 * If `hours` is a number greater than 0, this returns the total volume in the past specified hours, updated every
+	 * hour (UTC). For example, a value of `12` will get the volume for the previous 12 hours.
+	 * 
+	 * If 0 or undefined, this will return the trading volume since the UTC hour started.
+	 * 
+	 * Note that the contract may not store data older than 24 hours.
+	 * @param days how far back to look
+	 */
+	async assetTradeVolumePastDays(days?: number): Promise<SwapMarketAssetVolumeResult> {
+		const result = await this.contract.queryDailyVolumeSum({past_days: days});
+		// TODO: Convert returned denoms to unwrapped variants if specified
+		return {
+			coins: result.volume.map((amount, index) => {return {amount, denom: this.#canonAssets[index]}}),
+			from: new Date(result.from_timestamp_ms),
+			to: new Date(result.to_timestamp_ms)
+		}
+	}
+
+	/**
+	 * @param denom the currency to normalize the volume to, must be on of the denoms supported by the pool.
+	 * @returns the total volume since the first trade happened
+	 */
+	async normalizedTradeVolumeAllTime(
+		denom: UnifiedDenom
+	): Promise<SwapMarketNormalizedVolumeResult> {
+		const result = await this.contract.queryTotalVolumeSum();
+		// TODO: convert the provided denom to the wrapped variant if applicable
+		// findInverse: -1 = invalid, 0 = false, 1 = true
+		const inverse = this.#canonAssets.findIndex(supportedDenom => supportedDenom === denom);
+		if (inverse == -1) {
+			throw new InvalidDenomError(denom, this.#canonAssets);
+		}
+		return {
+			// If you convert the average rate of the other token to the one requested, the math simplifies to this.
+			amount: BigInt(result.volume[inverse]) * 2n,
+			from: new Date(result.from_timestamp_ms),
+			to: new Date(result.to_timestamp_ms)
+		}
+	}
+
+	/**
+	 * If `hours` is a number greater than 0, this returns the total volume in the past specified hours, updated every
+	 * hour (UTC). For example, a value of `12` will get the volume for the previous 12 hours.
+	 * 
+	 * If 0 or undefined, this will return the trading volume since the UTC hour started.
+	 * 
+	 * Note that the contract may not store data older than 24 hours.
+	 * @param denom the currency to normalize the volume to, must be on of the denoms supported by the pool.
+	 * @param hours how far back to look
+	 */
+	async normalizedTradeVolumePastHours(
+		denom: UnifiedDenom,
+		hours?: number
+	): Promise<SwapMarketNormalizedVolumeResult> {
+		const result = await this.contract.queryHourlyVolumeSum({past_hours: hours});
+		// TODO: convert the provided denom to the wrapped variant if applicable
+		// findInverse: -1 = invalid, 0 = false, 1 = true
+		const inverse = this.#canonAssets.findIndex(supportedDenom => supportedDenom === denom);
+		if (inverse == -1) {
+			throw new InvalidDenomError(denom, this.#canonAssets);
+		}
+		return {
+			// If you convert the average rate of the other token to the one requested, the math simplifies to this.
+			amount: BigInt(result.volume[inverse]) * 2n,
+			from: new Date(result.from_timestamp_ms),
+			to: new Date(result.to_timestamp_ms)
+		}
+	}
+
+	/**
+	 * If `hours` is a number greater than 0, this returns the total volume in the past specified hours, updated every
+	 * hour (UTC). For example, a value of `12` will get the volume for the previous 12 hours.
+	 * 
+	 * If 0 or undefined, this will return the trading volume since the UTC hour started.
+	 * 
+	 * Note that the contract may not store data older than 24 hours.
+	 * @param denom the currency to normalize the volume to, must be on of the denoms supported by the pool.
+	 * @param days how far back to look
+	 */
+	async normalizedTradeVolumePastDays(
+		denom: UnifiedDenom,
+		days?: number
+	): Promise<SwapMarketNormalizedVolumeResult> {
+		const result = await this.contract.queryDailyVolumeSum({past_days: days});
+		// TODO: convert the provided denom to the wrapped variant if applicable
+		// findInverse: -1 = invalid, 0 = false, 1 = true
+		const inverse = this.#canonAssets.findIndex(supportedDenom => supportedDenom === denom);
+		if (inverse == -1) {
+			throw new InvalidDenomError(denom, this.#canonAssets);
+		}
+		return {
+			// If you convert the average rate of the other token to the one requested, the math simplifies to this.
+			amount: BigInt(result.volume[inverse]) * 2n,
+			from: new Date(result.from_timestamp_ms),
+			to: new Date(result.to_timestamp_ms)
+		}
 	}
 }
 
@@ -537,8 +768,7 @@ export class SwapMarket {
 	 *
 	 * Stable for `1.0`
 	 *
-	 * @param offerAmount The amount of tokens to swap
-	 * @param offerDenom The denom (or "cw20/{contractAddress}") to swap
+	 * @param offerAmount The tokens to swap
 	 * @param askDenom The tokens you want in return
 	 * @param slippageTolerance The contract will throw an error and the transaction will be reverted if the exchange
 	 * rate changes by the following amount, defaults to 1% (0.01).
@@ -550,8 +780,7 @@ export class SwapMarket {
 	 * may change in future updates.
 	 */
 	buildSwapIxs(
-		offerAmount: bigint,
-		offerDenom: UnifiedDenom,
+		offer: Coin | BigIntCoinObj,
 		askDenom: UnifiedDenom,
 		receiver: Addr,
 		slippageTolerance: number = 0.01,
@@ -559,7 +788,7 @@ export class SwapMarket {
 	): ExecuteInstruction[] | null {
 		const result: ExecuteInstruction[] = [];
 
-		const route = this.resolveMultiSwapRoute(offerDenom, askDenom);
+		const route = this.resolveMultiSwapRoute(offer.denom, askDenom);
 
 		if (route == null || route.length == 0) {
 			return null;
@@ -579,7 +808,7 @@ export class SwapMarket {
 			expectation,
 			"intermediate_slippage_tolerance": slippageTolerance.toString(),
 			receiver: { direct: receiver },
-		}, [ coin(offerAmount.toString(), offerDenom)]));
+		}, [ coin(offer.amount.toString(), offer.denom)]));
 
 		return result;
 	}
@@ -590,30 +819,28 @@ export class SwapMarket {
 	 * Stable for `1.0`
 	 *
 	 * @param client
-	 * @param offerAmount
-	 * @param offerDenom
+	 * @param offer
 	 * @param askDenom
 	 * @param slippageTolerance
 	 * @param receiver
 	 * @returns
 	 */
 	async simulateSwap(
-		offerAmount: bigint,
-		offerDenom: UnifiedDenom,
+		offer: Coin | BigIntCoinObj,
 		askDenom: UnifiedDenom
 	): Promise<SwapMarketSwapSimResult | void> {	
-		if (offerDenom == askDenom) {
+		if (offer.denom == askDenom) {
 			throw new Error("Trading input denom must differ from trading output denom");
 		}
-		const route = this.resolveMultiSwapRoute(offerDenom, askDenom);
+		const route = this.resolveMultiSwapRoute(offer.denom, askDenom);
 
 		if (!route) {
 			throw new Error("Market does not hold assets offered or requested");
 		}
 
 		const swaps = [];
-		let result_amount = offerAmount;
-		let naive_result_amount = offerAmount;
+		let result_amount = BigInt(offer.amount);
+		let naive_result_amount = BigInt(offer.amount);
 
 		for (const [from, to] of route) {
 			const poolPair = this.getPair([from, to]);
@@ -621,8 +848,8 @@ export class SwapMarket {
 			if (!poolPair)
 				throw new Error("Pair not found");
 
-			const swap = await poolPair.simulateSwap(result_amount, to);
-			const naiveSwap = await poolPair.simulateNaiveSwap(result_amount, to);
+			const swap = await poolPair.simulateSwap({amount: result_amount, denom: to});
+			const naiveSwap = await poolPair.simulateNaiveSwap({amount: result_amount, denom: to});
 			
 			swaps.push(swap);
 			
@@ -692,5 +919,23 @@ export class SwapMarket {
 			value = pair.exchangeValue(value, pair.assets[1] == fromDenom, includeFees);
 		}
 		return value;
+	}
+
+	/**
+	 * Returns the total value of all assets deposited in the specified denom.
+	 * 
+	 * @param valuationDenom The denom to get the total value in
+	 * @returns the total value
+	 */
+	getTotalValueLocked(
+		valuationDenom: UnifiedDenom
+	): bigint {
+		let approxTVL = 0n;
+		for (const pair of this.getAllPairs()) {
+			// If it didn't happen to you yet, this should be your "santa isn't real" moment with the finance industry.
+			approxTVL += this.exchangeValue(pair.totalDeposits[0], pair.assets[0], valuationDenom) ?? 0n;
+			approxTVL += this.exchangeValue(pair.totalDeposits[1], pair.assets[1], valuationDenom) ?? 0n;
+		}
+		return approxTVL;
 	}
 }

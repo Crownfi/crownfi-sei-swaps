@@ -1,5 +1,10 @@
 import { Addr } from "@crownfi/sei-utils";
 
+export interface AddrWithPayload {
+	address: Addr,
+	payload?: Buffer
+}
+
 /**
  * This represents either a native token denom, or a CW20 token.
  * CW20 tokens are represented with "cw20/{contractAddress}"
