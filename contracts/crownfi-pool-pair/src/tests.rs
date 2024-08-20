@@ -862,6 +862,10 @@ fn queries() {
 	.unwrap();
 	assert_eq!(share_value_query_result, share_value_query_result2);
 
+	let total_shares_query_result2: Uint128 =
+		from_json(query(deps.as_ref(), env.clone(), PoolPairQueryMsg::TotalShares).unwrap()).unwrap();
+	assert!(total_shares_query_result2 < total_shares_query_result);
+
 	let info = mock_info(
 		RANDOM_ADDRESS,
 		&[coin(5000, PAIR_DENOMS[0]), coin(2510, PAIR_DENOMS[1])],
@@ -889,6 +893,10 @@ fn queries() {
 	)
 	.unwrap();
 	assert_ne!(share_value_query_result, share_value_query_result3);
+
+	let total_shares_query_result3: Uint128 =
+		from_json(query(deps.as_ref(), env.clone(), PoolPairQueryMsg::TotalShares).unwrap()).unwrap();
+	assert!(total_shares_query_result3 > total_shares_query_result2);
 
 	// XXX: FAILS WITH `ATTEMPT TO SUBTRACT WITH OVERFLOW`
 	#[cfg(feature = "failing-tests")]
