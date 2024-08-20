@@ -1,6 +1,6 @@
 use cosmwasm_std::{
-	attr, coin, testing::*, Addr, BankMsg, Binary, Coin, CosmosMsg, Decimal, Decimal256, MemoryStorage, QuerierWrapper,
-	Response, SubMsg, Uint256, WasmMsg,
+	attr, coin, from_json, testing::*, Addr, BankMsg, Binary, Coin, CosmosMsg, Decimal, Decimal256, MemoryStorage,
+	QuerierWrapper, Response, SubMsg, Uint256, WasmMsg,
 };
 use cosmwasm_std::{OwnedDeps, Uint128};
 use crownfi_cw_common::storage::item::StoredItem;
@@ -781,4 +781,112 @@ fn swap() {
 	let total_shares = total_supply_workaround(LP_TOKEN);
 	let share_value_after_swap = share_in_assets(pb.clone(), 5000, total_shares.u128());
 	assert_ne!(share_value, share_value_after_swap);
+}
+
+/// QUERIES
+#[test]
+fn queries() {
+	let mut deps = deps(&[]);
+	init(&mut deps);
+
+	let env = mock_env();
+
+	let pair_denoms: [String; 2] =
+		from_json(query(deps.as_ref(), env.clone(), PoolPairQueryMsg::PairDenoms).unwrap()).unwrap();
+	let canonical_pair_denoms: [String; 2] =
+		from_json(query(deps.as_ref(), env.clone(), PoolPairQueryMsg::CanonicalPairDenoms).unwrap()).unwrap();
+	let pair_identifier: String =
+		from_json(query(deps.as_ref(), env.clone(), PoolPairQueryMsg::PairIdentifier).unwrap()).unwrap();
+	let canonical_pair_identifier: String =
+		from_json(query(deps.as_ref(), env.clone(), PoolPairQueryMsg::CanonicalPairIdentifier).unwrap()).unwrap();
+	let config: PoolPairConfigJsonable =
+		from_json(query(deps.as_ref(), env.clone(), PoolPairQueryMsg::Config).unwrap()).unwrap();
+
+	assert_eq!(pair_denoms, PAIR_DENOMS);
+	assert_eq!(canonical_pair_denoms, PAIR_DENOMS);
+	assert_eq!(pair_identifier, "abc<>cba");
+	assert_eq!(canonical_pair_identifier, "abc<>cba");
+	assert_eq!(
+		config,
+		PoolPairConfigJsonable {
+			admin: Addr::unchecked(RANDOM_ADDRESS),
+			fee_receiver: Addr::unchecked(RANDOM_ADDRESS),
+			total_fee_bps: 100,
+			maker_fee_bps: 50,
+			inverse: false,
+			endorsed: true
+		}
+	);
+
+	let total_shares = total_supply_workaround(LP_TOKEN);
+	let total_shares_query_result: Uint128 =
+		from_json(query(deps.as_ref(), env.clone(), PoolPairQueryMsg::TotalShares).unwrap()).unwrap();
+	assert_eq!(total_shares, total_shares_query_result);
+
+	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
+	let share_value = share_in_assets(pb, 1000, total_shares.u128());
+	let share_value_query_result: [Coin; 2] = from_json(
+		query(
+			deps.as_ref(),
+			env.clone(),
+			PoolPairQueryMsg::ShareValue {
+				amount: Uint128::new(1000),
+			},
+		)
+		.unwrap(),
+	)
+	.unwrap();
+	assert_eq!(share_value, share_value_query_result);
+
+	let info = mock_info(RANDOM_ADDRESS, &[coin(500, LP_TOKEN)]);
+	execute(
+		deps.as_mut(),
+		env.clone(),
+		info,
+		PoolPairExecuteMsg::WithdrawLiquidity {
+			receiver: None,
+			receiver_payload: None,
+		},
+	)
+	.unwrap();
+	let share_value_query_result2: [Coin; 2] = from_json(
+		query(
+			deps.as_ref(),
+			env.clone(),
+			PoolPairQueryMsg::ShareValue {
+				amount: Uint128::new(1000),
+			},
+		)
+		.unwrap(),
+	)
+	.unwrap();
+	assert_eq!(share_value_query_result, share_value_query_result2);
+
+	let info = mock_info(
+		RANDOM_ADDRESS,
+		&[coin(5000, PAIR_DENOMS[0]), coin(2510, PAIR_DENOMS[1])],
+	);
+	execute(
+		deps.as_mut(),
+		env.clone(),
+		info,
+		PoolPairExecuteMsg::ProvideLiquidity {
+			slippage_tolerance: None,
+			receiver: None,
+			receiver_payload: None,
+		},
+	)
+	.unwrap();
+	let share_value_query_result3: [Coin; 2] = from_json(
+		query(
+			deps.as_ref(),
+			env.clone(),
+			PoolPairQueryMsg::ShareValue {
+				amount: Uint128::new(1000),
+			},
+		)
+		.unwrap(),
+	)
+	.unwrap();
+	assert_ne!(share_value_query_result, share_value_query_result3);
 }
