@@ -1,6 +1,6 @@
 use cosmwasm_std::{
-	attr, coin, testing::*, Addr, BankMsg, Binary, Coin, CosmosMsg, MemoryStorage, QuerierWrapper, Response, SubMsg,
-	WasmMsg,
+	attr, coin, testing::*, Addr, BankMsg, Binary, Coin, CosmosMsg, Decimal, MemoryStorage, QuerierWrapper, Response,
+	SubMsg, WasmMsg,
 };
 use cosmwasm_std::{OwnedDeps, Uint128};
 use crownfi_cw_common::storage::item::StoredItem;
@@ -334,4 +334,160 @@ fn provide_liquidity() {
 			attr("share", share.to_string())
 		]
 	)
+}
+
+#[test]
+fn withdraw_liquidity_err_checking() {
+	let mut deps = deps(&[]);
+	init(&mut deps);
+
+	let msg = PoolPairExecuteMsg::WithdrawLiquidity {
+		receiver: None,
+		receiver_payload: None,
+	};
+
+	let env = mock_env();
+	let info = mock_info(
+		RANDOM_ADDRESS2,
+		&[Coin {
+			denom: PAIR_DENOMS[0].to_string(),
+			amount: Uint128::from(50u128),
+		}],
+	);
+
+	let response = execute(deps.as_mut(), env.clone(), info, msg.clone());
+	assert_eq!(
+		response,
+		Err(PoolPairContractError::PaymentError(PaymentError::MissingDenom(
+			LP_TOKEN.to_string()
+		)))
+	);
+
+	let info = mock_info(
+		RANDOM_ADDRESS2,
+		&[
+			Coin {
+				denom: PAIR_DENOMS[0].to_string(),
+				amount: Uint128::from(50u128),
+			},
+			Coin {
+				denom: LP_TOKEN.to_string(),
+				amount: 50u128.into(),
+			},
+		],
+	);
+	let response = execute(deps.as_mut(), env.clone(), info, msg.clone());
+	assert_eq!(
+		response,
+		Err(PoolPairContractError::PaymentError(PaymentError::MultipleDenoms {}))
+	);
+
+	let info = mock_info(
+		RANDOM_ADDRESS2,
+		&[Coin {
+			denom: LP_TOKEN.to_string(),
+			amount: 1u128.into(),
+		}],
+	);
+	let response = execute(deps.as_mut(), env, info, msg);
+	assert_eq!(
+		response,
+		Err(PoolPairContractError::SwapsCommonError(
+			CrownfiSwapsCommonError::PayoutIsZero
+		))
+	);
+}
+
+fn share_in_assets<T: Into<Uint128> + Copy>(pool: [T; 2], amount: T, total_share: T) -> [Coin; 2] {
+	let total_share = total_share.into();
+
+	let mut share_ratio = Decimal::zero();
+	if !total_share.is_zero() {
+		share_ratio = Decimal::from_ratio(amount.into(), total_share);
+	}
+
+	[
+		Coin {
+			denom: PAIR_DENOMS[0].into(),
+			amount: pool[0].into() * share_ratio,
+		},
+		Coin {
+			denom: PAIR_DENOMS[1].into(),
+			amount: pool[1].into() * share_ratio,
+		},
+	]
+}
+
+#[test]
+fn withdraw_liquidity() {
+	let mut deps = deps(&[]);
+	init(&mut deps);
+
+	let env = mock_env();
+	let msg = PoolPairExecuteMsg::WithdrawLiquidity {
+		receiver: None,
+		receiver_payload: None,
+	};
+
+	let info = mock_info(
+		RANDOM_ADDRESS2,
+		&[Coin {
+			denom: LP_TOKEN.to_string(),
+			amount: Uint128::from(500u128),
+		}],
+	);
+
+	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
+	let total_share = total_supply_workaround(LP_TOKEN);
+	let assets = share_in_assets(pb, 500, total_share.u128());
+	let share_values = calc_shares(assets.clone().map(|x| x.amount.u128()), pb);
+
+	let response = execute(deps.as_mut(), env.clone(), info.clone(), msg.clone()).unwrap();
+	assert_eq!(
+		response.messages,
+		vec![
+			SubMsg::new(BankMsg::Burn {
+				amount: vec![coin(500, LP_TOKEN)]
+			}),
+			SubMsg::new(BankMsg::Send {
+				to_address: RANDOM_ADDRESS2.into(),
+				amount: assets.clone().into()
+			})
+		]
+	);
+
+	let total_share_after = total_supply_workaround(LP_TOKEN);
+	assert_eq!(total_share - Uint128::new(500), total_share_after);
+	let new_share_values = calc_shares(assets.clone().map(|x| x.amount.u128()), pb);
+	assert_eq!(share_values, new_share_values);
+
+	let msg_with_payload = PoolPairExecuteMsg::WithdrawLiquidity {
+		receiver: Some(Addr::unchecked(RANDOM_ADDRESS)),
+		receiver_payload: Some(Binary(b"anana".into())),
+	};
+	let response = execute(deps.as_mut(), env.clone(), info, msg_with_payload).unwrap();
+	assert_eq!(
+		response.messages,
+		vec![
+			SubMsg::new(BankMsg::Burn {
+				amount: vec![coin(500, LP_TOKEN)]
+			}),
+			SubMsg::new(WasmMsg::Execute {
+				contract_addr: RANDOM_ADDRESS.into(),
+				msg: Binary(b"anana".into()),
+				funds: assets.clone().into()
+			})
+		]
+	);
+
+	assert_eq!(
+		response.attributes,
+		vec![
+			attr("action", "withdraw_liquidity"),
+			attr("sender", RANDOM_ADDRESS2),
+			attr("receiver", RANDOM_ADDRESS),
+			attr("withdrawn_share", "500"),
+			attr("refund_assets", format!("{}, {}", assets[0], assets[1]))
+		]
+	);
 }
