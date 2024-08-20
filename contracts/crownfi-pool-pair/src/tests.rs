@@ -1,6 +1,6 @@
 use cosmwasm_std::{
-	attr, coin, testing::*, Addr, BankMsg, Binary, Coin, CosmosMsg, Decimal, MemoryStorage, QuerierWrapper, Response,
-	SubMsg, WasmMsg,
+	attr, coin, testing::*, Addr, BankMsg, Binary, Coin, CosmosMsg, Decimal, Decimal256, MemoryStorage, QuerierWrapper,
+	Response, SubMsg, Uint256, WasmMsg,
 };
 use cosmwasm_std::{OwnedDeps, Uint128};
 use crownfi_cw_common::storage::item::StoredItem;
@@ -649,4 +649,136 @@ fn withdraw_and_split_liquidity() {
 			attr("refund_assets", format!("{}, {}", assets[0], assets[1]))
 		]
 	);
+}
+
+fn calc_swap<T: Into<Uint128> + Copy>(
+	offer: T,
+	offer_idx: usize,
+	pool: [T; 2],
+	commission_rate: Decimal,
+) -> (Uint128, Uint128, Uint128) {
+	assert!(offer_idx <= 1);
+	let pool: [Uint256; 2] = pool.map(|x| x.into().into());
+	let offer: Uint256 = offer.into().into();
+	let commission_rate = Decimal256::from(commission_rate);
+
+	let ask_pool = pool[offer_idx ^ 1];
+	let offer_pool = pool[offer_idx];
+	let cp = offer_pool * ask_pool;
+
+	let return_amount: Uint256 =
+		(Decimal256::from_ratio(ask_pool, 1u8) - Decimal256::from_ratio(cp, offer_pool + offer)) * Uint256::from(1u8);
+	let spread_amount: Uint256 = (offer * Decimal256::from_ratio(ask_pool, offer_pool)).saturating_sub(return_amount);
+	let commission_amount: Uint256 = return_amount * commission_rate;
+	let return_amount: Uint256 = return_amount - commission_amount;
+
+	(
+		return_amount.try_into().unwrap(),
+		spread_amount.try_into().unwrap(),
+		commission_amount.try_into().unwrap(),
+	)
+}
+
+#[test]
+fn swap_err_checking() {
+	let mut deps = deps(&[]);
+	init(&mut deps);
+
+	let env = mock_env();
+	let msg = PoolPairExecuteMsg::Swap {
+		expected_result: None,
+		slippage_tolerance: None,
+		receiver: None,
+		receiver_payload: None,
+	};
+	let info = mock_info(
+		RANDOM_ADDRESS2,
+		&[Coin {
+			denom: LP_TOKEN.to_string(),
+			amount: Uint128::from(500u128),
+		}],
+	);
+	let res = execute(deps.as_mut(), env.clone(), info.clone(), msg);
+	assert_eq!(
+		res,
+		Err(PoolPairContractError::PaymentError(PaymentError::ExtraDenom(
+			LP_TOKEN.to_string()
+		)))
+	);
+
+	let msg = PoolPairExecuteMsg::Swap {
+		expected_result: Some(Uint128::new(900)),
+		slippage_tolerance: None,
+		receiver: None,
+		receiver_payload: None,
+	};
+	let info = mock_info(
+		RANDOM_ADDRESS2,
+		&[Coin {
+			denom: PAIR_DENOMS[1].to_string(),
+			amount: Uint128::new(500),
+		}],
+	);
+	let res = execute(deps.as_mut(), env.clone(), info.clone(), msg.clone());
+	assert!(matches!(res, Err(PoolPairContractError::SlippageTooHigh(_))));
+
+	// let msg = PoolPairExecuteMsg::Swap {
+	// 	expected_result: None,
+	// 	slippage_tolerance: Some(Decimal::bps(5)),
+	// 	receiver: None,
+	// 	receiver_payload: None,
+	// };
+	// let res = execute(deps.as_mut(), env.clone(), info.clone(), msg.clone());
+	// assert_eq!(res, Err(PoolPairContractError::ToleranceTooHigh));
+}
+
+#[test]
+#[ignore]
+fn swap() {
+	// MUST CHECK WITH ARITZ
+	// apparently the math for the swaps is a bit different in astro port;
+	// the results are pretty similar tho.
+	// im not sure if im doing anything wrong, but i can't properly test the swaps without further knowledge
+
+	let mut deps = deps(&[]);
+	init(&mut deps);
+
+	let env = mock_env();
+	let msg = PoolPairExecuteMsg::Swap {
+		expected_result: None,
+		slippage_tolerance: None,
+		receiver: None,
+		receiver_payload: None,
+	};
+	let info = mock_info(
+		RANDOM_ADDRESS2,
+		&[Coin {
+			denom: PAIR_DENOMS[1].to_string(),
+			amount: Uint128::from(500u128),
+		}],
+	);
+
+	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
+	let (return_amount, _, commission_amount) = calc_swap(500, 1, pb, Decimal::bps(50));
+	let total_shares = total_supply_workaround(LP_TOKEN);
+	let share_value = share_in_assets(pb, 500, total_shares.u128());
+	let res = execute(deps.as_mut(), env.clone(), info.clone(), msg.clone()).unwrap();
+	assert_eq!(
+		res.messages,
+		vec![
+			SubMsg::new(BankMsg::Send {
+				to_address: RANDOM_ADDRESS.to_string(),
+				amount: vec![coin((commission_amount).u128(), PAIR_DENOMS[0])]
+			}),
+			SubMsg::new(BankMsg::Send {
+				to_address: RANDOM_ADDRESS2.to_string(),
+				amount: vec![coin(return_amount.u128(), PAIR_DENOMS[0])]
+			})
+		]
+	);
+
+	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
+	let total_shares = total_supply_workaround(LP_TOKEN);
+	let share_value_after_swap = share_in_assets(pb.clone(), 5000, total_shares.u128());
+	assert_ne!(share_value, share_value_after_swap);
 }
