@@ -1,4 +1,5 @@
 @import url("../src/app/components/navbar/navbar.css");
 @import url("../src/app/components/app-container/app-container.css");
-@import url("../src/app//components/swap-item/swap-item.css");
 @import url("../src/app//components/swap/swap.css");
+@import url("../src/app//components/swap/from-token/from-token.css");
+@import url("../src/app//components/token-dropdown/token-dropdown.css");

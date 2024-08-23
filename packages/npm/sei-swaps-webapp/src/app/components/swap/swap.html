@@ -1,13 +1,5 @@
 <template cewt-name="swap-component" cewt-extends="div">
-  <div class="labels-row">
-    <span>From:</span>
-    <div>
-      Balance: <span cewt-ref="balance-amount">0</span>
-      <span cewt-ref="balance-amount-spinner" class="loading-spinner-inline" style="display: none;"></span>
-    </div>
-  </div>
-
-  <div cewt-ref="from-token"></div>
+  <div cewt-ref="from-token" is="swap-from-component"></div>
 
   <button class="fantasy-circular arrow">
     <span class="cicon cicon-size-medium cicon-gradient cicon-fantasy-arrow-down primary"></span>

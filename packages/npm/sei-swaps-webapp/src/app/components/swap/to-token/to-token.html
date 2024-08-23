@@ -1,0 +1,11 @@
+<template cewt-name="swap-to-component" cewt-extends="div" cewt-attributes="token, amount, slippage">
+  <div class="labels-row">
+    <span>To:</span>
+  </div>
+
+  <div class="fantasy-input-group">
+    <button is="token-dropdown-component" id="from-token-dropdown" cewt-ref="dropdown"></button>
+
+    <input cewt-ref="to-amount" type="text" value="0" disabled />
+  </div>
+</template>
