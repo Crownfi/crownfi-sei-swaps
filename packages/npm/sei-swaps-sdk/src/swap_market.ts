@@ -616,7 +616,7 @@ export class SwapMarket {
 		let naive_result_amount = offerAmount;
 
 		for (const [from, to] of route) {
-			const poolPair = this.getPair([from, to]);
+			const poolPair = this.getPair([from, to], true);
 
 			if (!poolPair)
 				throw new Error("Pair not found");
