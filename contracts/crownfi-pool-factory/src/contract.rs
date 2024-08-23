@@ -287,7 +287,7 @@ pub fn query(
 	msg: PoolFactoryQueryMsg,
 ) -> Result<Binary, PoolFactoryContractError> {
 	Ok(match msg {
-		PoolFactoryQueryMsg::Config {} => to_json_binary(&PoolFactoryConfigJsonable::try_from(
+		PoolFactoryQueryMsg::Config => to_json_binary(&PoolFactoryConfigJsonable::try_from(
 			PoolFactoryConfig::load_non_empty()?.as_ref(),
 		)?)?,
 		PoolFactoryQueryMsg::PairAddr { pair } => to_json_binary(
