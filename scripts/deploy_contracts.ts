@@ -58,9 +58,9 @@ console.log("Account balance:", UIAmount(await clientEnv.getBalance("usei"), "us
 
 if (clientEnv.chainId == "sei-chain" && (await clientEnv.getBalance("usei")) < 1000000n) {
 	console.log("Funding account form \"admin\" in local keyring");
-	await fundFromLocalKeychain("admin", clientEnv, coin(100000000, "usei"));
-	await fundFromLocalKeychain("admin", clientEnv, coin(100000000, "uusdc"));
-	await fundFromLocalKeychain("admin", clientEnv, coin(100000000, "uatom"));
+	await fundFromLocalKeychain("admin", clientEnv, coin(100000000000, "usei"));
+	await fundFromLocalKeychain("admin", clientEnv, coin(100000000000, "uusdc"));
+	await fundFromLocalKeychain("admin", clientEnv, coin(100000000000, "uatom"));
 }
 
 // const cw20WrapperBinary = await readContractBinary("crownfi_cw20_wrapper.wasm");
@@ -99,7 +99,7 @@ console.log("Creating new Pool Pair with Pool Factory...");
 await clientEnv.executeContract(
   poolFactory.buildCreatePoolIx(
     { left_denom: "uatom", initial_shares_receiver: walletSeiAddress }, 
-    [ coin(1000, "uatom"), coin(1000, "usei") ]
+    [ coin(1000000000, "uatom"), coin(1000000000, "usei") ]
   ),
   "pool-factory-uatom-usei",
   "auto"
@@ -108,7 +108,7 @@ await clientEnv.executeContract(
 await clientEnv.executeContract(
   poolFactory.buildCreatePoolIx(
     { left_denom: "usei", initial_shares_receiver: walletSeiAddress }, 
-    [ coin(1000, "usei"), coin(1000, "uusdc") ]
+    [ coin(1000000000, "usei"), coin(1000000000, "uusdc") ]
   ),
   "pool-factory-usei-uusdc",
   "auto"
