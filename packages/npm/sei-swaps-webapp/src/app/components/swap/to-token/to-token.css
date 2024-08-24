@@ -1,0 +1,9 @@
+div[is="swap-to-component"] .fantasy-input-group {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--spacing-2);
+}
+
+div[is="swap-to-component"] .fantasy-input-group > input {
+  width: 100%;
+}

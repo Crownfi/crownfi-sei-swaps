@@ -1,17 +1,13 @@
 <template cewt-name="swap-component" cewt-extends="div">
-  <div cewt-ref="from-token" is="swap-from-component"></div>
+  <div cewt-ref="from-token"></div>
 
   <button class="fantasy-circular arrow">
     <span class="cicon cicon-size-medium cicon-gradient cicon-fantasy-arrow-down primary"></span>
   </button>
 
-  <div class="labels-row">
-    <span>To:</span>
-    <div>
-      Available: <span cewt-ref="available-amount">0</span>
-      <span cewt-ref="available-amount-spinner" class="loading-spinner-inline" style="display: none;"></span>
-    </div>
-  </div>
-
   <div cewt-ref="to-token"></div>
+
+  <button class="fantasy-ornamental primary swap-button" cewt-ref="swap-button" disabled>
+    SWAP
+  </button>
 </template>

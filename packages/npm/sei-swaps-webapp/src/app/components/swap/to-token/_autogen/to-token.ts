@@ -5,6 +5,13 @@ export class SwapToComponentRefs {
 	constructor(element: HTMLElement | ShadowRoot) {
 		this.#element = element;
 	}
+	#slippageAmount?: HTMLSpanElement;
+	get slippageAmount() {
+		if (this.#slippageAmount === undefined) {
+			this.#slippageAmount = this.#element.querySelector("[cewt-ref=\"slippage-amount\"]:not(:scope [is] *)")!;
+		}
+		return this.#slippageAmount;
+	}
 	#dropdown?: HTMLButtonElement;
 	get dropdown() {
 		if (this.#dropdown === undefined) {
@@ -24,14 +31,14 @@ let _templateSwapToComponent: HTMLTemplateElement | null = null;
 function getSwapToComponentTemplate(): HTMLTemplateElement {
 	if (_templateSwapToComponent == null) {
 		 _templateSwapToComponent = document.createElement("template")
-		 _templateSwapToComponent.innerHTML = "\n  <div class=\"labels-row\">\n    <span>To:</span>\n  </div>\n\n  <div class=\"fantasy-input-group\">\n    <button is=\"token-dropdown-component\" id=\"from-token-dropdown\" cewt-ref=\"dropdown\"></button>\n\n    <input cewt-ref=\"to-amount\" type=\"text\" value=\"0\" disabled=\"\">\n  </div>\n";
+		 _templateSwapToComponent.innerHTML = "\n  <div class=\"labels-row\">\n    <span>To:</span>\n    <div>\n      Slippage: <span cewt-ref=\"slippage-amount\">0</span>\n    </div>\n  </div>\n\n  <div class=\"fantasy-input-group\">\n    <button is=\"token-dropdown-component\" id=\"to-token-dropdown\" cewt-ref=\"dropdown\"></button>\n\n    <input cewt-ref=\"to-amount\" type=\"text\" value=\"0\" disabled=\"\">\n  </div>\n";
 	}
 	return _templateSwapToComponent;
 }
 export class SwapToComponentAutogen extends HTMLDivElement {
 	readonly refs: SwapToComponentRefs;
 	static get observedAttributes() {
-		return ["amount", "slippage", "token"];
+		return ["amount", "slippage", "token", "tokens"];
 	}
 	#attributeAmountValue: string | null = null;
 	get amount(): string | null {
@@ -75,6 +82,20 @@ export class SwapToComponentAutogen extends HTMLDivElement {
 	protected onTokenChanged(oldValue: string | null, newValue: string | null) {
 		// To be overridden by child class
 	}
+	#attributeTokensValue: string | null = null;
+	get tokens(): string | null {
+		return this.#attributeTokensValue;
+	}
+	set tokens(v: string | null) {
+		if (v == null) {
+			this.removeAttribute("tokens");
+		}else{
+			this.setAttribute("tokens", v);
+		}
+	}
+	protected onTokensChanged(oldValue: string | null, newValue: string | null) {
+		// To be overridden by child class
+	}
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
 		switch(name) {
 			case "amount":
@@ -88,6 +109,10 @@ export class SwapToComponentAutogen extends HTMLDivElement {
 			case "token":
 				this.#attributeTokenValue = newValue;
 				this.onTokenChanged(oldValue, newValue);
+				break;
+			case "tokens":
+				this.#attributeTokensValue = newValue;
+				this.onTokensChanged(oldValue, newValue);
 				break;
 			default:
 				// Shouldn't happen

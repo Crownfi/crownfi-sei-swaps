@@ -12,20 +12,6 @@ export class SwapComponentRefs {
 		}
 		return this.#fromToken;
 	}
-	#availableAmount?: HTMLSpanElement;
-	get availableAmount() {
-		if (this.#availableAmount === undefined) {
-			this.#availableAmount = this.#element.querySelector("[cewt-ref=\"available-amount\"]:not(:scope [is] *)")!;
-		}
-		return this.#availableAmount;
-	}
-	#availableAmountSpinner?: HTMLSpanElement;
-	get availableAmountSpinner() {
-		if (this.#availableAmountSpinner === undefined) {
-			this.#availableAmountSpinner = this.#element.querySelector("[cewt-ref=\"available-amount-spinner\"]:not(:scope [is] *)")!;
-		}
-		return this.#availableAmountSpinner;
-	}
 	#toToken?: HTMLDivElement;
 	get toToken() {
 		if (this.#toToken === undefined) {
@@ -33,12 +19,19 @@ export class SwapComponentRefs {
 		}
 		return this.#toToken;
 	}
+	#swapButton?: HTMLButtonElement;
+	get swapButton() {
+		if (this.#swapButton === undefined) {
+			this.#swapButton = this.#element.querySelector("[cewt-ref=\"swap-button\"]:not(:scope [is] *)")!;
+		}
+		return this.#swapButton;
+	}
 }
 let _templateSwapComponent: HTMLTemplateElement | null = null;
 function getSwapComponentTemplate(): HTMLTemplateElement {
 	if (_templateSwapComponent == null) {
 		 _templateSwapComponent = document.createElement("template")
-		 _templateSwapComponent.innerHTML = "\n  <div cewt-ref=\"from-token\" is=\"swap-from-component\"></div>\n\n  <button class=\"fantasy-circular arrow\">\n    <span class=\"cicon cicon-size-medium cicon-gradient cicon-fantasy-arrow-down primary\"></span>\n  </button>\n\n  <div class=\"labels-row\">\n    <span>To:</span>\n    <div>\n      Available: <span cewt-ref=\"available-amount\">0</span>\n      <span cewt-ref=\"available-amount-spinner\" class=\"loading-spinner-inline\" style=\"display: none;\"></span>\n    </div>\n  </div>\n\n  <div cewt-ref=\"to-token\"></div>\n";
+		 _templateSwapComponent.innerHTML = "\n  <div cewt-ref=\"from-token\"></div>\n\n  <button class=\"fantasy-circular arrow\">\n    <span class=\"cicon cicon-size-medium cicon-gradient cicon-fantasy-arrow-down primary\"></span>\n  </button>\n\n  <div cewt-ref=\"to-token\"></div>\n\n  <button class=\"fantasy-ornamental primary swap-button\" cewt-ref=\"swap-button\" disabled=\"\">\n    SWAP\n  </button>\n";
 	}
 	return _templateSwapComponent;
 }

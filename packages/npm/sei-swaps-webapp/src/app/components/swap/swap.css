@@ -31,3 +31,9 @@ div[is="swap-component"] .labels-row > div {
   align-items: center;
   gap: var(--spacing-1);
 }
+
+div[is="swap-component"] .swap-button {
+  color: var(--colour-neutral-primary);
+  margin-top: var(--spacing-4);
+  align-self: flex-end;
+}

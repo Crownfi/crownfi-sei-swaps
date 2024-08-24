@@ -25,15 +25,8 @@ export class SwapService {
     return this.swapMarket.getPair(pair) ?? this.swapMarket.getPair(pair, true);
   }
 
-  async getAvailableAmountForSwap(from: UnifiedDenom, to: UnifiedDenom) {
+  async simulateSwap(from: UnifiedDenom, to: UnifiedDenom, offerAmount: bigint) {
     await this.swapMarket.refresh();
-    const tradeMap = this.swapMarket.resolveMultiSwapRoute(from, to);
-    const lastPair = tradeMap?.at(-1);
-    if (!tradeMap || !lastPair)
-      return BigInt(0);
-    const pair = this.getPair(lastPair);
-    if (!pair)
-      return BigInt(0);
-    return pair.totalDeposits[1];
+    return this.swapMarket.simulateSwap(offerAmount, from, to);
   }
 }

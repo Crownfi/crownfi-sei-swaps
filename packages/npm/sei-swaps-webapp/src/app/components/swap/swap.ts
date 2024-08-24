@@ -14,45 +14,11 @@ export class SwapComponent extends SwapComponentAutogen {
     this.fromToken = new SwapFromTokenComponent();
     this.toToken = new SwapToComponent();
     this.tokens = [];
-  }
 
-  toggleAmountLoading(type: "balance" | "available", loading: boolean) {
-    // const { amount, spinner } = {
-    //   balance: {
-    //     amount: this.refs.balanceAmount,
-    //     spinner: this.refs.balanceAmountSpinner,
-    //   },
-    //   available: {
-    //     amount: this.refs.availableAmount,
-    //     spinner: this.refs.availableAmountSpinner,
-    //   },
-    // }[type];
-
-    // if (loading) {
-    //   spinner.style.display = "block";
-    //   amount.style.display = "none";
-    // } else {
-    //   spinner.style.display = "none";
-    //   amount.style.display = "block";
-    // }
-  }
-
-  async refreshAmount(type: "balance" | "available") {
-    // const from = this.fromToken.getAttribute("token");
-    // // const to = this.toToken.getAttribute("token");
-    // if (!from) return;
-    // if (type === "balance") {
-    //   this.fromToken.setLoadingBalance(true);
-    //   const { raw } = await useGetBalance(from);
-    //   this.fromToken.balance = raw.toString();
-    //   this.fromToken.setLoadingBalance(false);
-    // } 
-    //else {
-    //   if (!to) return;
-    //   const availableAmount = await swapService.getAvailableAmountForSwap(from, to);
-    //   this.toToken.referenceAmount = availableAmount;
-    //   this.refs.availableAmount.innerHTML = UIAmount(availableAmount, this.toToken.getAttribute("token")!, true);
-    // }
+    this.refs.fromToken.innerHTML = "";
+    this.refs.fromToken.appendChild(this.fromToken);
+    this.refs.toToken.innerHTML = "";
+    this.refs.toToken.appendChild(this.toToken);
   }
 
   async updateTokenAndOptions(
@@ -63,8 +29,6 @@ export class SwapComponent extends SwapComponentAutogen {
     const isSameTo = to === this.toToken.getAttribute("token");
     if (isSameFrom && isSameTo)
       return;
-    this.toggleAmountLoading("balance", true);
-    this.toggleAmountLoading("available", true);
     if (!isSameFrom)
       this.fromToken.setAttribute("token", from);
     if (!isSameTo)
@@ -72,14 +36,6 @@ export class SwapComponent extends SwapComponentAutogen {
     const options = this.tokens.filter(token => token !== from && token !== to);
     this.fromToken.setAttribute("tokens", options.join(","));
     this.toToken.setAttribute("tokens", options.join(","));
-    this.refs.fromToken.innerHTML = "";
-    this.refs.fromToken.appendChild(this.fromToken);
-    this.refs.toToken.innerHTML = "";
-    this.refs.toToken.appendChild(this.toToken);
-    await this.refreshAmount("balance");
-    await this.refreshAmount("available");
-    this.toggleAmountLoading("balance", false);
-    this.toggleAmountLoading("available", false);
   }
 
   async connectedCallback() {
@@ -91,6 +47,13 @@ export class SwapComponent extends SwapComponentAutogen {
       const isFrom = this.fromToken.refs.dropdown.getAttribute("id") === id;
       this.updateTokenAndOptions(isFrom && denom || undefined, !isFrom && denom || undefined);
     });
+    this.addEventListener("swapFromTokenChangedAmount", async ev => {
+      const { amount, isValid } = ev.detail;
+      if (!this.fromToken.token || !this.toToken.token || !isValid || !amount)
+        return;
+      const simulateSwapResult = await swapService.simulateSwap(this.fromToken.token, this.toToken.token, amount);
+      console.log("simulateSwapResult", simulateSwapResult);
+    })
   }
 }
 

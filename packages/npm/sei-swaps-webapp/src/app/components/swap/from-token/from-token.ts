@@ -1,6 +1,20 @@
 import { bigIntToStringDecimal, getUserTokenInfo, seiUtilEventEmitter, stringDecimalToBigInt, UIAmount, UserTokenInfo } from "@crownfi/sei-utils";
 import { SwapFromComponentAutogen } from "./_autogen/from-token.js";
 import { useGetBalance } from "../../../../hooks/use-get-balance.js";
+import { DebouncedCallbacks } from "../../../../lib/debounced-component.js";
+
+type SwapFromTokenChangedAmountEventDetails = {
+  amount: bigint;
+  isValid: boolean;
+}
+
+export type SwapFromTokenChangedAmountEvent = CustomEvent<SwapFromTokenChangedAmountEventDetails>;
+
+declare global {
+	interface GlobalEventHandlersEventMap {
+		"swapFromTokenChangedAmount": SwapFromTokenChangedAmountEvent
+	}
+}
 
 export class SwapFromTokenComponent extends SwapFromComponentAutogen {
   amount: bigint;
@@ -8,6 +22,7 @@ export class SwapFromTokenComponent extends SwapFromComponentAutogen {
   decimals: number;
   balance: bigint;
   isValid: boolean;
+  debouncedCallbacks: DebouncedCallbacks;
 
   constructor() {
     super();
@@ -16,6 +31,7 @@ export class SwapFromTokenComponent extends SwapFromComponentAutogen {
     this.decimals = 6;
     this.balance = BigInt(0);
     this.isValid = true;
+    this.debouncedCallbacks = new DebouncedCallbacks();
   }
 
   updateBalanceText(value: bigint) {
@@ -97,23 +113,40 @@ export class SwapFromTokenComponent extends SwapFromComponentAutogen {
     this.refs.dropdown.setAttribute("options", this.tokens);
   }
 
+  dispatchChangedEvent() {
+    const debouncedDispatch = this.debouncedCallbacks.debounce((el: this, amount: bigint, isValid: boolean) => {
+      el.dispatchEvent(new CustomEvent("swapFromTokenChangedAmount", { 
+        detail: {
+          amount,
+          isValid,
+        },
+        bubbles: true,
+      }));
+    });
+    debouncedDispatch(this, this.amount, this.isValid);
+  }
+
   connectedCallback() {
     this.refs.amountSlider.addEventListener("input", ev => {
       const percentage = +((ev.target as HTMLInputElement)?.value || "0");
       this.updatePercentage(percentage);
+      this.dispatchChangedEvent();
     });
 
     this.refs.amountSlider.addEventListener("change", ev => {
       const percentage = +((ev.target as HTMLInputElement)?.value || "0");
       this.updatePercentage(percentage);
-    });
-
-    this.refs.selectedAmount.addEventListener("change", ev => {
-      this.updateAmount((ev.target as HTMLInputElement)?.value || "0");
+      this.dispatchChangedEvent();
     });
 
     this.refs.selectedAmount.addEventListener("input", ev => {
       this.updateAmount((ev.target as HTMLInputElement)?.value || "0");
+      this.dispatchChangedEvent();
+    });
+
+    this.refs.selectedAmount.addEventListener("change", ev => {
+      this.updateAmount((ev.target as HTMLInputElement)?.value || "0");
+      this.dispatchChangedEvent();
     });
 
     seiUtilEventEmitter.on("defaultProviderChanged", () => {
