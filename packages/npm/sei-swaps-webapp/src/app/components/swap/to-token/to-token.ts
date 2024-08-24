@@ -1,6 +1,14 @@
+import { bigIntToStringDecimal } from "@crownfi/sei-utils";
 import { SwapToComponentAutogen } from "./_autogen/to-token.js";
 
 export class SwapToComponent extends SwapToComponentAutogen {
+  decimals: number;
+
+  constructor() {
+    super();
+    this.decimals = 6;
+  }
+
   setLoading(isLoading: boolean) {
     if (isLoading) {
       this.refs.slippageAmount.innerText = "";
@@ -9,6 +17,18 @@ export class SwapToComponent extends SwapToComponentAutogen {
     } else {
       this.refs.slippageAmount.classList.remove("loading-spinner-inline");
     }
+  }
+
+  onSlippageChanged() {
+    if (this.slippage === null)
+      return;
+    this.refs.slippageAmount.innerText = bigIntToStringDecimal(BigInt(this.slippage), this.decimals, true);
+  }
+
+  onAmountChanged() {
+    if (this.amount === null)
+      return;
+    this.refs.toAmount.value = bigIntToStringDecimal(BigInt(this.amount), this.decimals, true);
   }
 
   onTokenChanged() {

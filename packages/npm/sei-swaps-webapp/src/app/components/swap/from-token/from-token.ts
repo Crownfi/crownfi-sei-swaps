@@ -4,6 +4,7 @@ import { useGetBalance } from "../../../../hooks/use-get-balance.js";
 import { DebouncedCallbacks } from "../../../../lib/debounced-component.js";
 
 type SwapFromTokenChangedAmountEventDetails = {
+  denom: string;
   amount: bigint;
   isValid: boolean;
 }
@@ -68,12 +69,13 @@ export class SwapFromTokenComponent extends SwapFromComponentAutogen {
     this.amount = (BigInt(this.percentage) * this.balance) / 100n;
     this.refs.currentPercentage.innerText = `${this.percentage}%`;
     this.refs.selectedAmount.value = bigIntToStringDecimal(this.amount, this.decimals, true);
+    this.updateValidity();
   }
 
-  setAmountValidity(isValid: boolean) {
-    this.isValid = isValid;
-    if (isValid)
-      this.refs.selectedAmount.setCustomValidity("exceeds")
+  updateValidity() {
+    this.isValid = this.amount <= this.balance;
+    if (!this.isValid)
+      this.refs.selectedAmount.setCustomValidity("exceeds");
     else
       this.refs.selectedAmount.setCustomValidity("");
   }
@@ -82,21 +84,21 @@ export class SwapFromTokenComponent extends SwapFromComponentAutogen {
     if (!this.balance) 
       return;
     const newAmount = stringDecimalToBigInt(amount, this.decimals);
-    if (!newAmount) {
-      throw new Error("updateAmount newAmount null");
+    if (newAmount === null) {
+      return;
     }
     this.amount = newAmount;
     const newPercentage = +bigIntToStringDecimal(this.amount * BigInt(100 * 10**this.decimals) / this.balance, this.decimals);
     this.percentage = newPercentage;
     const exceedsMax = this.percentage > 100;
     const percentageValue = exceedsMax ? "100" : this.percentage.toFixed(2);
-    this.setAmountValidity(exceedsMax);
     this.refs.currentPercentage.innerText = `${exceedsMax ? "> 100" : this.percentage.toFixed(2)}%`;
     this.refs.amountSlider.value = percentageValue;
     this.refs.amountSlider.style.setProperty(
       '--range-workaround-fill-amount',
-      this.percentage / 100 + ""
+      +percentageValue / 100 + ""
     );
+    this.updateValidity();
   }
 
   async onTokenChanged() {
@@ -114,16 +116,18 @@ export class SwapFromTokenComponent extends SwapFromComponentAutogen {
   }
 
   dispatchChangedEvent() {
-    const debouncedDispatch = this.debouncedCallbacks.debounce((el: this, amount: bigint, isValid: boolean) => {
+    const debouncedDispatch = this.debouncedCallbacks.debounce((el: this, denom: string, amount: bigint, isValid: boolean) => {
       el.dispatchEvent(new CustomEvent("swapFromTokenChangedAmount", { 
         detail: {
+          denom,
           amount,
           isValid,
         },
         bubbles: true,
       }));
     });
-    debouncedDispatch(this, this.amount, this.isValid);
+    if (this.token)
+      debouncedDispatch(this, this.token, this.amount, this.isValid);
   }
 
   connectedCallback() {

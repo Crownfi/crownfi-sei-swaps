@@ -48,11 +48,17 @@ export class SwapComponent extends SwapComponentAutogen {
       this.updateTokenAndOptions(isFrom && denom || undefined, !isFrom && denom || undefined);
     });
     this.addEventListener("swapFromTokenChangedAmount", async ev => {
-      const { amount, isValid } = ev.detail;
-      if (!this.fromToken.token || !this.toToken.token || !isValid || !amount)
+      const { denom, amount, isValid } = ev.detail;
+      if (!denom || !this.toToken.token || !isValid)
         return;
-      const simulateSwapResult = await swapService.simulateSwap(this.fromToken.token, this.toToken.token, amount);
-      console.log("simulateSwapResult", simulateSwapResult);
+      if (amount === 0n) {
+        this.toToken.slippage = "0";
+        this.toToken.amount = "0";
+        return;
+      }
+      const simulateSwapResult = await swapService.simulateSwap(denom, this.toToken.token, amount);
+      this.toToken.slippage = simulateSwapResult.slip_amount;
+      this.toToken.amount = simulateSwapResult.result_amount;
     })
   }
 }

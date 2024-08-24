@@ -1,5 +1,5 @@
 type Timeouts = {
-  [key: string]: NodeJS.Timeout
+  [key: string]: NodeJS.Timeout | null
 }
 
 export class DebouncedCallbacks {
@@ -16,10 +16,11 @@ export class DebouncedCallbacks {
   debounce<T extends unknown[]>(func: (...args: T) => void, delay = 500) {
     return (...args: T) => {
       if (this._timeouts[func.toString()]) 
-        clearTimeout(this._timeouts[func.toString()]);
+        clearTimeout(this._timeouts[func.toString()]!);
 
       this._timeouts[func.toString()] = setTimeout(() => {
         func.call(null, ...args);
+        this._timeouts[func.toString()] = null;
       }, delay);
     };
 }
