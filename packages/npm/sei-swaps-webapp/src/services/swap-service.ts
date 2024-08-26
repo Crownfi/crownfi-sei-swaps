@@ -44,7 +44,7 @@ export class SwapService {
     const ixs = this.swapMarket.buildSwapIxs(amount, from, to, receiver, slippageTolerance, expectation);
     if (!ixs)
       return;
-    const receipt = await client.executeContractMulti(ixs);
+    const receipt = await client.executeContractHackySequence(ixs);
     return receipt;
   }
 }
