@@ -45,7 +45,6 @@ export class SwapService {
     if (!ixs)
       return;
     const receipt = await client.executeContractMulti(ixs);
-    console.log("receipt", receipt)
     return receipt;
   }
 }
