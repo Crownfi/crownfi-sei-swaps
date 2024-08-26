@@ -17,6 +17,7 @@
 		"codegen": "cewt codegen --inline-html --extended-form-controls --external-custom-element \"<span is=\\\"token-display\\\"> TokenDisplayElement from @crownfi/sei-webui-utils\" ./src"
 	},
 	"dependencies": {
+		"@aritz-cracker/browser-utils": "^1.3.2",
 		"@cosmjs/cosmwasm-stargate": "^0.32.2",
 		"@cosmjs/proto-signing": "^0.32.2",
 		"@cosmjs/stargate": "^0.32.2",
