@@ -11,7 +11,7 @@ import { q, qa } from "./util.js";
 import { KNOWN_SEI_PROVIDER_INFO } from "@crownfi/sei-js-core";
 import { ClientEnv, SeiChainId, seiUtilEventEmitter, setDefaultNetwork, setNetworkConfig } from "@crownfi/sei-utils";
 import { FarmPoolComponentElement } from "./components/farm/index.js";
-import { SwapService } from "./services/swap-service.js";
+import { SwapService } from "../services/swap-service.js";
 
 import { env } from "../env/index.js";
 import { AppContainer } from "./components/exports.js";

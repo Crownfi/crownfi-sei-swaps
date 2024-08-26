@@ -7,7 +7,11 @@
 
   <div cewt-ref="to-token"></div>
 
-  <button class="fantasy-ornamental primary swap-button" cewt-ref="swap-button" disabled>
-    SWAP
-  </button>
+  <div class="swap-button-container">
+    <button class="fantasy-ornamental primary swap-button" cewt-ref="swap-button" disabled>
+      SWAP
+    </button>
+
+    <span class="loading-spinner-inline text-xlarge" cewt-ref="swap-button-spinner" style="display: none;"></span>
+  </div>
 </template>

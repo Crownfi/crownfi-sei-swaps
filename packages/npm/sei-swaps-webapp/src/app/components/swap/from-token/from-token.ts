@@ -3,7 +3,7 @@ import { SwapFromComponentAutogen } from "./_autogen/from-token.js";
 import { useGetBalance } from "../../../../hooks/use-get-balance.js";
 import { DebouncedCallbacks } from "../../../../lib/debounced-component.js";
 
-type SwapFromTokenChangedAmountEventDetails = {
+export type SwapFromTokenChangedAmountEventDetails = {
   denom: string;
   amount: bigint;
   isValid: boolean;
@@ -48,6 +48,23 @@ export class SwapFromTokenComponent extends SwapFromComponentAutogen {
       this.updateBalanceText(this.balance);
       this.refs.balanceAmount.classList.remove("loading-spinner-inline");
     }
+  }
+
+  setDefaults() {
+    this.refs.selectedAmount.value = "0";
+    this.updateAmount("0");
+  }
+
+  setDisabled(isDisabled: boolean) {
+    if (isDisabled) {
+      this.refs.amountSlider.setAttribute("disabled", "");
+      this.refs.selectedAmount.setAttribute("disabled", "");
+      this.refs.dropdown.setAttribute("disabled", "");
+      return;
+    }
+    this.refs.amountSlider.removeAttribute("disabled");
+    this.refs.selectedAmount.removeAttribute("disabled");
+    this.refs.dropdown.removeAttribute("disabled");
   }
 
   async refreshBalance() {

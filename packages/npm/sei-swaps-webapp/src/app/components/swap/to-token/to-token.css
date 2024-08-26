@@ -7,3 +7,19 @@ div[is="swap-to-component"] .fantasy-input-group {
 div[is="swap-to-component"] .fantasy-input-group > input {
   width: 100%;
 }
+
+div[is="swap-to-component"] .labels-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0px 10px;
+  color: var(--colour-neutral-secondary);
+  font-weight: 400;
+  font-size: var(--font-size-small);
+}
+
+div[is="swap-to-component"] .labels-row > div {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}

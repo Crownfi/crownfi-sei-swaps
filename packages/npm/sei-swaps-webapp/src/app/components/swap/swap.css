@@ -16,24 +16,15 @@ div[is="swap-component"] .arrow {
   padding: var(--spacing-1);
 }
 
-div[is="swap-component"] .labels-row {
+div[is="swap-component"] .swap-button-container {
+  margin-top: var(--spacing-4);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0px 10px;
-  color: var(--colour-neutral-secondary);
-  font-weight: 400;
-  font-size: var(--font-size-small);
-}
-
-div[is="swap-component"] .labels-row > div {
-  display: flex;
-  align-items: center;
+  justify-content: flex-end;
   gap: var(--spacing-1);
+  color: var(--colour-neutral-secondary);
 }
 
 div[is="swap-component"] .swap-button {
   color: var(--colour-neutral-primary);
-  margin-top: var(--spacing-4);
-  align-self: flex-end;
 }

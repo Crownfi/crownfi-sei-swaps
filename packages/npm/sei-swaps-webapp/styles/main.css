@@ -15,3 +15,7 @@
 * {
   box-sizing: border-box;
 }
+
+.text-xlarge {
+  font-size: var(--font-size-xlarge);
+}

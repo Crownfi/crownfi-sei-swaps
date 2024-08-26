@@ -19,6 +19,19 @@ export class SwapToComponent extends SwapToComponentAutogen {
     }
   }
 
+  setDisabled(isDisabled: boolean) {
+    if (isDisabled) {
+      this.refs.dropdown.setAttribute("disabled", "");
+      return;
+    }
+    this.refs.dropdown.removeAttribute("disabled");
+  }
+
+  setDefaults() {
+    this.slippage = "0";
+    this.amount = "0";
+  }
+
   onSlippageChanged() {
     if (this.slippage === null)
       return;
