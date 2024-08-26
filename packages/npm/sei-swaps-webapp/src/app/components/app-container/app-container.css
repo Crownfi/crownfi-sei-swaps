@@ -1,5 +1,5 @@
 main[is="app-container-component"] {
-  width: 763px;
+  min-width: 763px;
 }
 
 main[is="app-container-component"] > .container {
@@ -18,4 +18,8 @@ main[is="app-container-component"] > .container >  menu[is="fantasy-tabs"] {
 
 main[is="app-container-component"] #app-content {
   width: 100%;
+}
+
+main[is="app-container-component"] #transition-container {
+  height: min-content !important;
 }

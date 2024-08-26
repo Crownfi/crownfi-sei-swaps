@@ -1,4 +1,7 @@
+import { q } from "@aritz-cracker/browser-utils";
+import { HTMLDivTransitionfulElement } from "@crownfi/css-gothic-fantasy";
 import { SwapComponent } from "../exports.js";
+import { FarmComponent } from "../farm/farm.js";
 import { AppContainerComponentAutogen } from "./_autogen/app-container.js";
 
 export class AppContainer extends AppContainerComponentAutogen {
@@ -8,18 +11,15 @@ export class AppContainer extends AppContainerComponentAutogen {
 
   connectedCallback() {
     this.listenToTabChanged();
-
-    this.refs.appTabs.setAttribute("selected-value", "swap");
+    this.refs.appTabs.setAttribute("selected-value", "farm");
   }
 
   listenToTabChanged() {
     this.refs.appTabs.addEventListener("fantasyTabSelected", ev => {
-      this.refs.appContent.innerHTML = "";
-
-      if (ev.detail.value === "swap") {
-        this.refs.appContent.appendChild(new SwapComponent());
-      } else
-        this.refs.appContent.innerHTML = ev.detail.value || "";
+      const tab = ev.detail.value;
+      const transitionContainer = q("#transition-container") as HTMLDivTransitionfulElement;
+      const element = tab === "swap" ? new SwapComponent() : new FarmComponent();
+      transitionContainer.transitionSwapLastElement(element, "none");
     });
   }
 }
