@@ -566,7 +566,7 @@ export class SwapMarket {
 		}
 
 		const swappers = route.map(pair => {
-			const pairAddress = this.getPair(pair)?.contract?.address;
+			const pairAddress = (this.getPair(pair) ?? this.getPair(pair, true))?.contract?.address;
 			
 			if (!pairAddress)
 				throw new Error("Invalid pair");
@@ -630,7 +630,7 @@ export class SwapMarket {
 			naive_result_amount = BigInt(naiveSwap.result_amount);
 		}
 
-		const slip_amount = result_amount - naive_result_amount;
+		const slip_amount = naive_result_amount - result_amount;
 
 		return {
 			result_amount: result_amount.toString(),
