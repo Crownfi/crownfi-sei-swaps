@@ -28,3 +28,11 @@ div[is="swap-component"] .swap-button-container {
 div[is="swap-component"] .swap-button {
   color: var(--colour-neutral-primary);
 }
+
+div[is="swap-component"] .warning-container {
+  padding: 0 var(--spacing-1);
+}
+
+div[is="swap-component"] .warning-container .important-note {
+  padding: var(--spacing-1) var(--spacing-2);
+}

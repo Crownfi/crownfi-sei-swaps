@@ -5,6 +5,13 @@ export class SwapComponentRefs {
 	constructor(element: HTMLElement | ShadowRoot) {
 		this.#element = element;
 	}
+	#connectWalletWarning?: HTMLDivElement;
+	get connectWalletWarning() {
+		if (this.#connectWalletWarning === undefined) {
+			this.#connectWalletWarning = this.#element.querySelector("[cewt-ref=\"connect-wallet-warning\"]:not(:scope [is] *)")!;
+		}
+		return this.#connectWalletWarning;
+	}
 	#fromToken?: HTMLDivElement;
 	get fromToken() {
 		if (this.#fromToken === undefined) {
@@ -38,7 +45,7 @@ let _templateSwapComponent: HTMLTemplateElement | null = null;
 function getSwapComponentTemplate(): HTMLTemplateElement {
 	if (_templateSwapComponent == null) {
 		 _templateSwapComponent = document.createElement("template")
-		 _templateSwapComponent.innerHTML = "\n  <div cewt-ref=\"from-token\"></div>\n\n  <button class=\"fantasy-circular arrow\">\n    <span class=\"cicon cicon-size-medium cicon-gradient cicon-fantasy-arrow-down primary\"></span>\n  </button>\n\n  <div cewt-ref=\"to-token\"></div>\n\n  <div class=\"swap-button-container\">\n    <button class=\"fantasy-ornamental primary swap-button\" cewt-ref=\"swap-button\" disabled=\"\">\n      SWAP\n    </button>\n\n    <span class=\"loading-spinner-inline text-xlarge\" cewt-ref=\"swap-button-spinner\" style=\"display: none;\"></span>\n  </div>\n";
+		 _templateSwapComponent.innerHTML = "\n  <div class=\"warning-container\">\n    <div class=\"important-note\" cewt-ref=\"connect-wallet-warning\">\n      Connect your wallet to enable swapping\n    </div>\n  </div>\n\n  <div cewt-ref=\"from-token\"></div>\n\n  <button class=\"fantasy-circular arrow\">\n    <span class=\"cicon cicon-size-medium cicon-gradient cicon-fantasy-arrow-down primary\"></span>\n  </button>\n\n  <div cewt-ref=\"to-token\"></div>\n\n  <div class=\"swap-button-container\">\n    <button class=\"fantasy-ornamental primary swap-button\" cewt-ref=\"swap-button\" disabled=\"\">\n      SWAP\n    </button>\n\n    <span class=\"loading-spinner-inline text-xlarge\" cewt-ref=\"swap-button-spinner\" style=\"display: none;\"></span>\n  </div>\n";
 	}
 	return _templateSwapComponent;
 }

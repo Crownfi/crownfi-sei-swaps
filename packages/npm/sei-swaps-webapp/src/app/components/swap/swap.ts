@@ -124,10 +124,13 @@ export class SwapComponent extends SwapComponentAutogen {
     });
 
     seiUtilEventEmitter.on("defaultProviderChanged", ({ account }) => {
-      if (account)
+      if (account) {
+        this.refs.connectWalletWarning.style.display = "none";
         this.setInputsDisabled(false);
-      else
+      } else {
+        this.refs.connectWalletWarning.style.display = "block";
         this.setInputsDisabled(true);
+      }
     });
   }
 }
