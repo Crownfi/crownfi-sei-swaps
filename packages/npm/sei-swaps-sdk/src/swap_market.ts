@@ -972,6 +972,7 @@ export class SwapMarket {
 		for (const directExchange of route) {
 			const pair = this.getPair(directExchange, true)!;
 			value = pair.exchangeValue(value, pair.assets[1] == fromDenom, includeFees);
+			fromDenom = pair.assets[Number(pair.assets[0] == fromDenom)];
 		}
 		return value;
 	}
