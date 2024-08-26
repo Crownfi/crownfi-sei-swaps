@@ -9,12 +9,13 @@ import { alert, errorDialogIfRejected } from "./dialogs/index.js";
 import { SwapComponentElement } from "./components/swap/index.js";
 import { q, qa } from "./util.js";
 import { KNOWN_SEI_PROVIDER_INFO } from "@crownfi/sei-js-core";
-import { ClientEnv, SeiChainId, seiUtilEventEmitter, setDefaultNetwork, setNetworkConfig } from "@crownfi/sei-utils";
+import { SeiChainId, seiUtilEventEmitter, setDefaultNetwork, setNetworkConfig } from "@crownfi/sei-utils";
 import { FarmPoolComponentElement } from "./components/farm/index.js";
 import { SwapService } from "../services/swap-service.js";
 
 import { env } from "../env/index.js";
 import { AppContainer } from "./components/exports.js";
+import { WebClientEnv } from "@crownfi/sei-webui-utils";
 
 function removeHighlightsFromLinks() {
 	(qa(".header .header-links a") as NodeListOf<HTMLAnchorElement>).forEach((v) => {
@@ -28,8 +29,8 @@ export async function main() {
 	setDefaultNetwork(env.CHAIN_ID);
 
 	let storedProviderPref = localStorage.getItem("preferred_sei_provider");
-	await ClientEnv.setDefaultProvider(storedProviderPref as any, true);
-	const client = await ClientEnv.get(undefined, env.CHAIN_ID);
+	await WebClientEnv.setDefaultProvider(storedProviderPref as any, true);
+	const client = await WebClientEnv.get(undefined, env.CHAIN_ID);
 
 	swapService = await SwapService.create(client.queryClient, env.POOL_FACTORY_CONTRACT_ADDRESS, env.ROUTER_CONTRACT_ADDRESS);
 
