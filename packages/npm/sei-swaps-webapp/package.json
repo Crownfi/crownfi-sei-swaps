@@ -23,7 +23,7 @@
 		"@cosmjs/stargate": "^0.32.2",
 		"@crownfi/css-gothic-fantasy": "^1.8.2",
 		"@crownfi/sei-js-core": "^5.2.5",
-		"@crownfi/sei-swaps-sdk": "^0.8.3",
+		"@crownfi/sei-swaps-sdk": "^0.9.0",
 		"@crownfi/sei-utils": "^0.3.18",
 		"@crownfi/sei-webui-utils": "^0.3.16",
 		"dropdown-menu-element": "^1.2.1"
