@@ -29,7 +29,7 @@ export class SwapService {
 
   async simulateSwap(from: UnifiedDenom, to: UnifiedDenom, amount: bigint) {
     await this.swapMarket.refresh();
-    return this.swapMarket.simulateSwap(amount, from, to);
+    return this.swapMarket.simulateSwap({ denom: from, amount }, to);
   }
 
   async executeSwap(
@@ -41,7 +41,7 @@ export class SwapService {
     expectation: SwapRouterExpectation | null = null,
   ) {
     const client = await useGetClient();
-    const ixs = this.swapMarket.buildSwapIxs(amount, from, to, receiver, slippageTolerance, expectation);
+    const ixs = this.swapMarket.buildSwapIxs({ denom: from, amount }, to, receiver, slippageTolerance, expectation);
     if (!ixs)
       return;
     const receipt = await client.executeContractHackySequence(ixs);
