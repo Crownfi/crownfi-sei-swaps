@@ -17,7 +17,6 @@
 		"@cosmjs/stargate": "^0.32.2",
 		"@crownfi/sei-js-core": "^5.2.5",
 		"@crownfi/sei-utils": "0.3.20",
-		"@crownfi/token-wrapper-sdk": "^0.0.3",
 		"math-bigint": "^1.0.0",
 		"tiny-emitter": "^2.1.0"
 	},
