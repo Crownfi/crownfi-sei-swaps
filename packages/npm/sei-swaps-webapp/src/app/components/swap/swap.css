@@ -30,9 +30,13 @@ div[is="swap-component"] .swap-button {
 }
 
 div[is="swap-component"] .warning-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: calc(var(--spacing-1) / 2);
   padding: 0 var(--spacing-1);
 }
 
 div[is="swap-component"] .warning-container .important-note {
+  width: 100%;
   padding: var(--spacing-1) var(--spacing-2);
 }

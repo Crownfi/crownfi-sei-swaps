@@ -5,6 +5,7 @@ import { swapService } from "../../index.js";
 import { SwapFromTokenChangedAmountEventDetails, SwapFromTokenComponent } from "../exports.js";
 import { SwapComponentAutogen } from "./_autogen/swap.js";
 import { SwapToComponent } from "./to-token/to-token.js";
+import { confirm, msgBoxIfThrow } from "@crownfi/css-gothic-fantasy";
 
 export class SwapComponent extends SwapComponentAutogen {
   private fromToken: SwapFromTokenComponent;
@@ -48,6 +49,8 @@ export class SwapComponent extends SwapComponentAutogen {
 
   async handleAmountChangedEvent(details: SwapFromTokenChangedAmountEventDetails) {
     const { denom, amount, isValid } = details;
+
+    this.refs.exceedsBalanceWarning.style.display = isValid ? "none" : "block";
 
     if (!denom || !this.toToken.token || !isValid || amount === 0n) {
       this.toToken.slippage = "0";
@@ -94,6 +97,16 @@ export class SwapComponent extends SwapComponentAutogen {
     this.refs.swapButtonSpinner.style.display = "none";
   }
 
+  setWalletConnected(isConnected: boolean) {
+    if (isConnected) {
+      this.refs.connectWalletWarning.style.display = "none";
+      this.setInputsDisabled(false);
+    } else {
+      this.refs.connectWalletWarning.style.display = "block";
+      this.setInputsDisabled(true);
+    }
+  }
+
   async connectedCallback() {
     const pairs = await swapService.getPairs();
     this.tokens = getTokensFromPairs(pairs);
@@ -111,26 +124,38 @@ export class SwapComponent extends SwapComponentAutogen {
     });
 
     this.refs.swapButton.addEventListener("click", async () => {
-      const account = await useGetAccount();
-      if (!account.isConnected)
-        return;
-      this.setSwapButtonLoading(true);
-      await swapService.executeSwap(this.fromToken.token!, this.toToken.token!, this.fromToken.amount, account.seiAddress!);
-      this.fromToken.refreshBalance();
-      this.fromToken.setDefaults();
-      this.toToken.setDefaults();
-      this.setSwapButtonLoading(false);
-      this.setSwapButtonDisabled(true);
+      msgBoxIfThrow(async () => {
+        try {
+          const account = await useGetAccount();
+          if (!account.isConnected)
+            return;
+          if (!(await confirm(
+            "Swap Tokens",
+            `Are you sure you wish to swap ${this.fromToken.token?.toUpperCase()} for ${this.toToken.token?.toUpperCase()}?`,
+            "question",
+            undefined,
+            "No",
+            "Yes"
+          ))) {
+            return;
+          }
+          this.setSwapButtonLoading(true);
+          await swapService.executeSwap(this.fromToken.token!, this.toToken.token!, this.fromToken.amount, account.seiAddress!);
+          this.fromToken.refreshBalance();
+          this.fromToken.setDefaults();
+          this.toToken.setDefaults();
+        } finally {
+          this.setSwapButtonLoading(false);
+          this.setSwapButtonDisabled(true);
+        }
+      });
     });
 
+    const account = await useGetAccount();
+    this.setWalletConnected(account.isConnected);
+
     seiUtilEventEmitter.on("defaultProviderChanged", ({ account }) => {
-      if (account) {
-        this.refs.connectWalletWarning.style.display = "none";
-        this.setInputsDisabled(false);
-      } else {
-        this.refs.connectWalletWarning.style.display = "block";
-        this.setInputsDisabled(true);
-      }
+      this.setWalletConnected(!!account);
     });
   }
 }
