@@ -1,16 +1,21 @@
 import { Addr } from "@crownfi/sei-utils";
 
+export interface AddrWithPayload {
+	address: Addr,
+	payload?: Buffer
+}
+
 /**
- * This represents either a native token denom, or a CW20 token.
- * CW20 tokens are represented with "cw20/{contractAddress}"
+ * This represents either a native token denom, a CW20 token, or an ERC20 token.
+ * 
+ * - Native tokens are represented as-is, this includes factory and IBC tokens.
+ * - CW20 tokens are represented with "cw20/{contractAddress}".
+ * - ERC20 tokens are represented with "erc20/{contractAddress}"
  *
- * Stable for "1.0"
  */
 export type UnifiedDenom = string;
 /**
  * Represents a pair of assets.
- *
- * Stable for "1.0"
  */
 export type UnifiedDenomPair = [UnifiedDenom, UnifiedDenom];
 

@@ -76,8 +76,16 @@ pub enum PoolPairExecuteMsg {
 #[derive(Default)]
 pub struct VolumeQueryResponse {
 	pub volume: [Uint128; 2],
+	pub from_timestamp_ms: u64,
+	pub to_timestamp_ms: u64,
+}
+
+#[cw_serde]
+#[derive(Default)]
+pub struct ExchangeRateQueryResponse {
 	pub exchange_rate_low: f64,
 	pub exchange_rate_high: f64,
+	pub exchange_rate_avg: f64,
 	pub from_timestamp_ms: u64,
 	pub to_timestamp_ms: u64,
 }
@@ -134,6 +142,29 @@ pub enum PoolPairQueryMsg {
 	/// Get the all time volume from since the first trade happened.
 	#[returns(VolumeQueryResponse)]
 	TotalVolumeSum,
+	/// If past_hours is specified and is greater than 0, returns exchange rate stats for the past specified hours.
+	/// e.g. 24 means price stats over the past 24 hours, updated every hour (UTC).
+	///Each of the 24 bits of the significand (including the implicit 24th bit), bit 23 to bit 0, represents a value, starting at 1 and halves for each bit, as follows: 
+	/// Otherwise, returns the price stats since this hour started (UTC).
+	///
+	/// Data older than 24 hours is not guaranteed.
+	/// 
+	/// The stored encoding for highest and lowest price is lossy and gets more accurate as the exhange rate approaches 1:1
+	#[returns(ExchangeRateQueryResponse)]
+	ExchangeRateHourly { past_hours: Option<u8> },
+	/// If past_days is specified and is greater than 0, returns exchange rate stats for the past specified days.
+	/// e.g. 7 means price stats over the past 7 days, updated every midnight (UTC).
+	///
+	/// Otherwise, returns the price stats since midnight (UTC).
+	///
+	/// Data older than 30 days is not guaranteed.
+	/// 
+	/// The stored encoding for highest and lowest price is lossy and gets more accurate as the exhange rate approaches 1:1
+	#[returns(ExchangeRateQueryResponse)]
+	ExchangeRateDaily { past_days: Option<u8> },
+	#[returns(ExchangeRateQueryResponse)]
+	/// Returns the average, highest, and lowest price
+	ExchangeRateAllTime
 }
 
 #[cw_serde]
