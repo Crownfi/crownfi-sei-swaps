@@ -1,0 +1,72 @@
+div[is="farm-component"] table thead {
+  margin-bottom: var(--spacing-1);
+}
+
+div[is="farm-component"] table thead tr {
+  font-synthesis: weight small-caps position;
+	font-family: var(--font-family-fantasy);
+  background: none;
+}
+
+div[is="farm-component"] table th, td {
+  border: none;
+}
+
+div[is="farm-component"] table thead tr th {
+  font-size: var(--font-size-xlarge);
+  color: var(--colour-neutral-primary);
+  font-weight: 400;
+  padding: 0 var(--spacing-3);
+}
+
+div[is="farm-component"] table thead tr th:first-child {
+  padding-left: var(--spacing-2);
+}
+
+div[is="farm-component"] table thead tr th:last-child {
+  padding-right: var(--spacing-2);
+}
+
+div[is="farm-component"] .fantasy-menu-item-block {
+  background: linear-gradient(180deg, var(--colour-primary-900) 0%, #1F1A24 100%);
+}
+
+div[is="farm-component"] .fantasy-menu-item-block td {
+  padding: var(--spacing-1) var(--spacing-3);
+}
+
+div[is="farm-component"] .fantasy-menu-item-block td:first-child {
+  padding-left: var(--spacing-2);
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+div[is="farm-component"] .fantasy-menu-item-block td:last-child {
+  padding-right: var(--spacing-2);
+}
+
+div[is="farm-component"] .fantasy-menu-item-block:hover {
+  border: 1px solid transparent;
+}
+
+div[is="farm-component"] .fantasy-menu-item-block .badge {
+  border: 1px solid var(--colour-primary-500);
+  border-radius: 4px;
+  padding: 4px 8px 4px 8px;
+  background-color: var(--colour-primary-800);
+  width: max-content;
+}
+
+div[is="farm-component"] .fantasy-menu-item-block .equals {
+  font-weight: bolder;
+  color: var(--colour-secondary-900);
+  font-size: var(--font-size-medium);
+}
+
+div[is="farm-component"] .fantasy-menu-item-block .total-deposits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
