@@ -883,7 +883,7 @@ export class SwapMarket {
 	async simulateSwap(
 		offer: Coin | IBigIntCoin,
 		askDenom: UnifiedDenom
-	): Promise<SwapMarketSwapSimResult | void> {	
+	): Promise<SwapMarketSwapSimResult> {	
 		if (offer.denom == askDenom) {
 			throw new Error("Trading input denom must differ from trading output denom");
 		}
