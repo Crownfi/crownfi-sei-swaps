@@ -10,7 +10,7 @@ import {
 	SwapRouterExpectation,
 	SwapReceiver,
 } from "./index.js";
-import { Addr, BigIntCoin, BigIntCoinObj, ClientEnv, getBalanceChangesFor, getUserTokenInfo, nativeDenomSortCompare } from "@crownfi/sei-utils";
+import { Addr, BigIntCoin, IBigIntCoin, ClientEnv, getBalanceChangesFor, getUserTokenInfo, nativeDenomSortCompare } from "@crownfi/sei-utils";
 
 import { AddrWithPayload, UnifiedDenom, UnifiedDenomPair, matchTokenKind } from "./types.js";
 import { Coin, coin } from "@cosmjs/amino";
@@ -49,10 +49,10 @@ function bigIntMulNumber(input: bigint, num: number) {
 	} = getNumberParts(num);
 	return ((input * (0x10000000000000n + mantissa)) << (exponent - 52n)) * (negative ? -1n : 1n);
 }
-function normalizePayloadCoin(amount: string | bigint | Coin | BigIntCoinObj, fallbackDenom: string): Coin {
+function normalizePayloadCoin(amount: string | bigint | Coin | IBigIntCoin, fallbackDenom: string): Coin {
 	return (typeof amount == "object" ? new BigIntCoin(amount) : new BigIntCoin(amount, fallbackDenom)).intoCosmCoin();
 }
-function assertValidDenom(amount: string | bigint | Coin | BigIntCoinObj, ...validDenoms: string[]) {
+function assertValidDenom(amount: string | bigint | Coin | IBigIntCoin, ...validDenoms: string[]) {
 	if (typeof amount == "object" && validDenoms.indexOf(amount.denom) != -1) {
 		throw new InvalidDenomError(amount.denom, validDenoms);
 	}
@@ -358,8 +358,8 @@ export class SwapMarketPair {
 	}
 	
 	buildProvideLiquidityIxs(
-		token0Amount: string | bigint | Coin | BigIntCoinObj,
-		token1Amount: string | bigint | Coin | BigIntCoinObj,
+		token0Amount: string | bigint | Coin | IBigIntCoin,
+		token1Amount: string | bigint | Coin | IBigIntCoin,
 		slippageTolerance: number = 0.01,
 		receiver?: Addr | AddrWithPayload
 	): ExecuteInstruction[] {
@@ -441,7 +441,7 @@ export class SwapMarketPair {
 	 * instructions generated including the contracts sent to may change in future updates.
 	 */
 	buildSwapIxs(
-		offer: Coin | BigIntCoinObj,
+		offer: Coin | IBigIntCoin,
 		slippageTolerance: number = 0.01,
 		receiver?: Addr | AddrWithPayload
 	): ExecuteInstruction[] {
@@ -461,7 +461,7 @@ export class SwapMarketPair {
 	}
 
 	async simulateSwap(
-		offer: Coin | BigIntCoinObj
+		offer: Coin | IBigIntCoin
 	): Promise<PoolPairCalcSwapResult> {
 		// TODO: convert offer to wrapped variant if it is an erc20 or cw20 token.
 		return this.contract.querySimulateSwap({
@@ -470,7 +470,7 @@ export class SwapMarketPair {
 	}
 
 	async simulateNaiveSwap(
-		offer: Coin | BigIntCoinObj
+		offer: Coin | IBigIntCoin
 	): Promise<PoolPairCalcNaiveSwapResult> {
 		// TODO: convert offer to wrapped variant if it is an erc20 or cw20 token.
 		return this.contract.querySimulateNaiveSwap({
@@ -835,7 +835,7 @@ export class SwapMarket {
 	 * may change in future updates.
 	 */
 	buildSwapIxs(
-		offer: Coin | BigIntCoinObj,
+		offer: Coin | IBigIntCoin,
 		askDenom: UnifiedDenom,
 		receiver: Addr,
 		slippageTolerance: number = 0.01,
@@ -881,7 +881,7 @@ export class SwapMarket {
 	 * @returns
 	 */
 	async simulateSwap(
-		offer: Coin | BigIntCoinObj,
+		offer: Coin | IBigIntCoin,
 		askDenom: UnifiedDenom
 	): Promise<SwapMarketSwapSimResult | void> {	
 		if (offer.denom == askDenom) {
