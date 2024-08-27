@@ -25,7 +25,7 @@ let _templateTokenDropdownComponent: HTMLTemplateElement | null = null;
 function getTokenDropdownComponentTemplate(): HTMLTemplateElement {
 	if (_templateTokenDropdownComponent == null) {
 		 _templateTokenDropdownComponent = document.createElement("template")
-		 _templateTokenDropdownComponent.innerHTML = "\n  <span cewt-ref=\"selected-token\" is=\"token-display\"></span>\n  <i class=\"cicon cicon-size-xsmall cicon-gradient cicon-fantasy-chevron-down\"></i>\n  <dropdown-menu click-trigger=\"primary\" cewt-ref=\"tokens-dropdown\">\n  </dropdown-menu>\n";
+		 _templateTokenDropdownComponent.innerHTML = "\n  <span cewt-ref=\"selected-token\" is=\"token-display\"></span>\n  <i class=\"cicon cicon-size-xsmall cicon-gradient cicon-fantasy-chevron-down\"></i>\n  <dropdown-menu click-trigger=\"primary\" cewt-ref=\"tokens-dropdown\" linked-elements=\"button:has(#this)\">\n  </dropdown-menu>\n";
 	}
 	return _templateTokenDropdownComponent;
 }
