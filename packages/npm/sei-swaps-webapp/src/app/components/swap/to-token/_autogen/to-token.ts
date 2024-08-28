@@ -31,7 +31,7 @@ let _templateSwapToComponent: HTMLTemplateElement | null = null;
 function getSwapToComponentTemplate(): HTMLTemplateElement {
 	if (_templateSwapToComponent == null) {
 		 _templateSwapToComponent = document.createElement("template")
-		 _templateSwapToComponent.innerHTML = "\n  <div class=\"labels-row\">\n    <span>To:</span>\n    <div>\n      Slippage: <span cewt-ref=\"slippage-amount\">0</span>\n    </div>\n  </div>\n\n  <div class=\"fantasy-input-group\">\n    <button is=\"token-dropdown-component\" id=\"to-token-dropdown\" cewt-ref=\"dropdown\"></button>\n\n    <input cewt-ref=\"to-amount\" type=\"text\" value=\"0\" disabled=\"\">\n  </div>\n";
+		 _templateSwapToComponent.innerHTML = "\n  <div class=\"labels-row\">\n    <span>To:</span>\n    <div>\n      Slippage: <span cewt-ref=\"slippage-amount\">0</span>\n    </div>\n  </div>\n\n  <div class=\"fantasy-input-group\">\n    <button is=\"token-dropdown-component\" id=\"to-token-dropdown\" cewt-ref=\"dropdown\"></button>\n\n    <input cewt-ref=\"to-amount\" type=\"number\" value=\"0\" disabled=\"\">\n  </div>\n";
 	}
 	return _templateSwapToComponent;
 }

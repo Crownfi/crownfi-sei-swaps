@@ -1,11 +1,14 @@
 import { seiUtilEventEmitter } from "@crownfi/sei-utils";
+import { msgBoxIfThrow } from "@crownfi/css-gothic-fantasy";
+import { coin } from "@cosmjs/proto-signing";
+
 import { useGetAccount } from "../../../hooks/use-get-account.js";
 import { getTokensFromPairs } from "../../../utils/tokens-from-pairs.js";
 import { swapService } from "../../index.js";
 import { SwapFromTokenChangedAmountEventDetails, SwapFromTokenComponent } from "../exports.js";
 import { SwapComponentAutogen } from "./_autogen/swap.js";
 import { SwapToComponent } from "./to-token/to-token.js";
-import { confirm, msgBoxIfThrow } from "@crownfi/css-gothic-fantasy";
+import { ConfirmSwapDialog } from "./dialogs/confirm-swap/confirm-swap.js";
 
 export class SwapComponent extends SwapComponentAutogen {
   private fromToken: SwapFromTokenComponent;
@@ -125,20 +128,16 @@ export class SwapComponent extends SwapComponentAutogen {
 
     this.refs.swapButton.addEventListener("click", async () => {
       msgBoxIfThrow(async () => {
+        const account = await useGetAccount();
+        if (!account.isConnected)
+          return;
+        if (!(await ConfirmSwapDialog.confirm({
+          from: coin(this.fromToken.amount?.toString()!, this.fromToken.token!),
+          to: coin(this.toToken.amount!, this.toToken.token!),
+        }))) {
+          return;
+        }
         try {
-          const account = await useGetAccount();
-          if (!account.isConnected)
-            return;
-          if (!(await confirm(
-            "Swap Tokens",
-            `Are you sure you wish to swap ${this.fromToken.token?.toUpperCase()} for ${this.toToken.token?.toUpperCase()}?`,
-            "question",
-            undefined,
-            "No",
-            "Yes"
-          ))) {
-            return;
-          }
           this.setSwapButtonLoading(true);
           await swapService.executeSwap(this.fromToken.token!, this.toToken.token!, this.fromToken.amount, account.seiAddress!);
           this.fromToken.refreshBalance();

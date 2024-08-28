@@ -1,0 +1,47 @@
+div[is="confirm-swap-dialog-component"] {
+  padding: var(--spacing-2) 0;
+}
+
+div[is="confirm-swap-dialog-component"] > *:not(:first-child) {
+  margin-top: var(--spacing-2);
+}
+
+div[is="confirm-swap-dialog-component"] .container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2);
+  border: 1px dashed var(--colour-primary-500);
+  border-radius: 8px;
+}
+
+div[is="confirm-swap-dialog-component"] .badge {
+  border: 1px solid var(--colour-primary-500);
+  border-radius: 4px;
+  padding: 4px 8px 4px 8px;
+  background-color: var(--colour-primary-800);
+  width: max-content;
+}
+
+div[is="confirm-swap-dialog-component"] .container .row {
+  display: flex;
+  align-items: center;
+}
+
+div[is="confirm-swap-dialog-component"] .container .space-between {
+  justify-content: space-between;
+}
+
+div[is="confirm-swap-dialog-component"] .container .gap-1 {
+  gap: var(--spacing-1);
+}
+
+div[is="confirm-swap-dialog-component"] .container .col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+div[is="confirm-swap-dialog-component"] .label {
+  font-weight: 500;
+}

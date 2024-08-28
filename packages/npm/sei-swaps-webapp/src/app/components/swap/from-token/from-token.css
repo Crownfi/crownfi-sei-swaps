@@ -2,6 +2,7 @@ div[is="swap-from-component"] .fantasy-input-group {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: var(--spacing-2);
+  min-height: 70px;
 }
 
 div[is="swap-from-component"] .labels-row {
@@ -56,4 +57,13 @@ div[is="swap-from-component"] .slider-container .slider-amounts .amount {
 div[is="swap-from-component"] .slider-container .slider-amounts .converted-amount {
   font-size: var(--font-size-normal);
   color: var(--colour-secondary-500);
+}
+
+div[is="swap-from-component"] .slider-container .slider-amounts input[type=number]::-webkit-inner-spin-button, 
+.swap-coin-inputs input[type=number]::-webkit-outer-spin-button { 
+	-webkit-appearance: none;
+  margin: 0;
+}
+div[is="swap-from-component"] .slider-container .slider-amounts input[type=number] {
+	-moz-appearance: textfield;
 }

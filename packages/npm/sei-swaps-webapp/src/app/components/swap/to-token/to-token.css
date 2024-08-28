@@ -2,6 +2,7 @@ div[is="swap-to-component"] .fantasy-input-group {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: var(--spacing-2);
+  min-height: 70px;
 }
 
 div[is="swap-to-component"] .fantasy-input-group > input {
@@ -22,4 +23,13 @@ div[is="swap-to-component"] .labels-row > div {
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
+}
+
+div[is="swap-to-component"] .fantasy-input-group input[type=number]::-webkit-inner-spin-button, 
+.swap-coin-inputs input[type=number]::-webkit-outer-spin-button { 
+	-webkit-appearance: none;
+  margin: 0;
+}
+div[is="swap-to-component"] .fantasy-input-group input[type=number] {
+	-moz-appearance: textfield;
 }

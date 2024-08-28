@@ -16,6 +16,14 @@ main[is="app-container-component"] > .container >  menu[is="fantasy-tabs"] {
   gap: var(--spacing-7);
 }
 
+main[is="app-container-component"] menu[is="fantasy-tabs"] li {
+  padding: var(--spacing-3);
+}
+
+main[is="app-container-component"] menu[is="fantasy-tabs"] li span + span{
+  margin-top: var(--spacing-1);
+}
+
 main[is="app-container-component"] #app-content {
   width: 100%;
 }

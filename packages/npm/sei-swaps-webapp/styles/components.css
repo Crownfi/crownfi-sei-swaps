@@ -3,5 +3,6 @@
 @import url("../src/app//components/swap/swap.css");
 @import url("../src/app//components/swap/from-token/from-token.css");
 @import url("../src/app//components/swap/to-token/to-token.css");
+@import url("../src/app//components/swap/dialogs/confirm-swap/confirm-swap.css");
 @import url("../src/app//components/token-dropdown/token-dropdown.css");
 @import url("../src/app//components/farm/farm.css");
