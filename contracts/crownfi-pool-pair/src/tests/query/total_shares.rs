@@ -55,7 +55,6 @@ fn increases_when_liquidity_provided() {
 }
 
 #[test]
-#[ignore = "for some reason this test is capturing the enviroment from other tests, even on single threaded mode"]
 fn decreases_when_liquidity_burned() {
 	let mut deps = deps(&[]);
 	init(&mut deps);

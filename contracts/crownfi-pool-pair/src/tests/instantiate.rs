@@ -100,7 +100,6 @@ fn subdenom_is_created_and_shares_are_minted() {
 }
 
 #[test]
-#[ignore = "failing"]
 fn contract_is_aware_of_newly_minted_tokens() {
 	let mut deps = deps(&[]);
 	init(&mut deps);

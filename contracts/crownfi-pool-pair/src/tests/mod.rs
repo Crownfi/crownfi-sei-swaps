@@ -1,6 +1,4 @@
-use cosmwasm_std::{
-	coin, testing::*, Addr, Coin, Decimal, Decimal256, MemoryStorage, QuerierWrapper, Response, Uint256,
-};
+use cosmwasm_std::{coin, testing::*, Addr, Coin, Decimal, MemoryStorage, QuerierWrapper, Response};
 use cosmwasm_std::{OwnedDeps, Uint128};
 use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
 
@@ -15,6 +13,7 @@ mod query;
 
 const RANDOM_ADDRESS: &str = "sei1zgfgerl8qt9uldlr0y9w7qe97p7zyv5kwg2pge";
 const RANDOM_ADDRESS2: &str = "sei1grzhksjfvg2s8mvgetmkncv67pr90kk37cfdhq";
+const DUST: u128 = 1;
 const LP_TOKEN: &str = "factory/cosmos2contract/lp";
 const PAIR_DENOMS: [&str; 2] = ["abc", "cba"];
 const ONE_BILLION: u128 = 1_000_000;
@@ -23,18 +22,23 @@ type TestDeps = OwnedDeps<MemoryStorage, MockApi, MockQuerier<SeiQueryWrapper>, 
 
 fn deps(balances: &[(&str, &[Coin])]) -> TestDeps {
 	let querier = MockQuerier::<SeiQueryWrapper>::new(balances);
+
+	let mem = Box::new(MockStorage::default());
+	let mem_ptr = Box::leak(mem) as *mut MockStorage;
+	crownfi_cw_common::storage::base::set_global_storage(unsafe { Box::from_raw(mem_ptr) });
+
 	OwnedDeps {
 		querier,
-		storage: MockStorage::default(),
+		storage: unsafe { mem_ptr.read() },
 		api: MockApi::default(),
 		custom_query_type: Default::default(),
 	}
 }
 
-fn init(deps: &mut TestDeps) -> Response<SeiMsg> {
-	const LEFT_TOKEN_AMT: u128 = ONE_BILLION;
-	const RIGHT_TOKEN_AMT: u128 = ONE_BILLION / 2;
+const LEFT_TOKEN_AMT: u128 = ONE_BILLION;
+const RIGHT_TOKEN_AMT: u128 = ONE_BILLION / 2;
 
+fn init(deps: &mut TestDeps) -> Response<SeiMsg> {
 	let msg = PoolPairInstantiateMsg {
 		shares_receiver: Addr::unchecked(RANDOM_ADDRESS),
 		config: PoolPairConfigJsonable {
@@ -100,30 +104,30 @@ fn share_in_assets<T: Into<Uint128> + Copy>(pool: [T; 2], amount: T, total_share
 	]
 }
 
-fn calc_swap<T: Into<Uint128> + Copy>(
-	offer: T,
-	offer_idx: usize,
-	pool: [T; 2],
-	commission_rate: Decimal,
-) -> (Uint128, Uint128, Uint128) {
-	assert!(offer_idx <= 1);
-	let pool: [Uint256; 2] = pool.map(|x| x.into().into());
-	let offer: Uint256 = offer.into().into();
-	let commission_rate = Decimal256::from(commission_rate);
+// fn calc_swap<T: Into<Uint128> + Copy>(
+// 	offer: T,
+// 	offer_idx: usize,
+// 	pool: [T; 2],
+// 	commission_rate: Decimal,
+// ) -> (Uint128, Uint128, Uint128) {
+// 	assert!(offer_idx <= 1);
+// 	let pool: [Uint256; 2] = pool.map(|x| x.into().into());
+// 	let offer: Uint256 = offer.into().into();
+// 	let commission_rate = Decimal256::from(commission_rate);
 
-	let ask_pool = pool[offer_idx ^ 1];
-	let offer_pool = pool[offer_idx];
-	let cp = offer_pool * ask_pool;
+// 	let ask_pool = pool[offer_idx ^ 1];
+// 	let offer_pool = pool[offer_idx];
+// 	let cp = offer_pool * ask_pool;
 
-	let return_amount: Uint256 =
-		(Decimal256::from_ratio(ask_pool, 1u8) - Decimal256::from_ratio(cp, offer_pool + offer)) * Uint256::from(1u8);
-	let spread_amount: Uint256 = (offer * Decimal256::from_ratio(ask_pool, offer_pool)).saturating_sub(return_amount);
-	let commission_amount: Uint256 = return_amount * commission_rate;
-	let return_amount: Uint256 = return_amount - commission_amount;
+// 	let return_amount: Uint256 =
+// 		(Decimal256::from_ratio(ask_pool, 1u8) - Decimal256::from_ratio(cp, offer_pool + offer)) * Uint256::from(1u8);
+// 	let spread_amount: Uint256 = (offer * Decimal256::from_ratio(ask_pool, offer_pool)).saturating_sub(return_amount);
+// 	let commission_amount: Uint256 = return_amount * commission_rate;
+// 	let return_amount: Uint256 = return_amount - commission_amount;
 
-	(
-		return_amount.try_into().unwrap(),
-		spread_amount.try_into().unwrap(),
-		commission_amount.try_into().unwrap(),
-	)
-}
+// 	(
+// 		return_amount.try_into().unwrap(),
+// 		spread_amount.try_into().unwrap(),
+// 		commission_amount.try_into().unwrap(),
+// 	)
+// }

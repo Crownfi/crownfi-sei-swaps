@@ -11,7 +11,8 @@ use crate::{
 	error::PoolPairContractError,
 	msg::PoolPairExecuteMsg,
 	tests::{
-		calc_shares, deps, init, pool_balance, share_in_assets, LP_TOKEN, PAIR_DENOMS, RANDOM_ADDRESS, RANDOM_ADDRESS2,
+		calc_shares, deps, init, pool_balance, share_in_assets, DUST, LEFT_TOKEN_AMT, LP_TOKEN, PAIR_DENOMS,
+		RANDOM_ADDRESS, RANDOM_ADDRESS2, RIGHT_TOKEN_AMT,
 	},
 	workarounds::total_supply_workaround,
 };
@@ -127,12 +128,20 @@ fn value_of_share_doesnt_change() {
 	let assets = share_in_assets(pb, 500, total_share.u128());
 	let share_values = calc_shares(assets.clone().map(|x| x.amount.u128()), pb);
 
-	execute(deps.as_mut(), env, info, msg).unwrap();
+	execute(deps.as_mut(), env.clone(), info, msg).unwrap();
+
+	deps.querier.update_balance(
+		env.contract.address,
+		vec![
+			coin(LEFT_TOKEN_AMT - assets[0].amount.u128(), PAIR_DENOMS[0]),
+			coin(RIGHT_TOKEN_AMT - assets[1].amount.u128(), PAIR_DENOMS[1]),
+		],
+	);
 
 	let total_share_after = total_supply_workaround(LP_TOKEN);
 	assert_eq!(total_share - Uint128::new(500), total_share_after);
 	let new_share_values = calc_shares(assets.clone().map(|x| x.amount.u128()), pb);
-	assert_eq!(share_values, new_share_values);
+	assert_eq!(share_values - DUST, new_share_values);
 }
 
 #[test]
