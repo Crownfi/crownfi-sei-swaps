@@ -2,7 +2,9 @@ import { WasmExtension } from "@cosmjs/cosmwasm-stargate";
 import { QueryClient } from "@cosmjs/stargate";
 import { SwapMarket, SwapRouterExpectation, UnifiedDenom, UnifiedDenomPair } from "@crownfi/sei-swaps-sdk";
 import { Addr } from "@crownfi/sei-utils";
+
 import { useGetClient } from "../hooks/use-get-client.js";
+import { env } from "../env/index.js";
 
 export class SwapService {
   private constructor(
@@ -37,7 +39,7 @@ export class SwapService {
     to: UnifiedDenom,
     amount: bigint,
     receiver: Addr,
-    slippageTolerance: number = 0.5,
+    slippageTolerance: number = env.SLIPPAGE_TOLERANCE_PERCENTAGE,
     expectation: SwapRouterExpectation | null = null,
   ) {
     const client = await useGetClient();
