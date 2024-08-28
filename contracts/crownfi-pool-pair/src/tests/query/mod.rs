@@ -11,6 +11,8 @@ use crate::{
 
 mod basic_queries;
 mod share_value;
+mod simulate_naive_swap;
+mod simulate_swap;
 mod total_shares;
 
 #[test]
@@ -37,54 +39,6 @@ fn queries() {
 		let share_amount = calc_shares([500, 250], pb);
 		assert_eq!(share_value, simulate_provide_liquidity.share_value);
 		assert_eq!(share_amount, simulate_provide_liquidity.share_amount.u128());
-	}
-
-	// XXX: same reason as the `swap()` tests
-	#[cfg(feature = "failing-tests")]
-	{
-		use pool::{PoolPairCalcNaiveSwapResult, PoolPairCalcSwapResult};
-
-		let simulate_swap: PoolPairCalcSwapResult = from_json(
-			query(
-				deps.as_ref(),
-				env.clone(),
-				PoolPairQueryMsg::SimulateSwap {
-					offer: coin(1000, PAIR_DENOMS[0]),
-				},
-			)
-			.unwrap(),
-		)
-		.unwrap();
-		let pb = pool_balance(PAIR_DENOMS, &deps.querier);
-		let (return_, spread, commission) = calc_swap(1000, 0, pb, Decimal::bps(50));
-		assert_eq!(return_, simulate_swap.result_amount);
-		assert_eq!(spread, simulate_swap.spread_amount);
-		assert_eq!(commission, simulate_swap.maker_fee_amount);
-		assert_eq!(commission.u128() * 2, simulate_swap.total_fee_amount.u128());
-
-		let simulate_naive_swap: PoolPairCalcNaiveSwapResult = from_json(
-			query(
-				deps.as_ref(),
-				env.clone(),
-				PoolPairQueryMsg::SimulateNaiveSwap {
-					offer: coin(1000, PAIR_DENOMS[0]),
-				},
-			)
-			.unwrap(),
-		)
-		.unwrap();
-		let pb = pool_balance(PAIR_DENOMS, &deps.querier);
-		let (return_, spread, commission) = calc_swap(1000, 0, pb, Decimal::bps(50));
-		let (return_, commission) = (
-			return_ - spread * Decimal::bps(100),
-			commission + spread * Decimal::bps(50),
-		);
-		assert_eq!(return_, simulate_naive_swap.result_amount);
-		assert_eq!(commission, simulate_naive_swap.maker_fee_amount);
-		assert_eq!(
-			commission.u128() * 2 + spread.u128(),
-			simulate_naive_swap.total_fee_amount.u128()
-		);
 	}
 
 	execute(

@@ -84,7 +84,6 @@ fn slippage_tolerance_must_be_respected() {
 }
 
 #[test]
-// #[ignore = "failing"]
 fn swap_calculation_is_correct() {
 	let mut deps = deps(&[]);
 	init(&mut deps);
