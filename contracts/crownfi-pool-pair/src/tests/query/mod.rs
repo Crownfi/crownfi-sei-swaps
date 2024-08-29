@@ -12,6 +12,7 @@ use crate::{
 mod basic_queries;
 mod share_value;
 mod simulate_naive_swap;
+mod simulate_provide_liquidity;
 mod simulate_swap;
 mod total_shares;
 
@@ -21,25 +22,6 @@ fn queries() {
 	init(&mut deps);
 
 	let env = mock_env();
-
-	// XXX: FAILS WITH `ATTEMPT TO SUBTRACT WITH OVERFLOW`
-	#[cfg(feature = "failing-tests")]
-	{
-		let simulate_provide_liquidity: PoolPairQuerySimulateDepositResponse = from_json(
-			query(
-				deps.as_ref(),
-				env.clone(),
-				PoolPairQueryMsg::SimulateProvideLiquidity {
-					offer: [coin(500, PAIR_DENOMS[0]), coin(250, PAIR_DENOMS[1])],
-				},
-			)
-			.unwrap(),
-		)
-		.unwrap();
-		let share_amount = calc_shares([500, 250], pb);
-		assert_eq!(share_value, simulate_provide_liquidity.share_value);
-		assert_eq!(share_amount, simulate_provide_liquidity.share_amount.u128());
-	}
 
 	execute(
 		deps.as_mut(),
