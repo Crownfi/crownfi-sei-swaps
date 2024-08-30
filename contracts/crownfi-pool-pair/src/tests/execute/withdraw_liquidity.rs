@@ -81,9 +81,7 @@ fn burn_lp_token_and_return_proportional_share_value() {
 
 	let info = mock_info(RANDOM_ADDRESS2, &[coin(500, LP_TOKEN)]);
 
-	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
-	let total_share = total_supply_workaround(LP_TOKEN);
-	let assets = share_in_assets(pb, 500, total_share.u128());
+	let assets = share_in_assets(deps.as_ref(), 500);
 
 	let response = execute(deps.as_mut(), env.clone(), info.clone(), msg.clone()).unwrap();
 	assert_eq!(
@@ -107,7 +105,7 @@ fn value_of_share_doesnt_change() {
 
 	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
 	let total_share = total_supply_workaround(LP_TOKEN);
-	let assets = share_in_assets(pb, 500, total_share.u128());
+	let assets = share_in_assets(deps.as_ref(), 500);
 	let share_values = calc_shares(assets.clone().map(|x| x.amount.u128()), pb);
 
 	execute(
@@ -140,9 +138,7 @@ fn returns_wasm_message_when_payload_provided() {
 	let mut deps = deps(&[]);
 	init(&mut deps);
 
-	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
-	let total_share = total_supply_workaround(LP_TOKEN);
-	let assets = share_in_assets(pb, 500, total_share.u128());
+	let assets = share_in_assets(deps.as_ref(), 500);
 	let response = execute(
 		deps.as_mut(),
 		mock_env(),
@@ -174,9 +170,7 @@ fn events_emitted_correctly() {
 	let mut deps = deps(&[]);
 	init(&mut deps);
 
-	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
-	let total_share = total_supply_workaround(LP_TOKEN);
-	let assets = share_in_assets(pb, 500, total_share.u128());
+	let assets = share_in_assets(deps.as_ref(), 500);
 	let response = execute(
 		deps.as_mut(),
 		mock_env(),

@@ -1,4 +1,4 @@
-use cosmwasm_std::{coin, testing::*, Addr, Coin, Decimal, MemoryStorage, QuerierWrapper, Response};
+use cosmwasm_std::{coin, from_json, testing::*, Addr, Coin, Deps, MemoryStorage, QuerierWrapper, Response};
 use cosmwasm_std::{OwnedDeps, Uint128};
 use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
 
@@ -90,18 +90,10 @@ fn pool_balance(pair: [&str; 2], querier: &MockQuerier<SeiQueryWrapper>) -> [u12
 	]
 }
 
-fn share_in_assets<T: Into<Uint128> + Copy>(pool: [T; 2], amount: T, total_share: T) -> [Coin; 2] {
-	let total_share = total_share.into();
-
-	let mut share_ratio = Decimal::zero();
-	if !total_share.is_zero() {
-		share_ratio = Decimal::from_ratio(amount.into(), total_share);
-	}
-
-	[
-		coin((pool[0].into() * share_ratio).u128(), PAIR_DENOMS[0]),
-		coin((pool[1].into() * share_ratio).u128(), PAIR_DENOMS[1]),
-	]
+fn share_in_assets(deps: Deps<'_, SeiQueryWrapper>, amt: u128) -> [Coin; 2] {
+	let msg = PoolPairQueryMsg::ShareValue { amount: amt.into() };
+	let env = mock_env();
+	from_json(query(deps, env, msg).unwrap()).unwrap()
 }
 
 // fn calc_swap<T: Into<Uint128> + Copy>(

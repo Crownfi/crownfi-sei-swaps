@@ -13,7 +13,6 @@ use crate::{
 		deps, init, pool_balance, share_in_assets, PoolPairConfig, LEFT_TOKEN_AMT, LP_TOKEN, PAIR_DENOMS,
 		RANDOM_ADDRESS, RANDOM_ADDRESS2, RIGHT_TOKEN_AMT,
 	},
-	workarounds::total_supply_workaround,
 };
 
 #[test]
@@ -97,10 +96,9 @@ fn swap_calculation_is_correct() {
 	};
 	let info = mock_info(RANDOM_ADDRESS2, &[coin(50000, PAIR_DENOMS[1])]);
 
-	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
 	// let (return_amount, _, commission_amount) = calc_swap(50000, 1, pb, Decimal::bps(50));
-	let total_shares = total_supply_workaround(LP_TOKEN);
-	let share_value = share_in_assets(pb, 50000, total_shares.u128());
+
+	let share_value = share_in_assets(deps.as_ref(), 50000);
 	let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
 	assert_eq!(
 		res.messages,
@@ -123,9 +121,7 @@ fn swap_calculation_is_correct() {
 		],
 	);
 
-	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
-	let total_shares = total_supply_workaround(LP_TOKEN);
-	let share_value_after_swap = share_in_assets(pb.clone(), 50000, total_shares.u128());
+	let share_value_after_swap = share_in_assets(deps.as_ref(), 50000);
 	assert_ne!(share_value, share_value_after_swap);
 }
 
@@ -274,9 +270,7 @@ fn share_values_correctly_updated() {
 	};
 	let info = mock_info(RANDOM_ADDRESS2, &[coin(10000, PAIR_DENOMS[1])]);
 
-	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
-	let total_shares = total_supply_workaround(LP_TOKEN);
-	let share_value = share_in_assets(pb, 1000, total_shares.u128());
+	let share_value = share_in_assets(deps.as_ref(), 1000);
 
 	let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
 
@@ -297,9 +291,7 @@ fn share_values_correctly_updated() {
 		],
 	);
 
-	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
-	let total_shares = total_supply_workaround(LP_TOKEN);
-	let new_share_value = share_in_assets(pb, 1000, total_shares.u128());
+	let new_share_value = share_in_assets(deps.as_ref(), 1000);
 
 	assert_ne!(share_value, new_share_value);
 }

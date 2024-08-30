@@ -7,12 +7,23 @@ use cosmwasm_std::{
 use crate::{
 	contract::{execute, query},
 	msg::{PoolPairExecuteMsg, PoolPairQueryMsg},
-	tests::{
-		deps, init, pool_balance, share_in_assets, LEFT_TOKEN_AMT, LP_TOKEN, PAIR_DENOMS, RANDOM_ADDRESS,
-		RIGHT_TOKEN_AMT,
-	},
+	tests::{deps, init, pool_balance, LEFT_TOKEN_AMT, LP_TOKEN, PAIR_DENOMS, RANDOM_ADDRESS, RIGHT_TOKEN_AMT},
 	workarounds::total_supply_workaround,
 };
+
+fn inner_share_in_assets<T: Into<Uint128> + Copy>(pool: [T; 2], amount: T, total_share: T) -> [Coin; 2] {
+	let total_share = total_share.into();
+
+	let mut share_ratio = Decimal::zero();
+	if !total_share.is_zero() {
+		share_ratio = Decimal::from_ratio(amount.into(), total_share);
+	}
+
+	[
+		coin((pool[0].into() * share_ratio).u128(), PAIR_DENOMS[0]),
+		coin((pool[1].into() * share_ratio).u128(), PAIR_DENOMS[1]),
+	]
+}
 
 #[test]
 fn does_what_it_says() {
@@ -23,7 +34,7 @@ fn does_what_it_says() {
 
 	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
 	let total_shares = total_supply_workaround(LP_TOKEN);
-	let share_value = share_in_assets(pb, 1000, total_shares.u128());
+	let share_value = inner_share_in_assets(pb, 1000, total_shares.u128());
 
 	let share_value_query_result: [Coin; 2] = from_json(
 		query(
@@ -48,7 +59,7 @@ fn does_not_change_with_decreased_liquidity() {
 
 	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
 	let total_shares = total_supply_workaround(LP_TOKEN);
-	let actual_share_value = share_in_assets(pb, 1000, total_shares.u128());
+	let actual_share_value = inner_share_in_assets(pb, 1000, total_shares.u128());
 
 	let info = mock_info(RANDOM_ADDRESS, &[coin(1000, LP_TOKEN)]);
 	execute(
@@ -94,7 +105,7 @@ fn proportionally_changes_if_imbalanced_liquidity_provided() {
 
 	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
 	let total_shares = total_supply_workaround(LP_TOKEN);
-	let actual_share_value = share_in_assets(pb, 1000, total_shares.u128());
+	let actual_share_value = inner_share_in_assets(pb, 1000, total_shares.u128());
 
 	let info = mock_info(
 		RANDOM_ADDRESS,
@@ -144,7 +155,7 @@ fn proportionally_changes_on_swap() {
 
 	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
 	let total_shares = total_supply_workaround(LP_TOKEN);
-	let actual_share_value = share_in_assets(pb.clone(), 1000, total_shares.u128());
+	let actual_share_value = inner_share_in_assets(pb.clone(), 1000, total_shares.u128());
 	// let (return_, _, commission) = calc_swap(100000, 0, pb, Decimal::bps(100));
 
 	let info = mock_info(RANDOM_ADDRESS, &[coin(100000, PAIR_DENOMS[0])]);
