@@ -7,7 +7,7 @@ use cosmwasm_std::{
 use crate::{
 	contract::{execute, query},
 	msg::PoolPairQueryMsg,
-	tests::{deps, init, LP_TOKEN, PAIR_DENOMS, RANDOM_ADDRESS},
+	tests::{deps, init, AddressFactory, LP_TOKEN, PAIR_DENOMS},
 	workarounds::total_supply_workaround,
 };
 
@@ -39,7 +39,10 @@ fn increases_when_liquidity_provided() {
 	execute(
 		deps.as_mut(),
 		env.clone(),
-		mock_info(RANDOM_ADDRESS, &[coin(500, PAIR_DENOMS[0]), coin(250, PAIR_DENOMS[1])]),
+		mock_info(
+			&AddressFactory::random_address(),
+			&[coin(500, PAIR_DENOMS[0]), coin(250, PAIR_DENOMS[1])],
+		),
 		PoolPairExecuteMsg::ProvideLiquidity {
 			slippage_tolerance: None,
 			receiver: None,
@@ -67,7 +70,7 @@ fn decreases_when_liquidity_burned() {
 	execute(
 		deps.as_mut(),
 		env.clone(),
-		mock_info(RANDOM_ADDRESS, &[coin(50, LP_TOKEN)]),
+		mock_info(&AddressFactory::random_address(), &[coin(50, LP_TOKEN)]),
 		PoolPairExecuteMsg::WithdrawLiquidity {
 			receiver: None,
 			receiver_payload: None,

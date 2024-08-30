@@ -11,8 +11,8 @@ use crate::{
 	error::PoolPairContractError,
 	msg::PoolPairExecuteMsg,
 	tests::{
-		calc_shares, deps, init, pool_balance, share_in_assets, DUST, LEFT_TOKEN_AMT, LP_TOKEN, PAIR_DENOMS,
-		RANDOM_ADDRESS, RANDOM_ADDRESS2, RIGHT_TOKEN_AMT,
+		calc_shares, deps, init, pool_balance, share_in_assets, AddressFactory, DUST, LEFT_TOKEN_AMT, LP_TOKEN,
+		PAIR_DENOMS, RIGHT_TOKEN_AMT,
 	},
 	workarounds::total_supply_workaround,
 };
@@ -30,7 +30,8 @@ fn only_accept_lp_tokens() {
 	};
 
 	let env = mock_env();
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(50, PAIR_DENOMS[0])]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(50, PAIR_DENOMS[0])]);
 
 	let response = execute(deps.as_mut(), env.clone(), info, msg.clone());
 	assert_eq!(
@@ -40,7 +41,8 @@ fn only_accept_lp_tokens() {
 		)))
 	);
 
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(50, PAIR_DENOMS[0]), coin(50, LP_TOKEN)]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(50, PAIR_DENOMS[0]), coin(50, LP_TOKEN)]);
 	let response = execute(deps.as_mut(), env.clone(), info, msg.clone());
 	assert_eq!(
 		response,
@@ -60,7 +62,8 @@ fn error_when_payout_is_zero() {
 		right_coin_receiver_payload: None,
 	};
 
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(1, LP_TOKEN)]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(1, LP_TOKEN)]);
 	let response = execute(deps.as_mut(), mock_env(), info, msg);
 	assert_eq!(
 		response,
@@ -76,14 +79,17 @@ fn burn_lp_token_and_return_proportional_share_value() {
 	init(&mut deps);
 
 	let env = mock_env();
+	let left_coin_receiver = AddressFactory::random_address();
+	let right_coin_receiver = AddressFactory::random_address();
 	let msg = PoolPairExecuteMsg::WithdrawAndSplitLiquidity {
-		left_coin_receiver: Some(Addr::unchecked(RANDOM_ADDRESS)),
+		left_coin_receiver: Some(Addr::unchecked(&left_coin_receiver)),
 		left_coin_receiver_payload: None,
-		right_coin_receiver: Some(Addr::unchecked(RANDOM_ADDRESS2)),
+		right_coin_receiver: Some(Addr::unchecked(&right_coin_receiver)),
 		right_coin_receiver_payload: None,
 	};
 
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(500, LP_TOKEN)]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(500, LP_TOKEN)]);
 
 	let assets = share_in_assets(deps.as_ref(), 500);
 
@@ -95,11 +101,11 @@ fn burn_lp_token_and_return_proportional_share_value() {
 				amount: vec![coin(500, LP_TOKEN)]
 			}),
 			SubMsg::new(BankMsg::Send {
-				to_address: RANDOM_ADDRESS.into(),
+				to_address: left_coin_receiver,
 				amount: vec![assets[0].clone()]
 			}),
 			SubMsg::new(BankMsg::Send {
-				to_address: RANDOM_ADDRESS2.into(),
+				to_address: right_coin_receiver,
 				amount: vec![assets[1].clone()]
 			})
 		]
@@ -112,14 +118,17 @@ fn value_of_share_doesnt_change() {
 	init(&mut deps);
 
 	let env = mock_env();
+	let left_coin_receiver = AddressFactory::random_address();
+	let right_coin_receiver = AddressFactory::random_address();
 	let msg = PoolPairExecuteMsg::WithdrawAndSplitLiquidity {
-		left_coin_receiver: Some(Addr::unchecked(RANDOM_ADDRESS)),
+		left_coin_receiver: Some(Addr::unchecked(&left_coin_receiver)),
 		left_coin_receiver_payload: None,
-		right_coin_receiver: Some(Addr::unchecked(RANDOM_ADDRESS2)),
+		right_coin_receiver: Some(Addr::unchecked(&right_coin_receiver)),
 		right_coin_receiver_payload: None,
 	};
 
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(500, LP_TOKEN)]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(500, LP_TOKEN)]);
 
 	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
 	let total_share = total_supply_workaround(LP_TOKEN);
@@ -149,13 +158,15 @@ fn returns_wasm_message_when_payload_provided() {
 
 	let env = mock_env();
 
+	let right_coin_receiver = AddressFactory::random_address();
 	let msg_with_payload = PoolPairExecuteMsg::WithdrawAndSplitLiquidity {
 		left_coin_receiver: None,
 		left_coin_receiver_payload: Some(Binary(b"avocado".into())),
-		right_coin_receiver: Some(Addr::unchecked(RANDOM_ADDRESS)),
+		right_coin_receiver: Some(Addr::unchecked(&right_coin_receiver)),
 		right_coin_receiver_payload: Some(Binary(b"anana".into())),
 	};
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(500, LP_TOKEN)]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(500, LP_TOKEN)]);
 
 	let assets = share_in_assets(deps.as_ref(), 500);
 	let response = execute(deps.as_mut(), env, info, msg_with_payload).unwrap();
@@ -167,12 +178,12 @@ fn returns_wasm_message_when_payload_provided() {
 				amount: vec![coin(500, LP_TOKEN)]
 			}),
 			SubMsg::new(WasmMsg::Execute {
-				contract_addr: RANDOM_ADDRESS2.into(),
+				contract_addr: sender,
 				msg: Binary(b"avocado".into()),
 				funds: vec![assets[0].clone()]
 			}),
 			SubMsg::new(WasmMsg::Execute {
-				contract_addr: RANDOM_ADDRESS.into(),
+				contract_addr: right_coin_receiver,
 				msg: Binary(b"anana".into()),
 				funds: vec![assets[1].clone()]
 			})
@@ -187,13 +198,15 @@ fn events_emitted_correctly() {
 
 	let env = mock_env();
 
+	let right_coin_receiver = AddressFactory::random_address();
 	let msg_with_payload = PoolPairExecuteMsg::WithdrawAndSplitLiquidity {
 		left_coin_receiver: None,
 		left_coin_receiver_payload: Some(Binary(b"avocado".into())),
-		right_coin_receiver: Some(Addr::unchecked(RANDOM_ADDRESS)),
+		right_coin_receiver: Some(Addr::unchecked(&right_coin_receiver)),
 		right_coin_receiver_payload: Some(Binary(b"anana".into())),
 	};
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(500, LP_TOKEN)]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(500, LP_TOKEN)]);
 
 	let assets = share_in_assets(deps.as_ref(), 500);
 	let response = execute(deps.as_mut(), env, info, msg_with_payload).unwrap();
@@ -202,14 +215,10 @@ fn events_emitted_correctly() {
 		response.attributes,
 		vec![
 			attr("action", "withdraw_liquidity"),
-			attr("sender", RANDOM_ADDRESS2),
+			attr("sender", &sender),
 			attr(
 				"receiver",
-				format!(
-					"{}, {}",
-					Addr::unchecked(RANDOM_ADDRESS2),
-					Addr::unchecked(RANDOM_ADDRESS)
-				)
+				format!("{}, {}", Addr::unchecked(&sender), Addr::unchecked(right_coin_receiver))
 			),
 			attr("withdrawn_share", "500"),
 			attr("refund_assets", format!("{}, {}", assets[0], assets[1]))

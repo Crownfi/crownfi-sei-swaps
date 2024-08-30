@@ -1,5 +1,6 @@
 use cosmwasm_std::{coin, from_json, testing::*, Addr, Coin, Deps, MemoryStorage, QuerierWrapper, Response};
 use cosmwasm_std::{OwnedDeps, Uint128};
+use crownfi_cw_common::data_types::canonical_addr::SeiCanonicalAddr;
 use sei_cosmwasm::{SeiMsg, SeiQueryWrapper};
 
 use crate::contract::*;
@@ -11,14 +12,23 @@ mod execute;
 mod instantiate;
 mod query;
 
-const RANDOM_ADDRESS: &str = "sei1zgfgerl8qt9uldlr0y9w7qe97p7zyv5kwg2pge";
-const RANDOM_ADDRESS2: &str = "sei1grzhksjfvg2s8mvgetmkncv67pr90kk37cfdhq";
 const DUST: u128 = 1;
 const LP_TOKEN: &str = "factory/cosmos2contract/lp";
 const PAIR_DENOMS: [&str; 2] = ["abc", "cba"];
 const ONE_BILLION: u128 = 1_000_000;
 
 type TestDeps = OwnedDeps<MemoryStorage, MockApi, MockQuerier<SeiQueryWrapper>, SeiQueryWrapper>;
+
+enum AddressFactory {}
+impl AddressFactory {
+	/// supposed to be used as the contract owner/fee receiver etc
+	pub(crate) const MAIN_ADDRESS: &'static str = "sei1zgfgerl8qt9uldlr0y9w7qe97p7zyv5kwg2pge";
+
+	fn random_address() -> String {
+		let random_addr: [u8; 20] = rand::random();
+		SeiCanonicalAddr::from(random_addr).to_string()
+	}
+}
 
 fn deps(balances: &[(&str, &[Coin])]) -> TestDeps {
 	let querier = MockQuerier::<SeiQueryWrapper>::new(balances);
@@ -40,12 +50,12 @@ const RIGHT_TOKEN_AMT: u128 = ONE_BILLION / 2;
 
 fn init(deps: &mut TestDeps) -> Response<SeiMsg> {
 	let msg = PoolPairInstantiateMsg {
-		shares_receiver: Addr::unchecked(RANDOM_ADDRESS),
+		shares_receiver: Addr::unchecked(AddressFactory::MAIN_ADDRESS),
 		config: PoolPairConfigJsonable {
-			admin: Addr::unchecked(RANDOM_ADDRESS),
+			admin: Addr::unchecked(AddressFactory::MAIN_ADDRESS),
 			inverse: false,
 			endorsed: true,
-			fee_receiver: Addr::unchecked(RANDOM_ADDRESS),
+			fee_receiver: Addr::unchecked(AddressFactory::MAIN_ADDRESS),
 			total_fee_bps: 100,
 			maker_fee_bps: 50,
 		},
@@ -53,7 +63,7 @@ fn init(deps: &mut TestDeps) -> Response<SeiMsg> {
 
 	let env = mock_env();
 	let info = mock_info(
-		RANDOM_ADDRESS,
+		AddressFactory::MAIN_ADDRESS,
 		&[
 			coin(LEFT_TOKEN_AMT, PAIR_DENOMS[0]),
 			coin(RIGHT_TOKEN_AMT, PAIR_DENOMS[1]),
@@ -95,31 +105,3 @@ fn share_in_assets(deps: Deps<'_, SeiQueryWrapper>, amt: u128) -> [Coin; 2] {
 	let env = mock_env();
 	from_json(query(deps, env, msg).unwrap()).unwrap()
 }
-
-// fn calc_swap<T: Into<Uint128> + Copy>(
-// 	offer: T,
-// 	offer_idx: usize,
-// 	pool: [T; 2],
-// 	commission_rate: Decimal,
-// ) -> (Uint128, Uint128, Uint128) {
-// 	assert!(offer_idx <= 1);
-// 	let pool: [Uint256; 2] = pool.map(|x| x.into().into());
-// 	let offer: Uint256 = offer.into().into();
-// 	let commission_rate = Decimal256::from(commission_rate);
-
-// 	let ask_pool = pool[offer_idx ^ 1];
-// 	let offer_pool = pool[offer_idx];
-// 	let cp = offer_pool * ask_pool;
-
-// 	let return_amount: Uint256 =
-// 		(Decimal256::from_ratio(ask_pool, 1u8) - Decimal256::from_ratio(cp, offer_pool + offer)) * Uint256::from(1u8);
-// 	let spread_amount: Uint256 = (offer * Decimal256::from_ratio(ask_pool, offer_pool)).saturating_sub(return_amount);
-// 	let commission_amount: Uint256 = return_amount * commission_rate;
-// 	let return_amount: Uint256 = return_amount - commission_amount;
-
-// 	(
-// 		return_amount.try_into().unwrap(),
-// 		spread_amount.try_into().unwrap(),
-// 		commission_amount.try_into().unwrap(),
-// 	)
-// }

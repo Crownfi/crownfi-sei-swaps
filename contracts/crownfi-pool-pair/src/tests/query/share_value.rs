@@ -7,7 +7,7 @@ use cosmwasm_std::{
 use crate::{
 	contract::{execute, query},
 	msg::{PoolPairExecuteMsg, PoolPairQueryMsg},
-	tests::{deps, init, pool_balance, LEFT_TOKEN_AMT, LP_TOKEN, PAIR_DENOMS, RANDOM_ADDRESS, RIGHT_TOKEN_AMT},
+	tests::{deps, init, pool_balance, AddressFactory, LEFT_TOKEN_AMT, LP_TOKEN, PAIR_DENOMS, RIGHT_TOKEN_AMT},
 	workarounds::total_supply_workaround,
 };
 
@@ -61,7 +61,8 @@ fn does_not_change_with_decreased_liquidity() {
 	let total_shares = total_supply_workaround(LP_TOKEN);
 	let actual_share_value = inner_share_in_assets(pb, 1000, total_shares.u128());
 
-	let info = mock_info(RANDOM_ADDRESS, &[coin(1000, LP_TOKEN)]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(1000, LP_TOKEN)]);
 	execute(
 		deps.as_mut(),
 		env.clone(),
@@ -107,10 +108,8 @@ fn proportionally_changes_if_imbalanced_liquidity_provided() {
 	let total_shares = total_supply_workaround(LP_TOKEN);
 	let actual_share_value = inner_share_in_assets(pb, 1000, total_shares.u128());
 
-	let info = mock_info(
-		RANDOM_ADDRESS,
-		&[coin(50000, PAIR_DENOMS[0]), coin(25100, PAIR_DENOMS[1])],
-	);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(50000, PAIR_DENOMS[0]), coin(25100, PAIR_DENOMS[1])]);
 	execute(
 		deps.as_mut(),
 		env.clone(),
@@ -156,9 +155,9 @@ fn proportionally_changes_on_swap() {
 	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
 	let total_shares = total_supply_workaround(LP_TOKEN);
 	let actual_share_value = inner_share_in_assets(pb.clone(), 1000, total_shares.u128());
-	// let (return_, _, commission) = calc_swap(100000, 0, pb, Decimal::bps(100));
 
-	let info = mock_info(RANDOM_ADDRESS, &[coin(100000, PAIR_DENOMS[0])]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(100000, PAIR_DENOMS[0])]);
 	execute(
 		deps.as_mut(),
 		env.clone(),

@@ -4,7 +4,7 @@ use crate::{
 	contract::query,
 	msg::PoolPairQueryMsg,
 	state::PoolPairConfigJsonable,
-	tests::{deps, init, PAIR_DENOMS, RANDOM_ADDRESS},
+	tests::{deps, init, AddressFactory, PAIR_DENOMS},
 };
 
 #[test]
@@ -32,8 +32,8 @@ fn basic_queries() {
 	assert_eq!(
 		config,
 		PoolPairConfigJsonable {
-			admin: Addr::unchecked(RANDOM_ADDRESS),
-			fee_receiver: Addr::unchecked(RANDOM_ADDRESS),
+			admin: Addr::unchecked(AddressFactory::MAIN_ADDRESS),
+			fee_receiver: Addr::unchecked(AddressFactory::MAIN_ADDRESS),
 			total_fee_bps: 100,
 			maker_fee_bps: 50,
 			inverse: false,

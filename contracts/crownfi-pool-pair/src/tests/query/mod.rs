@@ -6,8 +6,10 @@ use cosmwasm_std::{
 use crate::{
 	contract::execute,
 	msg::*,
-	tests::{deps, init, LP_TOKEN, PAIR_DENOMS, RANDOM_ADDRESS2},
+	tests::{deps, init, LP_TOKEN, PAIR_DENOMS},
 };
+
+use super::AddressFactory;
 
 mod basic_queries;
 mod share_value;
@@ -27,7 +29,7 @@ fn queries() {
 		deps.as_mut(),
 		env.clone(),
 		mock_info(
-			RANDOM_ADDRESS2,
+			&AddressFactory::random_address(),
 			&[coin(1000, PAIR_DENOMS[0]), coin(500, PAIR_DENOMS[1])],
 		),
 		PoolPairExecuteMsg::ProvideLiquidity {
@@ -40,7 +42,7 @@ fn queries() {
 	execute(
 		deps.as_mut(),
 		env.clone(),
-		mock_info(RANDOM_ADDRESS2, &[coin(500, LP_TOKEN)]),
+		mock_info(&AddressFactory::random_address(), &[coin(500, LP_TOKEN)]),
 		PoolPairExecuteMsg::WithdrawLiquidity {
 			receiver: None,
 			receiver_payload: None,
@@ -50,7 +52,7 @@ fn queries() {
 	execute(
 		deps.as_mut(),
 		env.clone(),
-		mock_info(RANDOM_ADDRESS2, &[coin(1000, PAIR_DENOMS[1])]),
+		mock_info(&AddressFactory::random_address(), &[coin(1000, PAIR_DENOMS[1])]),
 		PoolPairExecuteMsg::Swap {
 			expected_result: None,
 			slippage_tolerance: None,

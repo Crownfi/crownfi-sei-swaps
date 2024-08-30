@@ -11,7 +11,7 @@ use sei_cosmwasm::SeiMsg;
 use crate::{
 	contract::instantiate,
 	error::PoolPairContractError,
-	tests::{deps, init, shares::LP_SUBDENOM, PoolPairConfig, LP_TOKEN, PAIR_DENOMS, RANDOM_ADDRESS},
+	tests::{deps, init, shares::LP_SUBDENOM, AddressFactory, PoolPairConfig, LP_TOKEN, PAIR_DENOMS},
 	workarounds::total_supply_workaround,
 };
 
@@ -20,20 +20,23 @@ use super::{PoolPairConfigJsonable, PoolPairInstantiateMsg, ONE_BILLION};
 #[test]
 fn must_be_paid_with_2_coins() {
 	let mut deps = deps(&[]);
+
+	let admin = AddressFactory::random_address();
+	let admin_addr = Addr::unchecked(&admin);
 	let msg = PoolPairInstantiateMsg {
-		shares_receiver: Addr::unchecked(RANDOM_ADDRESS),
+		shares_receiver: admin_addr.clone(),
 		config: PoolPairConfigJsonable {
-			admin: Addr::unchecked(RANDOM_ADDRESS),
+			admin: admin_addr.clone(),
 			inverse: false,
 			endorsed: true,
-			fee_receiver: Addr::unchecked(RANDOM_ADDRESS),
+			fee_receiver: admin_addr,
 			total_fee_bps: 100,
 			maker_fee_bps: 50,
 		},
 	};
 
 	let env = mock_env();
-	let info = mock_info(RANDOM_ADDRESS, &[coin(ONE_BILLION, PAIR_DENOMS[0])]);
+	let info = mock_info(&admin, &[coin(ONE_BILLION, PAIR_DENOMS[0])]);
 
 	let res = instantiate(deps.as_mut(), env.clone(), info, msg.clone());
 	assert_eq!(
@@ -44,7 +47,7 @@ fn must_be_paid_with_2_coins() {
 	);
 
 	let info = mock_info(
-		RANDOM_ADDRESS,
+		&AddressFactory::random_address(),
 		&[coin(ONE_BILLION, PAIR_DENOMS[0]), coin(0, PAIR_DENOMS[0])],
 	);
 	let res = instantiate(deps.as_mut(), env.clone(), info, msg);
@@ -71,8 +74,14 @@ fn check_config() {
 
 	let config = PoolPairConfig::load().unwrap().unwrap();
 
-	assert_eq!(config.admin, Addr::unchecked(RANDOM_ADDRESS).try_into().unwrap());
-	assert_eq!(config.fee_receiver, Addr::unchecked(RANDOM_ADDRESS).try_into().unwrap());
+	assert_eq!(
+		config.admin,
+		Addr::unchecked(AddressFactory::MAIN_ADDRESS).try_into().unwrap()
+	);
+	assert_eq!(
+		config.fee_receiver,
+		Addr::unchecked(AddressFactory::MAIN_ADDRESS).try_into().unwrap()
+	);
 	assert_eq!(config.maker_fee_bps, 50);
 	assert_eq!(config.total_fee_bps, 100);
 }
@@ -92,7 +101,7 @@ fn subdenom_is_created_and_shares_are_minted() {
 				amount: coin(707106, LP_TOKEN)
 			}),
 			SubMsg::new(BankMsg::Send {
-				to_address: RANDOM_ADDRESS.into(),
+				to_address: AddressFactory::MAIN_ADDRESS.into(),
 				amount: vec![coin(707106, LP_TOKEN)]
 			})
 		]

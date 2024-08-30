@@ -10,8 +10,8 @@ use crate::{
 	error::PoolPairContractError,
 	msg::PoolPairExecuteMsg,
 	tests::{
-		deps, init, pool_balance, share_in_assets, PoolPairConfig, LEFT_TOKEN_AMT, LP_TOKEN, PAIR_DENOMS,
-		RANDOM_ADDRESS, RANDOM_ADDRESS2, RIGHT_TOKEN_AMT,
+		deps, init, pool_balance, share_in_assets, AddressFactory, PoolPairConfig, LEFT_TOKEN_AMT, LP_TOKEN,
+		PAIR_DENOMS, RIGHT_TOKEN_AMT,
 	},
 };
 
@@ -27,7 +27,8 @@ fn must_pay_only_one_of_the_pair() {
 		receiver: None,
 		receiver_payload: None,
 	};
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(5000, LP_TOKEN)]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(5000, LP_TOKEN)]);
 	let res = execute(deps.as_mut(), env.clone(), info, msg.clone());
 	assert_eq!(
 		res,
@@ -36,10 +37,8 @@ fn must_pay_only_one_of_the_pair() {
 		)))
 	);
 
-	let info = mock_info(
-		RANDOM_ADDRESS2,
-		&[coin(5000, PAIR_DENOMS[0]), coin(2500, PAIR_DENOMS[1])],
-	);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(5000, PAIR_DENOMS[0]), coin(2500, PAIR_DENOMS[1])]);
 	let res = execute(deps.as_mut(), env, info, msg);
 	assert_eq!(
 		res,
@@ -59,7 +58,8 @@ fn slippage_tolerance_must_not_exceed_limit() {
 		receiver: None,
 		receiver_payload: None,
 	};
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(500, PAIR_DENOMS[1])]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(500, PAIR_DENOMS[1])]);
 	let res = execute(deps.as_mut(), env, info, msg);
 	assert_eq!(res, Err(PoolPairContractError::ToleranceTooHigh));
 }
@@ -77,7 +77,8 @@ fn slippage_tolerance_must_be_respected() {
 		receiver_payload: None,
 	};
 
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(500, PAIR_DENOMS[1])]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(500, PAIR_DENOMS[1])]);
 	let res = execute(deps.as_mut(), env, info, msg);
 	assert!(matches!(res, Err(PoolPairContractError::SlippageTooHigh(_))));
 }
@@ -94,9 +95,8 @@ fn swap_calculation_is_correct() {
 		receiver: None,
 		receiver_payload: None,
 	};
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(50000, PAIR_DENOMS[1])]);
-
-	// let (return_amount, _, commission_amount) = calc_swap(50000, 1, pb, Decimal::bps(50));
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(50000, PAIR_DENOMS[1])]);
 
 	let share_value = share_in_assets(deps.as_ref(), 50000);
 	let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
@@ -104,11 +104,11 @@ fn swap_calculation_is_correct() {
 		res.messages,
 		vec![
 			SubMsg::new(BankMsg::Send {
-				to_address: RANDOM_ADDRESS.to_string(),
+				to_address: AddressFactory::MAIN_ADDRESS.into(),
 				amount: vec![coin(500, PAIR_DENOMS[0])]
 			}),
 			SubMsg::new(BankMsg::Send {
-				to_address: RANDOM_ADDRESS2.to_string(),
+				to_address: sender.to_string(),
 				amount: vec![coin(99000, PAIR_DENOMS[0])]
 			})
 		]
@@ -145,7 +145,8 @@ fn naive_result_is_used_when_expected_result_is_unspecified() {
 		receiver_payload: None,
 	};
 
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(500, PAIR_DENOMS[1])]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(500, PAIR_DENOMS[1])]);
 	let res = execute(deps.as_mut(), env.clone(), info.clone(), msg);
 	assert!(res.is_err());
 	let res = execute(deps.as_mut(), env, info, msg_without_expected_result);
@@ -165,7 +166,8 @@ fn maker_fee_sent_to_correct_address() {
 		receiver_payload: None,
 	};
 
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(500, PAIR_DENOMS[1])]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(500, PAIR_DENOMS[1])]);
 	let res = execute(deps.as_mut(), env, info, msg).unwrap();
 
 	let pool_conf = PoolPairConfig::load_non_empty().unwrap();
@@ -191,7 +193,8 @@ fn pool_fees_stay_within_pool() {
 		receiver_payload: None,
 	};
 
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(500, PAIR_DENOMS[1])]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(500, PAIR_DENOMS[1])]);
 
 	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
 	let naive: Uint128 = Uint128::new(500)
@@ -238,15 +241,16 @@ fn events_emitted_with_correct_values() {
 		receiver: None,
 		receiver_payload: None,
 	};
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(500, PAIR_DENOMS[1])]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(500, PAIR_DENOMS[1])]);
 	let res = execute(deps.as_mut(), env, info, msg).unwrap();
 
 	assert_eq!(
 		res.attributes,
 		vec![
 			attr("action", "swap"),
-			attr("sender", RANDOM_ADDRESS2),
-			attr("receiver", RANDOM_ADDRESS2),
+			attr("sender", &sender),
+			attr("receiver", &sender),
 			attr("in_coin", coin(500, PAIR_DENOMS[1]).to_string()),
 			attr("out_coin", coin(990, PAIR_DENOMS[0]).to_string()),
 			attr("spread_amount", "1"),
@@ -268,7 +272,8 @@ fn share_values_correctly_updated() {
 		receiver: None,
 		receiver_payload: None,
 	};
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(10000, PAIR_DENOMS[1])]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(10000, PAIR_DENOMS[1])]);
 
 	let share_value = share_in_assets(deps.as_ref(), 1000);
 

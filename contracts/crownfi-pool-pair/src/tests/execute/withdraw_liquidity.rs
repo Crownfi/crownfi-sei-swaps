@@ -11,8 +11,8 @@ use crate::{
 	error::PoolPairContractError,
 	msg::PoolPairExecuteMsg,
 	tests::{
-		calc_shares, deps, init, pool_balance, share_in_assets, DUST, LEFT_TOKEN_AMT, LP_TOKEN, PAIR_DENOMS,
-		RANDOM_ADDRESS, RANDOM_ADDRESS2, RIGHT_TOKEN_AMT,
+		calc_shares, deps, init, pool_balance, share_in_assets, AddressFactory, DUST, LEFT_TOKEN_AMT, LP_TOKEN,
+		PAIR_DENOMS, RIGHT_TOKEN_AMT,
 	},
 	workarounds::total_supply_workaround,
 };
@@ -28,7 +28,8 @@ fn only_accept_lp_tokens() {
 	};
 
 	let env = mock_env();
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(50, PAIR_DENOMS[0])]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(50, PAIR_DENOMS[0])]);
 
 	let response = execute(deps.as_mut(), env.clone(), info, msg.clone());
 	assert_eq!(
@@ -38,7 +39,8 @@ fn only_accept_lp_tokens() {
 		)))
 	);
 
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(50, PAIR_DENOMS[0]), coin(50, LP_TOKEN)]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(50, PAIR_DENOMS[0]), coin(50, LP_TOKEN)]);
 	let response = execute(deps.as_mut(), env, info, msg);
 	assert_eq!(
 		response,
@@ -57,7 +59,8 @@ fn error_when_payout_is_zero() {
 		receiver_payload: None,
 	};
 
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(1, LP_TOKEN)]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(1, LP_TOKEN)]);
 	let response = execute(deps.as_mut(), env, info, msg);
 
 	assert_eq!(
@@ -79,7 +82,8 @@ fn burn_lp_token_and_return_proportional_share_value() {
 		receiver_payload: None,
 	};
 
-	let info = mock_info(RANDOM_ADDRESS2, &[coin(500, LP_TOKEN)]);
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(500, LP_TOKEN)]);
 
 	let assets = share_in_assets(deps.as_ref(), 500);
 
@@ -91,7 +95,7 @@ fn burn_lp_token_and_return_proportional_share_value() {
 				amount: vec![coin(500, LP_TOKEN)]
 			}),
 			SubMsg::new(BankMsg::Send {
-				to_address: RANDOM_ADDRESS2.into(),
+				to_address: sender,
 				amount: assets.into()
 			})
 		]
@@ -111,7 +115,7 @@ fn value_of_share_doesnt_change() {
 	execute(
 		deps.as_mut(),
 		mock_env(),
-		mock_info(RANDOM_ADDRESS2, &[coin(500, LP_TOKEN)]),
+		mock_info(&AddressFactory::random_address(), &[coin(500, LP_TOKEN)]),
 		PoolPairExecuteMsg::WithdrawLiquidity {
 			receiver: None,
 			receiver_payload: None,
@@ -139,12 +143,13 @@ fn returns_wasm_message_when_payload_provided() {
 	init(&mut deps);
 
 	let assets = share_in_assets(deps.as_ref(), 500);
+	let receiver = AddressFactory::random_address();
 	let response = execute(
 		deps.as_mut(),
 		mock_env(),
-		mock_info(RANDOM_ADDRESS2, &[coin(500, LP_TOKEN)]),
+		mock_info(&AddressFactory::random_address(), &[coin(500, LP_TOKEN)]),
 		PoolPairExecuteMsg::WithdrawLiquidity {
-			receiver: Some(Addr::unchecked(RANDOM_ADDRESS)),
+			receiver: Some(Addr::unchecked(&receiver)),
 			receiver_payload: Some(Binary(b"anana".into())),
 		},
 	)
@@ -157,7 +162,7 @@ fn returns_wasm_message_when_payload_provided() {
 				amount: vec![coin(500, LP_TOKEN)]
 			}),
 			SubMsg::new(WasmMsg::Execute {
-				contract_addr: RANDOM_ADDRESS.into(),
+				contract_addr: receiver,
 				msg: Binary(b"anana".into()),
 				funds: assets.into()
 			})
@@ -171,12 +176,14 @@ fn events_emitted_correctly() {
 	init(&mut deps);
 
 	let assets = share_in_assets(deps.as_ref(), 500);
+	let sender = AddressFactory::random_address();
+	let receiver = AddressFactory::random_address();
 	let response = execute(
 		deps.as_mut(),
 		mock_env(),
-		mock_info(RANDOM_ADDRESS2, &[coin(500, LP_TOKEN)]),
+		mock_info(&sender, &[coin(500, LP_TOKEN)]),
 		PoolPairExecuteMsg::WithdrawLiquidity {
-			receiver: Some(Addr::unchecked(RANDOM_ADDRESS)),
+			receiver: Some(Addr::unchecked(&receiver)),
 			receiver_payload: Some(Binary(b"anana".into())),
 		},
 	)
@@ -186,8 +193,8 @@ fn events_emitted_correctly() {
 		response.attributes,
 		vec![
 			attr("action", "withdraw_liquidity"),
-			attr("sender", RANDOM_ADDRESS2),
-			attr("receiver", RANDOM_ADDRESS),
+			attr("sender", sender),
+			attr("receiver", receiver),
 			attr("withdrawn_share", "500"),
 			attr("refund_assets", format!("{}, {}", assets[0], assets[1]))
 		]
