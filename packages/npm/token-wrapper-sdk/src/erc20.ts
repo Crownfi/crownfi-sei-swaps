@@ -1,81 +1,143 @@
-import { ExecuteInstruction, WasmExtension } from "@cosmjs/cosmwasm-stargate";
-import { Coin, QueryClient } from "@cosmjs/stargate";
-import * as sei from "@crownfi/sei-js-core";
-import * as seiutils from "@crownfi/sei-utils";
-import { EvmExecuteInstruction } from "@crownfi/sei-utils";
+
+import {ERC20_FUNC_APPROVE, EvmExecuteInstruction, IBigIntCoin, isValidEvmAddress, nativeDenomSortCompare, toChecksumAddressEvm} from "@crownfi/sei-utils";
 import {ExecuteInstruction, WasmExtension} from "@cosmjs/cosmwasm-stargate";
-import {QueryClient} from "@cosmjs/stargate";
-
-import { ERC20WrapperExecMsg } from "./base/types.js";
+import {Coin, QueryClient} from "@cosmjs/stargate";
+import { assertFactoryTokenSourceMatches, factoryTokenSourceMatches } from "./common.js";
 import { Erc20WrapperContract } from "./base/erc_20_wrapper.js";
-import { Amount, SigningClient, check_native_denom_factory, validate_native_denom_factory } from "./common.js";
+import { stringToCanonicalAddr } from "@crownfi/sei-js-core";
 
-export class ERC20TokenWrapper<Q extends QueryClient & WasmExtension> extends Erc20WrapperContract<Q> {
-	constructor(client: Q, contract_address: string) {
-		super(client, contract_address);
+export class ERC20TokenWrapper<Q extends QueryClient & WasmExtension> {
+	contract: Erc20WrapperContract<Q>;
+	constructor(client: Q, contractAddress: string) {
+		this.contract = new Erc20WrapperContract(client, contractAddress);
 	}
 
-	private assert_evm_addr(values: Record<any, string>) {
-		for (const entry in values)
-			if (!seiutils.isValidEvmAddress(values[entry]))
-				throw new Error(`Invalid EVM address for ${entry}: ${values[entry]}.`);
+	/**
+	 * Checks if the specified denom starts with "cw20/" followed by a sei1 contract address
+	 * @param denom the denom to check
+	 * @returns true if the string follows the format `cw20/{contract_address}`, false otherwise.
+	 */
+	isWrapable(denom: string): boolean {
+		return /^erc20\/0x[a-fA-F0-9]{40}$/.test(denom);
 	}
 
-	native_denom = (addr: string): string => `factory/${this.address}/crwn${addr.replace("0x", "").toUpperCase()}`;
-
-	validate_native_denom = validate_native_denom_factory(this.address);
-
-	check_native_denom = check_native_denom_factory(this.address);
-
-	real_address(native_denom: string): string {
-		this.validate_native_denom(native_denom);
-		const response = "0x" + native_denom.substring(native_denom.length - 40);
-		this.assert_evm_addr({ response });
-		return response;
+	/**
+	 * Checks if the denom specified is likely to be minted from this contract.
+	 * 
+	 * If you wish to definitively check this, check if {@link unwrappedDenomOf} returns a non-null value instead.
+	 * 
+	 * @param denom the native denom to check
+	 * @returns 
+	 */
+	isWrappedDenom(denom: string): boolean {
+		return factoryTokenSourceMatches(
+			denom,
+			this.contract.address,
+			subdenom => /^crwn[A-F0-9]{40}$/.test(subdenom)
+		);
 	}
 
-	wrap(
-		amount: Amount,
-		contract: string,
-		sender: string,
+	/**
+	 * Works like {@link isWrappedDenom} but throws an error if the denom is not likely to come from this contract.
+	 * 
+	 * @param denom the native denom to check 
+	 */
+	assertWrappedDenom(denom: string) {
+		assertFactoryTokenSourceMatches(
+			denom,
+			this.contract.address,
+			subdenom => /^crwn[A-F0-9]{40}$/.test(subdenom)
+		);
+	}
+
+	/**
+	 * Takes the specified contract address (or denom in `erc20/{contract_address}` format) and returns the denom of the
+	 * token this contract would mint in return.
+	 * 
+	 * @param erc20Addr the contract address or erc20 denom to check
+	 * @returns the token factory token this contract would mint when given the specified erc20 token
+	 */
+	wrappedDenomOf(erc20Addr: string): string {
+		if (erc20Addr.startsWith("erc20/")) {
+			erc20Addr = erc20Addr.substring("erc20/".length);
+		}
+		if (!isValidEvmAddress(erc20Addr, true)) {
+			throw new Error(erc20Addr + " is not a valid EVM address");
+		}
+		return `factory/${this.contract.address}/crwn${erc20Addr.substring(2).toUpperCase()}`;
+	}
+
+	/**
+	 * Gets the ERC20 token address from the wrapped denom
+	 * 
+	 * This throws an error if the denom specified does not belong to this contract
+	 * 
+	 * @param wrappedDenom The token factory denom
+	 * @returns The ERC20 contract address
+	 */
+	unwrappedDenomOf(wrappedDenom: string): string {
+		this.assertWrappedDenom(wrappedDenom);
+		return toChecksumAddressEvm(wrappedDenom.substring(wrappedDenom.length - 4), false);
+	}
+
+	/**
+	 * Builds the instruction to wrap the CW20 tokens into token factory tokens.
+	 * 
+	 * @param amount amount of tokens to wrap
+	 * @param erc20Addr the contract address or denom in `erc20/{contract_address}` to wrap
+	 * @param recipient who to send the resulting wrapped tokens to, defaults to the sender.
+	 * @returns the execute instructions to wrap the token
+	 */
+	buildWrapIxs(
+		amount: number | bigint | string,
+		erc20Addr: string,
+		senderEvmAddr: string,
 		recipient?: string
 	): [EvmExecuteInstruction, ExecuteInstruction] {
-		this.assert_evm_addr({ contract, sender });
-
-		const approve_instruction: EvmExecuteInstruction = {
-			contractAddress: contract,
-			evmMsg: {
-				function: seiutils.ERC20_FUNC_APPROVE,
-				params: [sei.stringToCanonicalAddr(this.address).fill(0, 0, 12), amount],
-			},
-		};
-
-		const wrap_instruction = {
-			contractAddress: this.address,
-			msg: {
-				wrap: {
-					amount: String(amount),
-					token_addr: contract,
-					evm_sender: sender,
-					recipient,
+		if (erc20Addr.startsWith("erc20/")) {
+			erc20Addr = erc20Addr.substring("erc20/".length);
+		}
+		return [
+			{
+				contractAddress: erc20Addr,
+				evmMsg: {
+					function: ERC20_FUNC_APPROVE,
+					params: [
+						"0x" + Buffer.from(stringToCanonicalAddr(this.contract.address)).subarray(12).toString("hex"),
+						amount
+					],
 				},
-			} satisfies ERC20WrapperExecMsg,
-		};
-
-		return [approve_instruction, wrap_instruction];
+			},
+			this.contract.buildWrapIx({
+				amount: amount + "",
+				token_addr: erc20Addr,
+				evm_sender: Buffer.from(senderEvmAddr.substring(2), "hex").toString("base64"),
+				recipient
+			})
+		];
 	}
 
-	unwrap_unchecked = (tokens: Coin[], recipient: string): ExecuteInstruction => ({
-		contractAddress: this.address,
-		msg: {
-			unwrap: { evm_recipient: recipient },
-		} satisfies ERC20WrapperExecMsg,
-		funds: tokens,
-	});
-
-	unwrap(tokens: Coin[], recipient: string) {
-		if (tokens.length === 0) throw new Error("Empty set of tokens being sent to contract.");
-		tokens.forEach((tkn) => this.validate_native_denom(tkn.denom));
-		this.assert_evm_addr({ recipient });
+	/**
+	 * Builds the instruction to unwrap the token factory tokens minted by this contract back into CW20 tokens.
+	 * 
+	 * @param wrappedTokens the coins to unwrap, they must be associated with this contract or this function throws an error
+	 * @param recipientEvmAddr who to send the resulting unwrapped tokens to
+	 * @returns the execute instructions to unwrap the token
+	 */
+	buildUnwrapIx(
+		wrappedTokens: (Coin | IBigIntCoin)[],
+		recipientEvmAddr: string
+	): ExecuteInstruction {
+		const funds = wrappedTokens.map(wrappedToken => {
+			this.assertWrappedDenom(wrappedToken.denom);
+			return {
+				amount: wrappedToken.amount + "",
+				denom: wrappedToken.denom
+			};
+		});
+		funds.sort(nativeDenomSortCompare);
+		return this.contract.buildUnwrapIx({
+			evm_recipient: Buffer.from(recipientEvmAddr.substring(2), "hex").toString("base64")
+		}, funds);
 	}
 }

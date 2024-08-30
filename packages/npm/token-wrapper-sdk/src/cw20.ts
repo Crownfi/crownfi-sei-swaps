@@ -30,16 +30,23 @@ export class CW20TokenWrapper<Q extends QueryClient & WasmExtension> {
 	 * @returns 
 	 */
 	isWrappedDenom(denom: string): boolean {
-		return factoryTokenSourceMatches(denom, this.contract.address);
+		return factoryTokenSourceMatches(
+			denom,
+			this.contract.address,
+			(subDenom) => /^[a-z2-7]{44}$/.test(subDenom)
+		);
 	}
 	/**
 	 * Works like {@link isWrappedDenom} but throws an error if the denom is not likely to come from this contract.
 	 * 
 	 * @param denom the native denom to check 
-	 * @returns 
 	 */
 	assertWrappedDenom(denom: string) {
-		return assertFactoryTokenSourceMatches(denom, this.contract.address);
+		assertFactoryTokenSourceMatches(
+			denom,
+			this.contract.address,
+			(subDenom) => /^[a-z2-7]{44}$/.test(subDenom)
+		);
 	}
 	/**
 	 * Takes the specified contract address (or denom in `cw20/{contract_address}` format) and returns the denom of the
