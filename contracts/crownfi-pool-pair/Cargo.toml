@@ -11,7 +11,6 @@ crate-type = ["cdylib", "rlib"]
 backtraces = ["cosmwasm-std/backtraces", "crownfi-swaps-common/backtraces"]
 # use library feature to disable all instantiate/execute/query exports
 library = []
-failing-tests = []
 
 [dependencies]
 cw-utils = {workspace = true}

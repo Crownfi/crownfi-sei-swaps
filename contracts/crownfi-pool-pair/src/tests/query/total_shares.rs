@@ -6,12 +6,10 @@ use cosmwasm_std::{
 
 use crate::{
 	contract::{execute, query},
-	msg::PoolPairQueryMsg,
+	msg::{PoolPairExecuteMsg, PoolPairQueryMsg},
 	tests::{deps, init, AddressFactory, LP_TOKEN, PAIR_DENOMS},
 	workarounds::total_supply_workaround,
 };
-
-use super::PoolPairExecuteMsg;
 
 #[test]
 fn must_equal_total_supply() {
