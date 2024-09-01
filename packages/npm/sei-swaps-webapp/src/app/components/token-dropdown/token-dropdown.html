@@ -1,6 +1,6 @@
 <template cewt-name="token-dropdown-component" cewt-extends="button" cewt-attributes="selected, options">
   <span cewt-ref="selected-token" is="token-display"></span>
-  <i class="cicon cicon-size-xsmall cicon-gradient cicon-fantasy-chevron-down"></i>
+  <i class="cicon cicon-size-xsmall cicon-gradient cicon-fantasy-chevron-down" cewt-ref="arrow-icon"></i>
   <dropdown-menu click-trigger="primary" cewt-ref="tokens-dropdown" linked-elements="button:has(#this)">
   </dropdown-menu>
 </template>

@@ -42,6 +42,12 @@ export class TokenDropdrownComponent extends TokenDropdownComponentAutogen {
   connectedCallback() {
     const id = this.getAttribute("id");
     this.classList.add("fantasy", "primary");
+    this.addEventListener("dropdownOpen", ev => {
+      this.refs.arrowIcon.classList.replace("cicon-fantasy-chevron-down", "cicon-fantasy-chevron-up");
+    });
+    this.addEventListener("dropdownClose", ev => {
+      this.refs.arrowIcon.classList.replace("cicon-fantasy-chevron-up", "cicon-fantasy-chevron-down");
+    });
     this.addEventListener("dropdownSelect", ev => {
       ev.stopPropagation();
       const denom = ev.detail.selectedValue;
