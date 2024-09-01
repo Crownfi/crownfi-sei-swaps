@@ -9,30 +9,14 @@ type ConfirmSwapDialogConfirmProps = {
 };
 
 export class ConfirmSwapDialog extends ConfirmSwapDialogComponentAutogen {
-  onFromDenomChanged(oldValue: string | null, newValue: string): void {
-    this.refs.from.denom = newValue;
-  }
-
-  onFromAmountChanged(oldValue: string | null, newValue: string): void {
-    this.refs.from.amount = newValue;
-  }
-
-  onToDenomChanged(oldValue: string | null, newValue: string): void {
-    this.refs.to.denom = newValue;
-  }
-
-  onToAmountChanged(oldValue: string | null, newValue: string): void {
-    this.refs.to.amount = newValue;
-  }
-
   static async confirm({ from, to }: ConfirmSwapDialogConfirmProps) {
     const dialog = new ConfirmSwapDialog();
 
-    dialog.fromDenom = from.denom;
-    dialog.fromAmount = from.amount;
-    dialog.toDenom = to.denom;
-    dialog.toAmount = to.amount;
-    
+    dialog.refs.from.denom = from.denom;
+    dialog.refs.from.amount = from.amount;
+    dialog.refs.to.denom = to.denom;
+    dialog.refs.to.amount = to.amount;
+
     return confirm(
       "Swap Details",
       dialog,

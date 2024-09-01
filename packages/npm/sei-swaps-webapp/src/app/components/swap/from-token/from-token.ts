@@ -1,7 +1,8 @@
-import { bigIntToStringDecimal, getUserTokenInfo, seiUtilEventEmitter, stringDecimalToBigInt, UIAmount, UserTokenInfo } from "@crownfi/sei-utils";
+import { bigIntToStringDecimal, seiUtilEventEmitter, stringDecimalToBigInt, getDefaultNetworkConfig } from "@crownfi/sei-utils";
 import { SwapFromComponentAutogen } from "./_autogen/from-token.js";
 import { useGetBalance } from "../../../../hooks/use-get-balance.js";
 import { DebouncedCallbacks } from "../../../../lib/debounced-component.js";
+import { useGetTokenInfo } from "../../../../hooks/use-get-token-info.js";
 
 export type SwapFromTokenChangedAmountEventDetails = {
   denom: string;
@@ -72,7 +73,7 @@ export class SwapFromTokenComponent extends SwapFromComponentAutogen {
       this.updateBalanceText(BigInt(0));
       return;
     }
-    this.decimals = getUserTokenInfo(this.token).decimals;
+    this.decimals = (await useGetTokenInfo(this.token)).decimals;
     this.setLoadingBalance(true);
     const { raw } = await useGetBalance(this.token);
     this.balance = raw;
@@ -122,7 +123,7 @@ export class SwapFromTokenComponent extends SwapFromComponentAutogen {
     if (!this.token)
       return;
     this.refs.dropdown.setAttribute("selected", this.token);
-    this.decimals = getUserTokenInfo(this.token).decimals;
+    this.decimals = (await useGetTokenInfo(this.token)).decimals;
     await this.refreshBalance();
   }
 

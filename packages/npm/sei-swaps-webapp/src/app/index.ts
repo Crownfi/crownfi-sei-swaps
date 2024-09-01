@@ -16,8 +16,6 @@ export let swapService: SwapService;
 export async function main() {
 	setDefaultNetwork(env.CHAIN_ID);
 
-	let storedProviderPref = localStorage.getItem("preferred_sei_provider");
-	await WebClientEnv.setDefaultProvider(storedProviderPref as any, true);
 	const client = await WebClientEnv.get(undefined, env.CHAIN_ID);
 
 	swapService = await SwapService.create(client.queryClient, env.POOL_FACTORY_CONTRACT_ADDRESS, env.ROUTER_CONTRACT_ADDRESS);
