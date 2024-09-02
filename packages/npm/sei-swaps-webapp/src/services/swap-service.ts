@@ -21,11 +21,13 @@ export class SwapService {
     return new SwapService(swapMarket);
   }
 
-  getPairs() {
+  async getPairs() {
+    await this.swapMarket.refresh();
     return this.swapMarket.getAllPairs();
   }
 
-  getPair(pair: UnifiedDenomPair) {
+  async getPair(pair: UnifiedDenomPair) {
+    await this.swapMarket.refresh();
     return this.swapMarket.getPair(pair) ?? this.swapMarket.getPair(pair, true);
   }
 

@@ -52,6 +52,9 @@ div[is="farm-component"] .fantasy-menu-item-block:hover {
 }
 
 div[is="farm-component"] .fantasy-menu-item-block .badge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
   border: 1px solid var(--colour-primary-500);
   border-radius: 4px;
   padding: 4px 8px 4px 8px;
@@ -69,4 +72,21 @@ div[is="farm-component"] .fantasy-menu-item-block .total-deposits {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-1);
+}
+
+div[is="farm-component"] .overlapping-icons {
+  position: relative;
+}
+
+div[is="farm-component"] .overlapping-icons > i {
+  background-color: var(--colour-primary-500);
+  border-radius: 50%;
+  padding: 4px;
+}
+
+div[is="farm-component"] .overlapping-icons > i + i {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: -15px;
 }

@@ -1,0 +1,37 @@
+<template cewt-name="pool-item-component" cewt-extends="tr">
+  <td>
+    #
+  </td>
+
+  <td>
+    <span class="badge" is="token-display" cewt-ref="poolsFrom"></span>
+    <span class="badge" is="token-display" cewt-ref="poolsTo"></span>
+  </td>
+
+  <td>
+    <div class="badge">
+      <span is="token-display" cewt-ref="exchangeRateFrom"></span>
+      <span class="equals">=</span>
+      <span is="token-display" cewt-ref="exchangeRateTo"></span>
+    </div>
+  </td>
+
+  <td>
+    <div class="total-deposits">
+      <span class="badge" is="token-display" cewt-ref="totalDepositsFrom"></span>
+      <span class="badge" is="token-display" cewt-ref="totalDepositsTo"></span>
+    </div>
+  </td>
+
+  <td>
+    <span cewt-ref="feeRate">--</span>
+  </td>
+
+  <td>
+    <span cewt-ref="apy">--</span>
+  </td>
+
+  <td>
+    <i class="cicon cicon-size-small cicon-fantasy-chevron-right primary cicon-gradient"></i>
+  </td>
+</template>
