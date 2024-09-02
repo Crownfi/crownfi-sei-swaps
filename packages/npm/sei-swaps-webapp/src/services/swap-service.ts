@@ -36,6 +36,10 @@ export class SwapService {
     return this.swapMarket.simulateSwap({ denom: from, amount }, to);
   }
 
+  getExchangeRate(from: UnifiedDenom, to: UnifiedDenom) {
+    return this.swapMarket.exchangeRate(from, to, false);
+  }
+
   async executeSwap(
     from: UnifiedDenom,
     to: UnifiedDenom,

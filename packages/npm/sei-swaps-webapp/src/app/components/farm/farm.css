@@ -68,6 +68,11 @@ div[is="farm-component"] .fantasy-menu-item-block .equals {
   font-size: var(--font-size-medium);
 }
 
+div[is="farm-component"] .fantasy-menu-item-block .pools {
+  display: flex;
+  gap: var(--spacing-1);
+}
+
 div[is="farm-component"] .fantasy-menu-item-block .total-deposits {
   display: flex;
   flex-direction: column;
@@ -78,13 +83,13 @@ div[is="farm-component"] .overlapping-icons {
   position: relative;
 }
 
-div[is="farm-component"] .overlapping-icons > i {
+div[is="farm-component"] .overlapping-icons > * {
   background-color: var(--colour-primary-500);
   border-radius: 50%;
   padding: 4px;
 }
 
-div[is="farm-component"] .overlapping-icons > i + i {
+div[is="farm-component"] .overlapping-icons > * + * {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);

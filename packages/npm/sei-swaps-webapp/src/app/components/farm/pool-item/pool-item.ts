@@ -1,17 +1,25 @@
 import { SwapMarketPair } from "@crownfi/sei-swaps-sdk";
+import { stringDecimalToBigInt } from "@crownfi/sei-utils";
+
 import { PoolItemComponentAutogen } from "./_autogen/pool-item.js";
+import { swapService } from "../../../index.js";
+import { useGetTokenInfo } from "../../../../hooks/use-get-token-info.js";
 
 export class PoolItemComponent extends PoolItemComponentAutogen {
   constructor(readonly poolPair: SwapMarketPair) {
     super();
   }
 
-  connectedCallback() {
+  async connectedCallback() {
     this.classList.add("fantasy-menu-item-block");
+
     const fromDenom = this.poolPair.assets[0];
+    const fromTokenInfo = await useGetTokenInfo(fromDenom);
     const toDenom = this.poolPair.assets[1];
-    const exchangeRateFrom = this.poolPair.exchangeRate();
-    const exchangeRateTo = this.poolPair.exchangeRate(true);
+    const toTokenInfo = await useGetTokenInfo(toDenom);
+  
+    const exchangeRateFrom = stringDecimalToBigInt(swapService.getExchangeRate(fromDenom, toDenom), fromTokenInfo.decimals);
+    const exchangeRateTo = stringDecimalToBigInt(swapService.getExchangeRate(toDenom, fromDenom), toTokenInfo.decimals);
     const feeRate = this.poolPair.totalFeeBasisPoints;
 
     this.refs.poolsFrom.denom = fromDenom;
