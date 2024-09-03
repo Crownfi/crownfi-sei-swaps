@@ -1,4 +1,21 @@
 <template cewt-name="farm-component" cewt-extends="div">
+  <div class="row mb-4 align-items-center justify-content-between">
+    <div class="row gap-1 align-items-center">
+      <div class="fantasy-input-group">
+        <span></span>
+        <input type="text" placeholder="Search..." />
+        <span class="cicon cicon-fantasy-search cicon-size-small primary cicon-gradient"></span>
+      </div>
+  
+      <button class="button fantasy row gap-1">
+        Filters
+        <span class="cicon cicon-fantasy-controls cicon-size-small primary cicon-gradient"></span>
+      </button>
+    </div>
+
+    <button is="sort-by-component"></button>
+  </div>
+
   <table>
     <thead>
       <tr>

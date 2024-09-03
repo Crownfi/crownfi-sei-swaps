@@ -1,0 +1,25 @@
+.row {
+  display: flex;
+  flex-direction: row;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+.justify-content-between {
+  justify-content: space-between;
+}
+
+.gap-1 {
+  gap: var(--spacing-1);
+}
+
+.mb-4 {
+  margin-bottom: var(--spacing-4);
+}

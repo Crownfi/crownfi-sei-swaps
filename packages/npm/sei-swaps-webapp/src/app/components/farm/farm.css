@@ -17,6 +17,7 @@ div[is="farm-component"] table thead tr th {
   color: var(--colour-neutral-primary);
   font-weight: 400;
   padding: 0 var(--spacing-3);
+  padding-bottom: var(--spacing-1);
 }
 
 div[is="farm-component"] table thead tr th:first-child {
@@ -91,4 +92,52 @@ div[is="farm-component"] .overlapping-icons > i + i {
 
 div[is="farm-component"] .overlapping-icons > img + img {
   transform: translateX(-70%);
+}
+
+div[is="farm-component"] .button {
+  font-size: var(--font-size-normal);
+  font-weight: 400;
+  color: var(--colour-secondary-500);
+  background-color: var(--colour-primary-800);
+}
+
+div[is="farm-component"] .fantasy-input-group {
+  min-height: 36px;
+  border-image-outset: 4px;
+}
+
+div[is="farm-component"] .fantasy-input-group input {
+  width: 367px;
+  color: var(--colour-secondary-500);
+  font-size: var(--font-size-normal);
+  font-family: --font-family-default;
+  border: none;
+}
+
+div[is="farm-component"] .fantasy-input-group input:hover {
+  border: none;
+}
+
+div[is="farm-component"] .fantasy-input-group input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  color: var(--colour-secondary-500);
+  font-size: var(--font-size-normal);
+  font-family: --font-family-default;
+}
+
+div[is="farm-component"] .fantasy-input-group input::-moz-placeholder { /* Firefox 19+ */
+  color: var(--colour-secondary-500);
+  font-size: var(--font-size-normal);
+  font-family: --font-family-default;
+}
+
+div[is="farm-component"] .fantasy-input-group input:-ms-input-placeholder { /* IE 10+ */
+  color: var(--colour-secondary-500);
+  font-size: var(--font-size-normal);
+  font-family: --font-family-default;
+}
+
+div[is="farm-component"] .fantasy-input-group input:-moz-placeholder { /* Firefox 18- */
+  color: var(--colour-secondary-500);
+  font-size: var(--font-size-normal);
+  font-family: --font-family-default;
 }

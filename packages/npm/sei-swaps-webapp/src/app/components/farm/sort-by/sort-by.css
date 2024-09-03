@@ -1,0 +1,11 @@
+div[is="sort-by-component"] .button {
+  font-size: var(--font-size-normal);
+  font-weight: 400;
+  color: var(--colour-secondary-500);
+  background-color: var(--colour-primary-800);
+}
+
+active-dropdown-menu {
+  width: max-content;
+  color: var(--colour-secondary-500);
+}
