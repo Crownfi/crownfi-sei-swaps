@@ -79,19 +79,16 @@ div[is="farm-component"] .fantasy-menu-item-block .total-deposits {
   gap: var(--spacing-1);
 }
 
-div[is="farm-component"] .overlapping-icons {
-  position: relative;
-}
-
-div[is="farm-component"] .overlapping-icons > * {
+div[is="farm-component"] .overlapping-icons > i {
   background-color: var(--colour-primary-500);
   border-radius: 50%;
   padding: 4px;
 }
 
-div[is="farm-component"] .overlapping-icons > * + * {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+div[is="farm-component"] .overlapping-icons > i + i {
   margin-left: -15px;
+}
+
+div[is="farm-component"] .overlapping-icons > img + img {
+  transform: translateX(-70%);
 }

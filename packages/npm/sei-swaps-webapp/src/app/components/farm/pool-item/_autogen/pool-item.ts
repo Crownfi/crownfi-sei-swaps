@@ -6,6 +6,20 @@ export class PoolItemComponentRefs {
 	constructor(element: HTMLElement | ShadowRoot) {
 		this.#element = element;
 	}
+	#fromIcon?: HTMLImageElement;
+	get fromIcon() {
+		if (this.#fromIcon === undefined) {
+			this.#fromIcon = this.#element.querySelector("[cewt-ref=\"fromIcon\"]:not(:scope [is] *)")!;
+		}
+		return this.#fromIcon;
+	}
+	#toIcon?: HTMLImageElement;
+	get toIcon() {
+		if (this.#toIcon === undefined) {
+			this.#toIcon = this.#element.querySelector("[cewt-ref=\"toIcon\"]:not(:scope [is] *)")!;
+		}
+		return this.#toIcon;
+	}
 	#poolsFrom?: TokenDisplayElement;
 	get poolsFrom() {
 		if (this.#poolsFrom === undefined) {
@@ -67,7 +81,7 @@ let _templatePoolItemComponent: HTMLTemplateElement | null = null;
 function getPoolItemComponentTemplate(): HTMLTemplateElement {
 	if (_templatePoolItemComponent == null) {
 		 _templatePoolItemComponent = document.createElement("template")
-		 _templatePoolItemComponent.innerHTML = "\n  <td class=\"overlapping-icons\">\n    #\n  </td>\n\n  <td>\n    <div class=\"pools\">\n      <span class=\"badge\" is=\"token-display\" cewt-ref=\"poolsFrom\"></span>\n      <span class=\"badge\" is=\"token-display\" cewt-ref=\"poolsTo\"></span>\n    </div>\n  </td>\n\n  <td>\n    <div class=\"badge\">\n      <span is=\"token-display\" cewt-ref=\"exchangeRateFrom\"></span>\n      <span class=\"equals\">=</span>\n      <span is=\"token-display\" cewt-ref=\"exchangeRateTo\"></span>\n    </div>\n  </td>\n\n  <td>\n    <div class=\"total-deposits\">\n      <span class=\"badge\" is=\"token-display\" cewt-ref=\"totalDepositsFrom\"></span>\n      <span class=\"badge\" is=\"token-display\" cewt-ref=\"totalDepositsTo\"></span>\n    </div>\n  </td>\n\n  <td>\n    <span cewt-ref=\"feeRate\">--</span>\n  </td>\n\n  <td>\n    <span cewt-ref=\"apy\">--</span>\n  </td>\n\n  <td>\n    <i class=\"cicon cicon-size-small cicon-fantasy-chevron-right primary cicon-gradient\"></i>\n  </td>\n";
+		 _templatePoolItemComponent.innerHTML = "\n  <td class=\"overlapping-icons\">\n    <img is=\"token-icon\" cewt-ref=\"fromIcon\">\n    <img is=\"token-icon\" cewt-ref=\"toIcon\">\n  </td>\n\n  <td>\n    <div class=\"pools\">\n      <span class=\"badge\" is=\"token-display\" cewt-ref=\"poolsFrom\"></span>\n      <span class=\"badge\" is=\"token-display\" cewt-ref=\"poolsTo\"></span>\n    </div>\n  </td>\n\n  <td>\n    <div class=\"badge\">\n      <span is=\"token-display\" cewt-ref=\"exchangeRateFrom\"></span>\n      <span class=\"equals\">=</span>\n      <span is=\"token-display\" cewt-ref=\"exchangeRateTo\"></span>\n    </div>\n  </td>\n\n  <td>\n    <div class=\"total-deposits\">\n      <span class=\"badge\" is=\"token-display\" cewt-ref=\"totalDepositsFrom\"></span>\n      <span class=\"badge\" is=\"token-display\" cewt-ref=\"totalDepositsTo\"></span>\n    </div>\n  </td>\n\n  <td>\n    <span cewt-ref=\"feeRate\">--</span>\n  </td>\n\n  <td>\n    <span cewt-ref=\"apy\">--</span>\n  </td>\n\n  <td>\n    <i class=\"cicon cicon-size-small cicon-fantasy-chevron-right primary cicon-gradient\"></i>\n  </td>\n";
 	}
 	return _templatePoolItemComponent;
 }

@@ -22,6 +22,8 @@ export class PoolItemComponent extends PoolItemComponentAutogen {
     const exchangeRateTo = stringDecimalToBigInt(swapService.getExchangeRate(toDenom, fromDenom), toTokenInfo.decimals);
     const feeRate = this.poolPair.totalFeeBasisPoints;
 
+    this.refs.fromIcon.setAttribute("denom", fromDenom);
+    this.refs.toIcon.setAttribute("denom", toDenom);
     this.refs.poolsFrom.denom = fromDenom;
     this.refs.poolsTo.denom = toDenom;
     this.refs.exchangeRateFrom.denom = fromDenom;
