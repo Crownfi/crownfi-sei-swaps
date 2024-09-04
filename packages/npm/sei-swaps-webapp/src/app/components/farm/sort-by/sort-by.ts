@@ -1,4 +1,5 @@
-import { SortByComponentAutogen, SortByComponentRefs } from "./_autogen/sort-by.js";
+import { DebouncedCallbacks } from "../../../../lib/debounced-callbacks.js";
+import { SortByComponentAutogen } from "./_autogen/sort-by.js";
 
 export type SortBy = "alphabetical" | "tvd" | "uvd" | "apy" | "fees";
 
@@ -16,6 +17,12 @@ declare global {
 
 export class SortByComponent extends SortByComponentAutogen {
   private selected: string | null = null;
+  debouncedCallbacks: DebouncedCallbacks;
+
+  constructor() {
+    super();
+    this.debouncedCallbacks = new DebouncedCallbacks();
+  }
 
   handleChecked(checked: string | null) {
     if (!checked)
@@ -38,6 +45,20 @@ export class SortByComponent extends SortByComponentAutogen {
     this.handleChecked(this.default);
   }
 
+  dispatchSortByEvent() {
+    const debouncedDispatch = this.debouncedCallbacks.debounce((el: this, sortBy: string) => {
+      el.dispatchEvent(new CustomEvent("sortByEvent", { 
+        detail: {
+          sortBy,
+        },
+        bubbles: true,
+      }));
+    });
+
+    if (this.selected)
+      debouncedDispatch(this, this.selected);
+  }
+
   connectedCallback() {
     this.classList.add("button", "fantasy", "row", "gap-1");
 
@@ -48,12 +69,10 @@ export class SortByComponent extends SortByComponentAutogen {
     this.addEventListener("dropdownSelect", ev => {
       ev.stopPropagation();
       const sortBy = (ev.detail.selectedElement.children.item(1) as HTMLInputElement)?.value as SortBy;
-      if (!sortBy) return;
+      if (!sortBy) 
+        return;
       this.selected = sortBy;
-      const detail = {
-        sortBy
-      } satisfies StorByEventDetails;
-      this.dispatchEvent(new CustomEvent("sortByEvent", { detail, bubbles: true }));
+      this.dispatchSortByEvent();
     });
   }
 }
