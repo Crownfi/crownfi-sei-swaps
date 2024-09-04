@@ -8,7 +8,12 @@ use crownfi_cw_common::{
 	data_types::canonical_addr::SeiCanonicalAddr,
 	extentions::timestamp::TimestampExtentions,
 	impl_serializable_as_ref,
-	storage::{base::{storage_read_item, storage_write_item}, item::StoredItem, queue::StoredVecDeque, OZeroCopy, SerializableItem},
+	storage::{
+		base::{storage_read_item, storage_write_item},
+		item::StoredItem,
+		queue::StoredVecDeque,
+		OZeroCopy, SerializableItem,
+	},
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -93,6 +98,10 @@ impl TryFrom<&PoolPairConfigJsonable> for PoolPairConfig {
 		if value.endorsed {
 			flags = flags.union(PoolPairConfigFlags::ENDORSED);
 		}
+		if value.inverse {
+			flags = flags.union(PoolPairConfigFlags::INVERSE);
+		}
+
 		Ok(PoolPairConfig {
 			admin: (&value.admin).try_into()?,
 			fee_receiver: (&value.fee_receiver).try_into()?,
@@ -239,7 +248,7 @@ impl VolumeStatisticsCounter {
 				amount_left,
 				amount_right,
 				exchange_rate_low: exchange_ratio,
-				exchange_rate_high: exchange_ratio
+				exchange_rate_high: exchange_ratio,
 			})?;
 		} else {
 			let mut latest_record = self.hourly.get_back()?.expect("is empty was checked");
@@ -249,7 +258,7 @@ impl VolumeStatisticsCounter {
 					amount_left,
 					amount_right,
 					exchange_rate_low: exchange_ratio,
-					exchange_rate_high: exchange_ratio
+					exchange_rate_high: exchange_ratio,
 				})?;
 			} else {
 				latest_record.amount_left = latest_record.amount_left.saturating_add(amount_left);
@@ -268,7 +277,7 @@ impl VolumeStatisticsCounter {
 				amount_left,
 				amount_right,
 				exchange_rate_low: exchange_ratio,
-				exchange_rate_high: exchange_ratio
+				exchange_rate_high: exchange_ratio,
 			})?;
 		} else {
 			let mut latest_record = self.daily.get_back()?.expect("is empty was checked");
@@ -278,7 +287,7 @@ impl VolumeStatisticsCounter {
 					amount_left,
 					amount_right,
 					exchange_rate_low: exchange_ratio,
-					exchange_rate_high: exchange_ratio
+					exchange_rate_high: exchange_ratio,
 				})?;
 			} else {
 				latest_record.amount_left = latest_record.amount_left.saturating_add(amount_left);
@@ -298,13 +307,16 @@ impl VolumeStatisticsCounter {
 			all_time.exchange_rate_low.set_if_greater(exchange_ratio);
 			storage_write_item(VOLUME_STATS_ALL_TIME_NAMESPACE, all_time.as_ref())?;
 		} else {
-			storage_write_item(VOLUME_STATS_ALL_TIME_NAMESPACE, &TradingVolume {
-				from_time: timestamp_ms,
-				amount_left,
-				amount_right,
-				exchange_rate_low: exchange_ratio,
-				exchange_rate_high: exchange_ratio
-			})?;
+			storage_write_item(
+				VOLUME_STATS_ALL_TIME_NAMESPACE,
+				&TradingVolume {
+					from_time: timestamp_ms,
+					amount_left,
+					amount_right,
+					exchange_rate_low: exchange_ratio,
+					exchange_rate_high: exchange_ratio,
+				},
+			)?;
 		}
 		Ok(())
 	}

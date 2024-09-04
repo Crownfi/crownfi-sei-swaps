@@ -48,7 +48,7 @@ fn must_be_paid_with_2_coins() {
 
 	let info = mock_info(
 		&AddressFactory::random_address(),
-		&[coin(ONE_BILLION, PAIR_DENOMS[0]), coin(0, PAIR_DENOMS[0])],
+		&[coin(ONE_BILLION, PAIR_DENOMS[0]), coin(0, PAIR_DENOMS[1])],
 	);
 	let res = instantiate(deps.as_mut(), env.clone(), info, msg);
 	assert_eq!(
@@ -74,13 +74,10 @@ fn check_config() {
 
 	let config = PoolPairConfig::load().unwrap().unwrap();
 
-	assert_eq!(
-		config.admin,
-		Addr::unchecked(AddressFactory::MAIN_ADDRESS).try_into().unwrap()
-	);
+	assert_eq!(config.admin, Addr::unchecked(AddressFactory::ADMIN).try_into().unwrap());
 	assert_eq!(
 		config.fee_receiver,
-		Addr::unchecked(AddressFactory::MAIN_ADDRESS).try_into().unwrap()
+		Addr::unchecked(AddressFactory::FEE_RECEIVER).try_into().unwrap()
 	);
 	assert_eq!(config.maker_fee_bps, 50);
 	assert_eq!(config.total_fee_bps, 100);
@@ -101,7 +98,7 @@ fn subdenom_is_created_and_shares_are_minted() {
 				amount: coin(707106, LP_TOKEN)
 			}),
 			SubMsg::new(BankMsg::Send {
-				to_address: AddressFactory::MAIN_ADDRESS.into(),
+				to_address: AddressFactory::ADMIN.into(),
 				amount: vec![coin(707106, LP_TOKEN)]
 			})
 		]

@@ -30,7 +30,7 @@ fn accepts_no_coins() {
 		endorsed: Some(true),
 	};
 
-	let info = mock_info(AddressFactory::MAIN_ADDRESS, &[coin(1, PAIR_DENOMS[0])]);
+	let info = mock_info(AddressFactory::ADMIN, &[coin(1, PAIR_DENOMS[0])]);
 	let res = execute(deps.as_mut(), env.clone().clone(), info, exec_msg);
 	assert_eq!(
 		res,
@@ -79,7 +79,7 @@ fn items_are_set_as_specified() {
 		endorsed: Some(true),
 	};
 
-	let info = mock_info(AddressFactory::MAIN_ADDRESS, &[]);
+	let info = mock_info(AddressFactory::ADMIN, &[]);
 	execute(deps.as_mut(), env.clone().clone(), info, exec_msg).unwrap();
 
 	let config = PoolPairConfig::load().unwrap().unwrap();

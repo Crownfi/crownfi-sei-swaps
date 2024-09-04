@@ -1,7 +1,7 @@
 use cosmwasm_std::{
 	attr, coin,
 	testing::{mock_env, mock_info},
-	BankMsg, CosmosMsg, Decimal, SubMsg, Uint128,
+	Addr, BankMsg, CosmosMsg, Decimal, SubMsg, Uint128,
 };
 use cw_utils::PaymentError;
 
@@ -10,9 +10,10 @@ use crate::{
 	error::PoolPairContractError,
 	msg::PoolPairExecuteMsg,
 	tests::{
-		deps, init, pool_balance, share_in_assets, AddressFactory, PoolPairConfig, LEFT_TOKEN_AMT, LP_TOKEN,
-		PAIR_DENOMS, RIGHT_TOKEN_AMT,
+		deps, init, inner_share_in_assets, pool_balance, share_in_assets, AddressFactory, PoolPairConfig,
+		LEFT_TOKEN_AMT, LP_TOKEN, PAIR_DENOMS, RIGHT_TOKEN_AMT,
 	},
+	workarounds::total_supply_workaround,
 };
 
 #[test]
@@ -60,8 +61,17 @@ fn slippage_tolerance_must_not_exceed_limit() {
 	};
 	let sender = AddressFactory::random_address();
 	let info = mock_info(&sender, &[coin(500, PAIR_DENOMS[1])]);
-	let res = execute(deps.as_mut(), env, info, msg);
+	let res = execute(deps.as_mut(), env.clone(), info.clone(), msg);
 	assert_eq!(res, Err(PoolPairContractError::ToleranceTooHigh));
+
+	let msg = PoolPairExecuteMsg::Swap {
+		expected_result: None,
+		slippage_tolerance: Some(Decimal::bps(5000)),
+		receiver: None,
+		receiver_payload: None,
+	};
+	let res = execute(deps.as_mut(), env, info, msg);
+	assert!(res.is_ok());
 }
 
 #[test]
@@ -71,7 +81,7 @@ fn slippage_tolerance_must_be_respected() {
 
 	let env = mock_env();
 	let msg = PoolPairExecuteMsg::Swap {
-		expected_result: Some(Uint128::new(900)),
+		expected_result: Some(Uint128::new(990)),
 		slippage_tolerance: None,
 		receiver: None,
 		receiver_payload: None,
@@ -79,8 +89,19 @@ fn slippage_tolerance_must_be_respected() {
 
 	let sender = AddressFactory::random_address();
 	let info = mock_info(&sender, &[coin(500, PAIR_DENOMS[1])]);
-	let res = execute(deps.as_mut(), env, info, msg);
+	let res = execute(deps.as_mut(), env.clone(), info.clone(), msg);
 	assert!(matches!(res, Err(PoolPairContractError::SlippageTooHigh(_))));
+
+	// the same operation also works with a different slippage
+	let msg = PoolPairExecuteMsg::Swap {
+		expected_result: Some(Uint128::new(990)),
+		slippage_tolerance: Some(Decimal::bps(1000)),
+		receiver: None,
+		receiver_payload: None,
+	};
+
+	let res = execute(deps.as_mut(), env, info, msg);
+	assert!(res.is_ok());
 }
 
 #[test]
@@ -104,7 +125,7 @@ fn swap_calculation_is_correct() {
 		res.messages,
 		vec![
 			SubMsg::new(BankMsg::Send {
-				to_address: AddressFactory::MAIN_ADDRESS.into(),
+				to_address: AddressFactory::FEE_RECEIVER.into(),
 				amount: vec![coin(500, PAIR_DENOMS[0])]
 			}),
 			SubMsg::new(BankMsg::Send {
@@ -148,7 +169,8 @@ fn naive_result_is_used_when_expected_result_is_unspecified() {
 	let sender = AddressFactory::random_address();
 	let info = mock_info(&sender, &[coin(500, PAIR_DENOMS[1])]);
 	let res = execute(deps.as_mut(), env.clone(), info.clone(), msg);
-	assert!(res.is_err());
+	// fails since the slippage being calculated uses a way higher expected output of tokens, exceeding it's limit
+	assert!(matches!(res, Err(PoolPairContractError::SlippageTooHigh(_))));
 	let res = execute(deps.as_mut(), env, info, msg_without_expected_result);
 	assert!(res.is_ok());
 }
@@ -215,7 +237,7 @@ fn pool_fees_stay_within_pool() {
 		.parse::<u128>()
 		.unwrap();
 
-	let expected_sent_plus_fees = spread_amt + naive.u128();
+	let expected_sent_plus_fees = naive.u128() - spread_amt;
 
 	let total_sent = res
 		.messages
@@ -235,10 +257,11 @@ fn events_emitted_with_correct_values() {
 	init(&mut deps);
 
 	let env = mock_env();
+	let receiver = AddressFactory::random_address();
 	let msg = PoolPairExecuteMsg::Swap {
 		expected_result: None,
 		slippage_tolerance: None,
-		receiver: None,
+		receiver: Some(Addr::unchecked(&receiver)),
 		receiver_payload: None,
 	};
 	let sender = AddressFactory::random_address();
@@ -250,7 +273,7 @@ fn events_emitted_with_correct_values() {
 		vec![
 			attr("action", "swap"),
 			attr("sender", &sender),
-			attr("receiver", &sender),
+			attr("receiver", &receiver),
 			attr("in_coin", coin(500, PAIR_DENOMS[1]).to_string()),
 			attr("out_coin", coin(990, PAIR_DENOMS[0]).to_string()),
 			attr("spread_amount", "1"),
@@ -275,8 +298,8 @@ fn share_values_correctly_updated() {
 	let sender = AddressFactory::random_address();
 	let info = mock_info(&sender, &[coin(10000, PAIR_DENOMS[1])]);
 
-	let share_value = share_in_assets(deps.as_ref(), 1000);
-
+	let total_supply = total_supply_workaround(LP_TOKEN);
+	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
 	let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
 
 	let total_sent = res
@@ -288,6 +311,9 @@ fn share_values_correctly_updated() {
 		})
 		.sum::<Uint128>();
 
+	let expected_share_value =
+		inner_share_in_assets([pb[0] - total_sent.u128(), pb[1] + 10000], 1000, total_supply.u128());
+
 	deps.querier.update_balance(
 		&env.contract.address,
 		vec![
@@ -297,6 +323,5 @@ fn share_values_correctly_updated() {
 	);
 
 	let new_share_value = share_in_assets(deps.as_ref(), 1000);
-
-	assert_ne!(share_value, new_share_value);
+	assert_eq!(new_share_value, expected_share_value);
 }

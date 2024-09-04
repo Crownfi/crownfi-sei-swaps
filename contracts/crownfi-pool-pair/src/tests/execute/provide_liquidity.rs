@@ -1,7 +1,7 @@
 use cosmwasm_std::{
 	attr, coin,
 	testing::{mock_env, mock_info},
-	Addr, BankMsg, Binary, SubMsg, WasmMsg,
+	Addr, BankMsg, Binary, Decimal, SubMsg, Uint128, WasmMsg,
 };
 use crownfi_swaps_common::error::CrownfiSwapsCommonError;
 use cw_utils::PaymentError;
@@ -11,7 +11,10 @@ use crate::{
 	contract::execute,
 	error::PoolPairContractError,
 	msg::PoolPairExecuteMsg,
-	tests::{calc_shares, deps, init, pool_balance, AddressFactory, LP_TOKEN, PAIR_DENOMS},
+	tests::{
+		calc_shares, deps, init, pool_balance, AddressFactory, LEFT_TOKEN_AMT, LP_TOKEN, PAIR_DENOMS, RIGHT_TOKEN_AMT,
+	},
+	workarounds::total_supply_workaround,
 };
 
 #[test]
@@ -27,10 +30,23 @@ fn slipage_tolerance_must_not_exceed_limit() {
 
 	let env = mock_env();
 	let sender = AddressFactory::random_address();
-	let info = mock_info(&sender, &[coin(50, PAIR_DENOMS[0]), coin(20, PAIR_DENOMS[1])]);
+	let info = mock_info(&sender, &[coin(50, PAIR_DENOMS[0]), coin(24, PAIR_DENOMS[1])]);
 	let res = execute(deps.as_mut(), env, info, provide_liquidity_msg);
 
 	assert_eq!(res, Err(PoolPairContractError::DepositTooImbalanced));
+
+	// This level of imbalance doesn't work for the default tolerance, but will still succeed with an explicitly set one
+	let provide_liquidity_msg = PoolPairExecuteMsg::ProvideLiquidity {
+		slippage_tolerance: Some(Decimal::bps(1000)),
+		receiver: None,
+		receiver_payload: None,
+	};
+
+	let env = mock_env();
+	let sender = AddressFactory::random_address();
+	let info = mock_info(&sender, &[coin(50, PAIR_DENOMS[0]), coin(24, PAIR_DENOMS[1])]);
+	let res = execute(deps.as_mut(), env, info, provide_liquidity_msg);
+	assert!(dbg!(res).is_ok());
 }
 
 #[test]
@@ -80,6 +96,7 @@ fn must_be_given_both_tokens() {
 #[test]
 fn shares_are_correctly_minted_and_sent() {
 	let mut deps = deps(&[]);
+	// set's the contract balance to (1000000left, 500000right)
 	init(&mut deps);
 
 	let provide_liquidity_msg = PoolPairExecuteMsg::ProvideLiquidity {
@@ -91,10 +108,10 @@ fn shares_are_correctly_minted_and_sent() {
 	let env = mock_env();
 	let sender = AddressFactory::random_address();
 	let info = mock_info(&sender, &[coin(50, PAIR_DENOMS[0]), coin(25, PAIR_DENOMS[1])]);
-	let res = execute(deps.as_mut(), env.clone(), info.clone(), provide_liquidity_msg.clone()).unwrap();
+	let res = execute(deps.as_mut(), env, info, provide_liquidity_msg).unwrap();
 
 	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
-	let lp_amt = calc_shares([50u128, 25u128], pb);
+	let lp_amt = calc_shares([50, 25], pb);
 
 	assert_eq!(
 		res.messages,
@@ -127,11 +144,27 @@ fn contract_is_aware_of_new_shares() {
 	let info = mock_info(&sender, &assets);
 
 	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
-	let lp_amt = calc_shares([500u128, 250u128], pb);
-	execute(deps.as_mut(), env, info, provide_liquidity_msg).unwrap();
+	let total_supply = total_supply_workaround(LP_TOKEN);
+	let lp_amt = calc_shares([500, 250], pb.clone());
+	let expected_lp_amt = std::cmp::min(
+		Uint128::new(500).multiply_ratio(total_supply.u128() + lp_amt, pb[0] - 500),
+		Uint128::new(250).multiply_ratio(total_supply.u128() + lp_amt, pb[1] - 250),
+	)
+	.u128();
+
+	execute(deps.as_mut(), env.clone(), info, provide_liquidity_msg).unwrap();
+	deps.querier.update_balance(
+		env.contract.address,
+		vec![
+			coin(LEFT_TOKEN_AMT + 5000, PAIR_DENOMS[0]),
+			coin(RIGHT_TOKEN_AMT + 2510, PAIR_DENOMS[1]),
+		],
+	);
+
 	let pb = pool_balance(PAIR_DENOMS, &deps.querier);
-	let lp_amt_after = calc_shares([500u128, 250u128], pb);
-	assert_ne!(lp_amt, lp_amt_after);
+	let lp_amt_after = calc_shares([500, 250], pb);
+
+	assert_eq!(lp_amt_after, expected_lp_amt);
 }
 
 #[test]
@@ -173,9 +206,10 @@ fn events_emitted_correctly() {
 	init(&mut deps);
 	let env = mock_env();
 
+	let receiver = AddressFactory::random_address();
 	let provide_liquidity_msg = PoolPairExecuteMsg::ProvideLiquidity {
 		slippage_tolerance: None,
-		receiver: None,
+		receiver: Some(Addr::unchecked(&receiver)),
 		receiver_payload: None,
 	};
 
@@ -192,7 +226,7 @@ fn events_emitted_correctly() {
 		vec![
 			attr("action", "provide_liquidity"),
 			attr("sender", &sender),
-			attr("receiver", &sender),
+			attr("receiver", &receiver),
 			attr("assets", format!("{}, {}", assets[0], assets[1])),
 			attr("share", share.to_string())
 		]
