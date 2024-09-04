@@ -453,7 +453,7 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 				share_supply,
 				&[pool_balances[0].amount, pool_balances[1].amount],
 				&[offer[0].amount, offer[1].amount],
-				Decimal::MAX,
+				Decimal::one(),
 			)?;
 			// Uint128 type implicitly panics on overflow
 			share_supply += new_shares;
