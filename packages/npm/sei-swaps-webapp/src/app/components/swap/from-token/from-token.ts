@@ -1,7 +1,7 @@
 import { bigIntToStringDecimal, seiUtilEventEmitter, stringDecimalToBigInt, getDefaultNetworkConfig } from "@crownfi/sei-utils";
 import { SwapFromComponentAutogen } from "./_autogen/from-token.js";
 import { useGetBalance } from "../../../../hooks/use-get-balance.js";
-import { DebouncedCallbacks } from "../../../../lib/debounced-component.js";
+import { DebouncedCallbacks } from "../../../../lib/debounced-callbacks.js";
 import { useGetTokenInfo } from "../../../../hooks/use-get-token-info.js";
 
 export type SwapFromTokenChangedAmountEventDetails = {
