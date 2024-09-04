@@ -520,5 +520,56 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 			let volume_stats = VolumeStatisticsCounter::new()?;
 			to_json_binary(&volume_stats.get_volume_all_time(env.block.time)?)?
 		}
+		PoolPairQueryMsg::ExchangeRateHourly { past_hours } => {
+			let volume_stats = VolumeStatisticsCounter::new()?;
+			let fallback = || {
+				get_pool_balance(
+					&deps.querier,
+					&env,
+					&CanonicalPoolPairIdentifier::load_non_empty()?.into_inner().into()
+				).map(|coins| {
+					coins.map(|coin| {coin.amount.u128()})
+				})
+			};
+			to_json_binary(
+				&if let Some(past_hours) = NonZeroU8::new(past_hours.unwrap_or_default()) {
+					volume_stats.get_exchange_rate_per_hours(env.block.time, past_hours, fallback)?
+				} else {
+					volume_stats.get_exchange_rate_since_hour_start(env.block.time, fallback)?
+				},
+			)?
+		},
+		PoolPairQueryMsg::ExchangeRateDaily { past_days } => {
+			let volume_stats = VolumeStatisticsCounter::new()?;
+			let fallback = || {
+				get_pool_balance(
+					&deps.querier,
+					&env,
+					&CanonicalPoolPairIdentifier::load_non_empty()?.into_inner().into()
+				).map(|coins| {
+					coins.map(|coin| {coin.amount.u128()})
+				})
+			};
+			to_json_binary(
+				&if let Some(past_days) = NonZeroU8::new(past_days.unwrap_or_default()) {
+					volume_stats.get_exchange_rate_per_days(env.block.time, past_days, fallback)?
+				} else {
+					volume_stats.get_exchange_rate_since_day_start(env.block.time, fallback)?
+				},
+			)?
+		},
+		PoolPairQueryMsg::ExchangeRateAllTime => {
+			let volume_stats = VolumeStatisticsCounter::new()?;
+			let fallback = || {
+				get_pool_balance(
+					&deps.querier,
+					&env,
+					&CanonicalPoolPairIdentifier::load_non_empty()?.into_inner().into()
+				).map(|coins| {
+					coins.map(|coin| {coin.amount.u128()})
+				})
+			};
+			to_json_binary(&volume_stats.get_exchange_rate_all_time(env.block.time, fallback)?)?
+		},
 	})
 }

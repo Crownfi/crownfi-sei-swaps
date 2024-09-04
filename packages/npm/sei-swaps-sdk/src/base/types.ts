@@ -338,7 +338,18 @@ export type PoolPairQueryMsg =
         past_days?: number | null;
       };
     }
-  | "total_volume_sum";
+  | "total_volume_sum"
+  | {
+      exchange_rate_hourly: {
+        past_hours?: number | null;
+      };
+    }
+  | {
+      exchange_rate_daily: {
+        past_days?: number | null;
+      };
+    }
+  | "exchange_rate_all_time";
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "String".
@@ -421,6 +432,17 @@ export interface PoolFactoryCreatedPair {
 export interface Coin {
   amount: Uint128;
   denom: string;
+}
+/**
+ * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
+ * via the `definition` "ExchangeRateQueryResponse".
+ */
+export interface ExchangeRateQueryResponse {
+  exchange_rate_avg: number;
+  exchange_rate_high: number;
+  exchange_rate_low: number;
+  from_timestamp_ms: number;
+  to_timestamp_ms: number;
 }
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
@@ -595,8 +617,6 @@ export interface SwapRouterSimulateSwapsResponse {
  * via the `definition` "VolumeQueryResponse".
  */
 export interface VolumeQueryResponse {
-  exchange_rate_high: number;
-  exchange_rate_low: number;
   from_timestamp_ms: number;
   to_timestamp_ms: number;
   /**
