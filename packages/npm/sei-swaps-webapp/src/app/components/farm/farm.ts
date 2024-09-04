@@ -3,7 +3,10 @@ import { FarmComponentAutogen } from "./_autogen/farm.js";
 import { PoolItemComponent } from "./pool-item/pool-item.js";
 
 export class FarmComponent extends FarmComponentAutogen {
+  defaultSort = "alphabetical";
+
   async connectedCallback() {
+    this.refs.sortBy.setAttribute("default", this.defaultSort);
     this.refs.poolsList.innerHTML = "";
     const pairs = await swapService.getPairs();
     const separator = document.createElement("tr");

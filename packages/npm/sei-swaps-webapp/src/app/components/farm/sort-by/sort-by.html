@@ -1,4 +1,4 @@
-<template cewt-name="sort-by-component" cewt-extends="button">
+<template cewt-name="sort-by-component" cewt-extends="button" cewt-attributes="default">
   Sort By
   <span class="cicon cicon-tornado cicon-size-small primary cicon-gradient"></span>
   <dropdown-menu 
@@ -9,27 +9,27 @@
   >
     <dropdown-menu-item>
       <span>Alphabetical</span>
-      <input type="radio" name="choice" value="alphabetical">
+      <input type="radio" name="choice" value="alphabetical" cewt-ref="alphabetical">
     </dropdown-menu-item>
 
     <dropdown-menu-item>
       <span>Total Value Deposited</span>
-      <input type="radio" name="choice" value="tvd">
+      <input type="radio" name="choice" value="tvd" cewt-ref="tvd">
     </dropdown-menu-item>
 
     <dropdown-menu-item>
       <span>User Value Deposited</span>
-      <input type="radio" name="choice" value="uvd">
+      <input type="radio" name="choice" value="uvd" cewt-ref="uvd">
     </dropdown-menu-item>
 
     <dropdown-menu-item>
       <span>Est. APY</span>
-      <input type="radio" name="choice" value="apy">
+      <input type="radio" name="choice" value="apy" cewt-ref="apy">
     </dropdown-menu-item>
 
     <dropdown-menu-item>
       <span>Fees</span>
-      <input type="radio" name="choice" value="fees">
+      <input type="radio" name="choice" value="fees" cewt-ref="fees">
     </dropdown-menu-item>
   </dropdown-menu>
 </template>

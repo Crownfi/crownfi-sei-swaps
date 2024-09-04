@@ -12,17 +12,79 @@ export class SortByComponentRefs {
 		}
 		return this.#tokensDropdown;
 	}
+	#alphabetical?: HTMLInputElement;
+	get alphabetical() {
+		if (this.#alphabetical === undefined) {
+			this.#alphabetical = this.#element.querySelector("[cewt-ref=\"alphabetical\"]:not(:scope [is] *)")!;
+		}
+		return this.#alphabetical;
+	}
+	#tvd?: HTMLInputElement;
+	get tvd() {
+		if (this.#tvd === undefined) {
+			this.#tvd = this.#element.querySelector("[cewt-ref=\"tvd\"]:not(:scope [is] *)")!;
+		}
+		return this.#tvd;
+	}
+	#uvd?: HTMLInputElement;
+	get uvd() {
+		if (this.#uvd === undefined) {
+			this.#uvd = this.#element.querySelector("[cewt-ref=\"uvd\"]:not(:scope [is] *)")!;
+		}
+		return this.#uvd;
+	}
+	#apy?: HTMLInputElement;
+	get apy() {
+		if (this.#apy === undefined) {
+			this.#apy = this.#element.querySelector("[cewt-ref=\"apy\"]:not(:scope [is] *)")!;
+		}
+		return this.#apy;
+	}
+	#fees?: HTMLInputElement;
+	get fees() {
+		if (this.#fees === undefined) {
+			this.#fees = this.#element.querySelector("[cewt-ref=\"fees\"]:not(:scope [is] *)")!;
+		}
+		return this.#fees;
+	}
 }
 let _templateSortByComponent: HTMLTemplateElement | null = null;
 function getSortByComponentTemplate(): HTMLTemplateElement {
 	if (_templateSortByComponent == null) {
 		 _templateSortByComponent = document.createElement("template")
-		 _templateSortByComponent.innerHTML = "\n  Sort By\n  <span class=\"cicon cicon-tornado cicon-size-small primary cicon-gradient\"></span>\n  <dropdown-menu click-trigger=\"primary\" cewt-ref=\"tokens-dropdown\" linked-elements=\"button:has(#this)\" open-position=\"element-bottom-leftward\">\n    <dropdown-menu-item>\n      <span>Alphabetical</span>\n      <input type=\"radio\" name=\"choice\" value=\"alphabetical\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>Total Value Deposited</span>\n      <input type=\"radio\" name=\"choice\" value=\"tvd\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>User Value Deposited</span>\n      <input type=\"radio\" name=\"choice\" value=\"uvd\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>Est. APY</span>\n      <input type=\"radio\" name=\"choice\" value=\"apy\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>Fees</span>\n      <input type=\"radio\" name=\"choice\" value=\"fees\">\n    </dropdown-menu-item>\n  </dropdown-menu>\n";
+		 _templateSortByComponent.innerHTML = "\n  Sort By\n  <span class=\"cicon cicon-tornado cicon-size-small primary cicon-gradient\"></span>\n  <dropdown-menu click-trigger=\"primary\" cewt-ref=\"tokens-dropdown\" linked-elements=\"button:has(#this)\" open-position=\"element-bottom-leftward\">\n    <dropdown-menu-item>\n      <span>Alphabetical</span>\n      <input type=\"radio\" name=\"choice\" value=\"alphabetical\" cewt-ref=\"alphabetical\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>Total Value Deposited</span>\n      <input type=\"radio\" name=\"choice\" value=\"tvd\" cewt-ref=\"tvd\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>User Value Deposited</span>\n      <input type=\"radio\" name=\"choice\" value=\"uvd\" cewt-ref=\"uvd\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>Est. APY</span>\n      <input type=\"radio\" name=\"choice\" value=\"apy\" cewt-ref=\"apy\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>Fees</span>\n      <input type=\"radio\" name=\"choice\" value=\"fees\" cewt-ref=\"fees\">\n    </dropdown-menu-item>\n  </dropdown-menu>\n";
 	}
 	return _templateSortByComponent;
 }
 export class SortByComponentAutogen extends HTMLButtonElement {
 	readonly refs: SortByComponentRefs;
+	static get observedAttributes() {
+		return ["default"];
+	}
+	#attributeDefaultValue: string | null = null;
+	get default(): string | null {
+		return this.#attributeDefaultValue;
+	}
+	set default(v: string | null) {
+		if (v == null) {
+			this.removeAttribute("default");
+		}else{
+			this.setAttribute("default", v);
+		}
+	}
+	protected onDefaultChanged(oldValue: string | null, newValue: string | null) {
+		// To be overridden by child class
+	}
+	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
+		switch(name) {
+			case "default":
+				this.#attributeDefaultValue = newValue;
+				this.onDefaultChanged(oldValue, newValue);
+				break;
+			default:
+				// Shouldn't happen
+		}
+	}
 	constructor() {
 		super();
 		if (this.childElementCount == 0) {
