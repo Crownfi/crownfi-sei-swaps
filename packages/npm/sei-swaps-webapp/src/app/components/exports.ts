@@ -6,4 +6,6 @@ export * from "./swap/from-token/from-token.js";
 export * from "./swap/to-token/to-token.js";
 export * from "./swap/dialogs/confirm-swap/confirm-swap.js";
 export * from "./farm/farm.js";
+export * from "./farm/pool-item/pool-item.js";
+export * from "./farm/sort-by/sort-by.js";
 export * from "./token-icon/token-icon.js"
