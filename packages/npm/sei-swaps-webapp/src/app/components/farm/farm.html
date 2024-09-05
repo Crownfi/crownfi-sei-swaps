@@ -1,13 +1,23 @@
+<template cewt-name="empty-separator" cewt-extends="tr">
+  <td style="padding: 4px; background: transparent;" colspan="7"></td>
+</template>
+
+<template cewt-name="filter-separator" cewt-extends="tr">
+  <td style="padding: 4px; background: transparent;" colspan="7">
+    <hr class="pattern-stretch-auto" />
+  </td>
+</template>
+
 <template cewt-name="farm-component" cewt-extends="div">
   <div class="row mb-4 align-items-center justify-content-between">
     <div class="row gap-1 align-items-center">
       <div class="fantasy-input-group">
         <span></span>
-        <input type="text" placeholder="Search..." />
+        <input type="text" placeholder="Search..." cewt-ref="search-input" />
         <span class="cicon cicon-fantasy-search cicon-size-small primary cicon-gradient"></span>
       </div>
   
-      <button class="button fantasy row gap-1">
+      <button class="button fantasy row gap-1" cewt-ref="filter-button">
         Filters
         <span class="cicon cicon-fantasy-controls cicon-size-small primary cicon-gradient"></span>
       </button>

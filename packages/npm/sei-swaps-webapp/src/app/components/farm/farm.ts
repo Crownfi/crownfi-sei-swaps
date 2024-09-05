@@ -1,24 +1,30 @@
 import { SwapMarketPair, UnifiedDenom } from "@crownfi/sei-swaps-sdk";
+import { seiUtilEventEmitter } from "@crownfi/sei-utils";
+
 import { swapService } from "../../index.js";
-import { FarmComponentAutogen } from "./_autogen/farm.js";
+import { EmptySeparatorAutogen, FarmComponentAutogen, FilterSeparatorAutogen } from "./_autogen/farm.js";
 import { PoolItemComponent } from "./pool-item/pool-item.js";
 import { SortBy } from "../exports.js";
 import { useGetBalance } from "../../../hooks/use-get-balance.js";
-import { seiUtilEventEmitter } from "@crownfi/sei-utils";
+import { DebouncedCallbacks } from "../../../lib/debounced-callbacks.js";
 
 type ShareBalances = {
   [key: UnifiedDenom]: bigint;
 };
 
 export class FarmComponent extends FarmComponentAutogen {
-  defaultSort: SortBy = "alphabetical";
+  sortBy: SortBy = "alphabetical";
+  search: string;
   poolPairs: SwapMarketPair[];
   sharesBalances: ShareBalances;
+  debouncedCallbacks: DebouncedCallbacks;
 
   constructor() {
     super();
+    this.search = "";
     this.poolPairs = [];
     this.sharesBalances = {};
+    this.debouncedCallbacks = new DebouncedCallbacks();
   }
 
   async refreshPoolPairs() {
@@ -26,6 +32,18 @@ export class FarmComponent extends FarmComponentAutogen {
     this.sharesBalances = Object.fromEntries(
       await Promise.all(this.poolPairs.map(async (pair) => [pair.name, (await useGetBalance(pair.sharesDenom)).raw]))
     );
+  }
+
+  getFilteredList(list: SwapMarketPair[]) {
+    if (this.search === "")
+      return [...list];
+  
+    const searchTerms = this.search.split(" ");
+
+    const hasTerm = (term: string, pair: SwapMarketPair) => pair.name.toLowerCase().includes(term.toLowerCase());
+    const checkFn = searchTerms.length > 1 ? "every" : "some";
+
+    return list.filter(pair => searchTerms[checkFn](term => hasTerm(term, pair)));
   }
 
   getSortedList(sort: SortBy, list: SwapMarketPair[]) {
@@ -48,27 +66,48 @@ export class FarmComponent extends FarmComponentAutogen {
     return tmp;
   }
 
-  renderList(sort = this.defaultSort) {
+  renderList() {
     this.refs.poolsList.innerHTML = "";
-    const separator = document.createElement("tr");
-    separator.innerHTML = `<td style="padding: 4px; background: transparent;" colspan="7"></td>`;
-    const sortedList = this.getSortedList(sort, this.poolPairs);
+    const filteredList = this.getFilteredList(this.poolPairs);
+    const sortedList = this.getSortedList(this.sortBy, filteredList);
+
     for (const pair of sortedList) {
-      this.refs.poolsList.appendChild(separator);
+      this.refs.poolsList.appendChild(new EmptySeparatorAutogen());
       this.refs.poolsList.appendChild(new PoolItemComponent(pair));
     }
   }
 
+  handleSearch(search: string) {
+    if (search === this.search)
+      return;
+    this.search = search;
+    const debouncedSearch = this.debouncedCallbacks.debounce(() => {
+      this.renderList();
+    });
+    debouncedSearch();
+  }
+
   async connectedCallback() {
-    this.refs.sortBy.setAttribute("default", this.defaultSort);
+    this.refs.sortBy.setAttribute("default", this.sortBy);
     await this.refreshPoolPairs();
     this.renderList();
 
     this.addEventListener("sortByEvent", ev => {
       ev.stopPropagation();
-      this.renderList(ev.detail.sortBy);
+      this.sortBy = ev.detail.sortBy;
+      this.renderList();
+    });
+
+    this.refs.searchInput.addEventListener("change", ev => {
+      this.handleSearch((ev.target as HTMLInputElement).value);
+    });
+
+    this.refs.searchInput.addEventListener("input", ev => {
+      this.handleSearch((ev.target as HTMLInputElement).value);
     });
   }
 }
 
+EmptySeparatorAutogen.registerElement();
+FilterSeparatorAutogen.registerElement();
 FarmComponent.registerElement();
