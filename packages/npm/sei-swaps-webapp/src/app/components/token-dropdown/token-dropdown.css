@@ -2,6 +2,7 @@ button[is="token-dropdown-component"] {
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
+  cursor: pointer;
 }
 
 button[is="token-dropdown-component"] span[is="token-display"]  {

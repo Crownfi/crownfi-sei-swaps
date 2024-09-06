@@ -18,6 +18,7 @@ main[is="app-container-component"] > .container >  menu[is="fantasy-tabs"] {
 
 main[is="app-container-component"] menu[is="fantasy-tabs"] li {
   padding: var(--spacing-3);
+  cursor: pointer;
 }
 
 main[is="app-container-component"] menu[is="fantasy-tabs"] li span + span{
