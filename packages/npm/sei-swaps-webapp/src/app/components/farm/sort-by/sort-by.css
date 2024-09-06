@@ -8,8 +8,3 @@ button[is="sort-by-component"] .button {
   color: var(--colour-secondary-500);
   background-color: var(--colour-primary-800);
 }
-
-active-dropdown-menu {
-  width: max-content;
-  color: var(--colour-secondary-500);
-}

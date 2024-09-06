@@ -1,22 +1,35 @@
 import "@crownfi/sei-webui-utils";
 import "dropdown-menu-element";
+import { q } from "@aritz-cracker/browser-utils";
 
 import "./components/exports.js";
 
-import { seiUtilEventEmitter, setDefaultNetwork } from "@crownfi/sei-utils";
 import { SwapService } from "../services/swap-service.js";
 
 import { env } from "../env/index.js";
 import { AppContainer } from "./components/exports.js";
-import { WebClientEnv } from "@crownfi/sei-webui-utils";
-import { q } from "@aritz-cracker/browser-utils";
+import { useGetClient } from "../hooks/use-get-client.js";
 
 export let swapService: SwapService;
 
-export async function main() {
-	setDefaultNetwork(env.CHAIN_ID);
+const DOM_CONTENT_LOADED: Promise<void> = document.readyState == "loading" ? new Promise(resolve => {
+	document.addEventListener("DOMContentLoaded", (_) => {
+		resolve();
+	})
+}) : Promise.resolve();
+const SEI_NETWORK_CONNECTED: Promise<void> = new Promise(resolve => {
+	document.addEventListener("initialSeiConnection", (_) => {
+		resolve();
+	}, {once: true});
+});
 
-	const client = await WebClientEnv.get(undefined, env.CHAIN_ID);
+export async function main() {
+	// setDefaultNetwork(env.CHAIN_ID);
+
+	await DOM_CONTENT_LOADED;
+	await SEI_NETWORK_CONNECTED;
+
+	const client = await useGetClient();
 
 	swapService = await SwapService.create(client.queryClient, env.POOL_FACTORY_CONTRACT_ADDRESS, env.ROUTER_CONTRACT_ADDRESS);
 
@@ -24,12 +37,3 @@ export async function main() {
 	mainContent.innerHTML = "";
 	mainContent.appendChild(new AppContainer());
 }
-
-seiUtilEventEmitter.on("defaultProviderChanged", ({ provider, chainId }) => {
-	if (!provider) {
-		localStorage.removeItem("preferred_sei_provider");
-	} else {
-		localStorage.setItem("preferred_sei_provider", provider);
-	}
-	localStorage.setItem("preferred_sei_network", chainId);
-});
