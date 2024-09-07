@@ -5,13 +5,6 @@ export class SortByComponentRefs {
 	constructor(element: HTMLElement | ShadowRoot) {
 		this.#element = element;
 	}
-	#tokensDropdown?: HTMLElement;
-	get tokensDropdown() {
-		if (this.#tokensDropdown === undefined) {
-			this.#tokensDropdown = this.#element.querySelector("[cewt-ref=\"tokens-dropdown\"]:not(:scope [is] *)")!;
-		}
-		return this.#tokensDropdown;
-	}
 	#alphabetical?: HTMLInputElement;
 	get alphabetical() {
 		if (this.#alphabetical === undefined) {
@@ -52,7 +45,7 @@ let _templateSortByComponent: HTMLTemplateElement | null = null;
 function getSortByComponentTemplate(): HTMLTemplateElement {
 	if (_templateSortByComponent == null) {
 		 _templateSortByComponent = document.createElement("template")
-		 _templateSortByComponent.innerHTML = "\n  Sort By\n  <span class=\"cicon cicon-tornado cicon-size-small primary cicon-gradient\"></span>\n  <dropdown-menu click-trigger=\"primary\" cewt-ref=\"tokens-dropdown\" linked-elements=\"button:has(#this)\" open-position=\"element-bottom-leftward\">\n    <dropdown-menu-item>\n      <span>Alphabetical</span>\n      <input type=\"radio\" name=\"choice\" value=\"alphabetical\" cewt-ref=\"alphabetical\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>Total Value Deposited</span>\n      <input type=\"radio\" name=\"choice\" value=\"tvd\" cewt-ref=\"tvd\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>User Value Deposited</span>\n      <input type=\"radio\" name=\"choice\" value=\"uvd\" cewt-ref=\"uvd\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>Est. APY</span>\n      <input type=\"radio\" name=\"choice\" value=\"apy\" cewt-ref=\"apy\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>Fees</span>\n      <input type=\"radio\" name=\"choice\" value=\"fees\" cewt-ref=\"fees\">\n    </dropdown-menu-item>\n  </dropdown-menu>\n";
+		 _templateSortByComponent.innerHTML = "\n  Sort By\n  <span class=\"cicon cicon-tornado cicon-size-small primary cicon-gradient\"></span>\n  <dropdown-menu click-trigger=\"primary\" linked-elements=\"button:has(#this)\" open-position=\"element-bottom-leftward\">\n    <dropdown-menu-item>\n      <span>Alphabetical</span>\n      <input type=\"radio\" name=\"choice\" value=\"alphabetical\" cewt-ref=\"alphabetical\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>Total Value Deposited</span>\n      <input type=\"radio\" name=\"choice\" value=\"tvd\" cewt-ref=\"tvd\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>User Value Deposited</span>\n      <input type=\"radio\" name=\"choice\" value=\"uvd\" cewt-ref=\"uvd\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>Est. APY</span>\n      <input type=\"radio\" name=\"choice\" value=\"apy\" cewt-ref=\"apy\">\n    </dropdown-menu-item>\n\n    <dropdown-menu-item>\n      <span>Fees</span>\n      <input type=\"radio\" name=\"choice\" value=\"fees\" cewt-ref=\"fees\">\n    </dropdown-menu-item>\n  </dropdown-menu>\n";
 	}
 	return _templateSortByComponent;
 }

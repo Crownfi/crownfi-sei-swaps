@@ -1,7 +1,7 @@
 import { DebouncedCallbacks } from "../../../../lib/debounced-callbacks.js";
 import { FarmFiltersComponentAutogen } from "./_autogen/filters.js";
 
-type FarmFiltersEventDetail = {
+export type FarmFiltersEventDetail = {
   myPools: boolean;
   crownfiEndorsed: boolean;
 };

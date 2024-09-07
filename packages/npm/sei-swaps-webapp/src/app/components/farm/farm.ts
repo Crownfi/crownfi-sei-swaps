@@ -4,7 +4,7 @@ import { seiUtilEventEmitter } from "@crownfi/sei-utils";
 import { swapService } from "../../index.js";
 import { EmptySeparatorAutogen, FarmComponentAutogen, FilterSeparatorAutogen } from "./_autogen/farm.js";
 import { PoolItemComponent } from "./pool-item/pool-item.js";
-import { SortBy } from "../exports.js";
+import { FarmFiltersEventDetail, SortBy } from "../exports.js";
 import { useGetBalance } from "../../../hooks/use-get-balance.js";
 import { DebouncedCallbacks } from "../../../lib/debounced-callbacks.js";
 
@@ -14,6 +14,7 @@ type ShareBalances = {
 
 export class FarmComponent extends FarmComponentAutogen {
   sortBy: SortBy = "alphabetical";
+  filters: FarmFiltersEventDetail;
   search: string;
   poolPairs: SwapMarketPair[];
   sharesBalances: ShareBalances;
@@ -22,6 +23,7 @@ export class FarmComponent extends FarmComponentAutogen {
   constructor() {
     super();
     this.search = "";
+    this.filters = { myPools: false, crownfiEndorsed: false };
     this.poolPairs = [];
     this.sharesBalances = {};
     this.debouncedCallbacks = new DebouncedCallbacks();
@@ -34,29 +36,37 @@ export class FarmComponent extends FarmComponentAutogen {
     );
   }
 
+  getShareBalance(pair: SwapMarketPair) {
+    return this.sharesBalances[pair.name];
+  }
+
   getFilteredList(list: SwapMarketPair[]) {
-    if (this.search === "")
-      return [...list];
-  
+    let filtered = [...list];
+
+    if (this.search === "" && !this.filters.myPools && !this.filters.crownfiEndorsed)
+      return filtered;
+
+    if (this.filters.myPools)
+      filtered = filtered.filter(pair => this.getShareBalance(pair) > 0n);
+
     const searchTerms = this.search.split(" ");
 
     const hasTerm = (term: string, pair: SwapMarketPair) => pair.name.toLowerCase().includes(term.toLowerCase());
     const checkFn = searchTerms.length > 1 ? "every" : "some";
 
-    return list.filter(pair => searchTerms[checkFn](term => hasTerm(term, pair)));
+    return filtered.filter(pair => searchTerms[checkFn](term => hasTerm(term, pair)));
   }
 
   getSortedList(sort: SortBy, list: SwapMarketPair[]) {
     const tmp = [...list];
     
     const sumDeposits = (pair: SwapMarketPair) => pair.totalDeposits[0] + pair.totalDeposits[1];
-    const getShareBalance = (pair: SwapMarketPair) => this.sharesBalances[pair.name];
     const getFees = (pair: SwapMarketPair) => pair.totalFeeBasisPoints;
 
     const sortFn = {
       "alphabetical": (curr: SwapMarketPair, next: SwapMarketPair) => curr.name > next.name ? 1 : -1,
       "tvd": (curr: SwapMarketPair, next: SwapMarketPair) => sumDeposits(curr) > sumDeposits(next) ? -1 : 1,
-      "uvd": (curr: SwapMarketPair, next: SwapMarketPair) => getShareBalance(curr) > getShareBalance(next) ? -1 : 1,
+      "uvd": (curr: SwapMarketPair, next: SwapMarketPair) => this.getShareBalance(curr) > this.getShareBalance(next) ? -1 : 1,
       "apy": (curr: SwapMarketPair, next: SwapMarketPair) => getFees(curr) > getFees(next) ? 1 : -1,
       "fees": (curr: SwapMarketPair, next: SwapMarketPair) => getFees(curr) > getFees(next) ? 1 : -1,
     }[sort];
@@ -95,6 +105,12 @@ export class FarmComponent extends FarmComponentAutogen {
     this.addEventListener("sortByEvent", ev => {
       ev.stopPropagation();
       this.sortBy = ev.detail.sortBy;
+      this.renderList();
+    });
+
+    this.addEventListener("farmFiltersEvent", ev => {
+      ev.stopPropagation();
+      this.filters = ev.detail;
       this.renderList();
     });
 

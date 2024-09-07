@@ -20,3 +20,12 @@
 .text-xlarge {
   font-size: var(--font-size-xlarge);
 }
+
+.button {
+  cursor: pointer;
+}
+
+active-dropdown-menu {
+  min-width: var(--triggering-element-client-width);
+  color: var(--colour-secondary-500);
+}

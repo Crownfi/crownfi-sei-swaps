@@ -3,11 +3,11 @@ import { SortByComponentAutogen } from "./_autogen/sort-by.js";
 
 export type SortBy = "alphabetical" | "tvd" | "uvd" | "apy" | "fees";
 
-type StorByEventDetails = {
+type SortByEventDetails = {
   sortBy: SortBy;
 };
 
-export type SortByEvent = CustomEvent<StorByEventDetails>;
+export type SortByEvent = CustomEvent<SortByEventDetails>;
 
 declare global {
 	interface GlobalEventHandlersEventMap {

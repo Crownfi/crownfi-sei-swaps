@@ -8,7 +8,3 @@ button[is="token-dropdown-component"] {
 button[is="token-dropdown-component"] span[is="token-display"]  {
   color: var(--colour-secondary-500);
 }
-
-active-dropdown-menu {
-  width: var(--triggering-element-client-width);
-}
