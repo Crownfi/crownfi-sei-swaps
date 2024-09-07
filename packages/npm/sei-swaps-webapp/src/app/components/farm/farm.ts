@@ -4,9 +4,10 @@ import { seiUtilEventEmitter } from "@crownfi/sei-utils";
 import { swapService } from "../../index.js";
 import { EmptySeparatorAutogen, FarmComponentAutogen, FilterSeparatorAutogen } from "./_autogen/farm.js";
 import { PoolItemComponent } from "./pool-item/pool-item.js";
-import { FarmFiltersEventDetail, SortBy } from "../exports.js";
+import { FarmFiltersEventDetail, PoolDialogComponent, SortBy } from "../exports.js";
 import { useGetBalance } from "../../../hooks/use-get-balance.js";
 import { DebouncedCallbacks } from "../../../lib/debounced-callbacks.js";
+import { q, qa } from "@aritz-cracker/browser-utils";
 
 type ShareBalances = {
   [key: UnifiedDenom]: bigint;
@@ -76,6 +77,12 @@ export class FarmComponent extends FarmComponentAutogen {
     return tmp;
   }
 
+  showDialog(poolPair: SwapMarketPair) {
+    const dialog = new PoolDialogComponent(poolPair);
+    this.appendChild(dialog);
+    dialog.showModal();
+  }
+
   renderList() {
     this.refs.poolsList.innerHTML = "";
     const filteredList = this.getFilteredList(this.poolPairs);
@@ -83,7 +90,11 @@ export class FarmComponent extends FarmComponentAutogen {
 
     for (const pair of sortedList) {
       this.refs.poolsList.appendChild(new EmptySeparatorAutogen());
-      this.refs.poolsList.appendChild(new PoolItemComponent(pair));
+      const poolItem = new PoolItemComponent(pair);
+      poolItem.addEventListener("click", () => {
+        this.showDialog(pair);
+      });
+      this.refs.poolsList.appendChild(poolItem);
     }
   }
 
