@@ -7,10 +7,13 @@ export class PoolDialogComponent extends PoolDialogComponentAutogen {
     this.addEventListener("close", () => {
       this.remove();
     });
+    this.refs.closeButton.addEventListener("click", () => {
+      this.close();
+    });
   }
 
   connectedCallback() {
-    this.refs.poolName.innerText = this.poolPair.name;
+    
   }
 }
 

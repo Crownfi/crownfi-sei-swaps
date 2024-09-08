@@ -1,0 +1,57 @@
+dialog[is="pool-dialog-component"] > *:not(:first-child) {
+  margin-top: var(--spacing-2);
+}
+
+dialog[is="pool-dialog-component"] .close-button, .close-button:focus, .close-button:focus-visible, .close-button:active {
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
+
+dialog[is="pool-dialog-component"] .container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2);
+  border: 1px dashed var(--colour-primary-500);
+  border-radius: 8px;
+  min-width: 455px;
+}
+
+dialog[is="pool-dialog-component"] .badge {
+  border: 1px solid var(--colour-primary-500);
+  border-radius: 4px;
+  padding: 4px 8px 4px 8px;
+  background-color: var(--colour-primary-800);
+  width: max-content;
+}
+
+dialog[is="pool-dialog-component"] .equals {
+  font-weight: bolder;
+  color: var(--colour-secondary-900);
+  font-size: var(--font-size-medium);
+}
+
+dialog[is="pool-dialog-component"] .container .row {
+  display: flex;
+  align-items: center;
+}
+
+dialog[is="pool-dialog-component"] .container .space-between {
+  justify-content: space-between;
+}
+
+dialog[is="pool-dialog-component"] .container .gap-1 {
+  gap: var(--spacing-1);
+}
+
+dialog[is="pool-dialog-component"] .container .col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+dialog[is="pool-dialog-component"] .label {
+  font-weight: 500;
+}
