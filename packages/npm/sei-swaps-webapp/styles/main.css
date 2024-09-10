@@ -1,31 +1,7 @@
 @import url("~@crownfi/css-gothic-fantasy");
 @import url("~@crownfi/sei-webui-utils");
 
+@import url("./common.css");
+@import url("./fonts.css");
 @import url("./components.css");
 @import url("./utils.css");
-
-/* @import url("./common.css"); */
-/* @import url("./desktop.css"); */
-/* TODO: MOBILE */
-
-#main-content {
-  display: flex;
-  justify-content: center;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-.text-xlarge {
-  font-size: var(--font-size-xlarge);
-}
-
-.button {
-  cursor: pointer;
-}
-
-active-dropdown-menu {
-  min-width: var(--triggering-element-client-width);
-  color: var(--colour-secondary-500);
-}
