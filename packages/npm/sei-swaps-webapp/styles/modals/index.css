@@ -1,8 +1,0 @@
-dialog {
-	max-width: calc(100vw - 64px);
-	min-width: min(400px, calc(100vw - 64px));
-}
-
-@import url("./wallets.css");
-@import url("./error.css");
-@import url("./trade.css");
