@@ -12,7 +12,6 @@ dialog[is="pool-dialog-component"] .close-button, .close-button:focus, .close-bu
 dialog[is="pool-dialog-component"] .container {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
   padding: var(--spacing-2);
   border: 1px dashed var(--colour-primary-500);
   border-radius: 8px;
@@ -54,4 +53,8 @@ dialog[is="pool-dialog-component"] .container .col {
 
 dialog[is="pool-dialog-component"] .label {
   font-weight: 500;
+}
+
+dialog[is="pool-dialog-component"] input {
+  padding: 8px 12px;
 }

@@ -14,15 +14,15 @@
       <span class="label">Pools</span>
       <div class="row gap-1">
         <div class="row gap-1 align-items-center badge">
-          <span>SEI</span>
-          <img is="token-icon" denom="usei" />
-          <span>SEI</span>
+          <span cewt-ref="fromSymbol">-</span>
+          <img is="token-icon" height="16" cewt-ref="fromIcon" />
+          <span cewt-ref="fromName">-</span>
         </div>
 
         <div class="row gap-1 align-items-center badge">
-          <span>ATOM</span>
-          <img is="token-icon" denom="uatom" />
-          <span>ATOM</span>
+          <span cewt-ref="toSymbol">-</span>
+          <img is="token-icon" height="16" cewt-ref="toIcon" />
+          <span cewt-ref="toName">-</span>
         </div>
       </div>
     </div>
@@ -30,45 +30,71 @@
     <div class="col mt-2">
       <span class="label">Exchange Rate</span>
       <div class="row align-items-center gap-2 badge">
-        <span is="token-display" denom="usei" amount="1000000000" cewt-ref="exchangeRateFrom"></span>
+        <span is="token-display" cewt-ref="exchangeRateFrom"></span>
         <span class="equals">=</span>
-        <span is="token-display" denom="uatom" amount="1000000000" cewt-ref="exchangeRateTo"></span>
+        <span is="token-display" cewt-ref="exchangeRateTo"></span>
       </div>
     </div>
 
     <div class="col mt-2">
       <span class="label">Total Deposits</span>
       <div class="row align-items-center gap-1">
-        <span class="badge" is="token-display" denom="usei" amount="1000000000" cewt-ref="totalDepositsFrom"></span>
-        <span class="badge" is="token-display" denom="uatom" amount="1000000000" cewt-ref="totalDepositsTo"></span>
+        <span class="badge" is="token-display" cewt-ref="totalDepositsFrom"></span>
+        <span class="badge" is="token-display" cewt-ref="totalDepositsTo"></span>
       </div>
     </div>
 
     <div class="col mt-2">
       <span class="label">Pool Shares</span>
-      <span>0</span>
+      <span cewt-ref="poolSharesValue">0</span>
     </div>
 
     <div class="col mt-2">
       <span class="label">Share Values</span>
       <div class="row align-items-center gap-1">
-        <span class="badge" is="token-display" denom="usei" amount="1000000"></span>
-        <span class="badge" is="token-display" denom="uatom" amount="1000000"></span>
+        <span class="badge" is="token-display" cewt-ref="shareValueFrom"></span>
+        <span class="badge" is="token-display" cewt-ref="shareValueTo"></span>
       </div>
     </div>
   </div>
 
   <div class="container">
-    <div class="row align-items-center justify-content-center gap-2">
+    <div class="row align-items-center justify-content-center gap-2 mb-1">
       <label class="button">
         Deposit
-        <input type="radio" name="operation" value="deposit" />
+        <input type="radio" name="operation" value="deposit" checked cewt-ref="operationDeposit" />
       </label>
 
       <label class="button">
         Withdraw
-        <input type="radio" name="operation" value="withdraw" />
+        <input type="radio" name="operation" value="withdraw" cewt-ref="operationWithdraw" />
       </label>
     </div>
+
+    <form cewt-ref="operationForm">
+      <div class="col text-center">
+        <span class="label">Shares</span>
+  
+        <input type="text" cewt-ref="operationAmount" value="0" required />
+  
+        <div class="row justify-content-between mb-1">
+          <div>
+            <span>Current: </span>
+            <span cewt-ref="currentValue">0</span>
+          </div>
+          
+          <div>
+            <span>Receive:</span>
+            <span cewt-ref="receiveValue">0 + 0</span>
+          </div>
+        </div>
+  
+        <div class="row justify-content-end">
+          <button class="small w-max-content" cewt-ref="submitButton" disabled>
+            Finish
+          </button>
+        </div>
+      </div>
+    </form>
   </div>
 </template>

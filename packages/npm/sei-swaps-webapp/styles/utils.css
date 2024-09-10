@@ -12,12 +12,24 @@
   align-items: center;
 }
 
+.align-items-end {
+  align-items: flex-end;
+}
+
 .justify-content-between {
   justify-content: space-between;
 }
 
 .justify-content-center {
   justify-content: center;
+}
+
+.justify-content-end {
+  justify-content: end;
+}
+
+.text-center {
+  text-align: center;
 }
 
 .gap-1 {
@@ -28,10 +40,18 @@
   gap: var(--spacing-2);
 }
 
+.mb-1 {
+  margin-bottom: var(--spacing-1);
+}
+
 .mb-4 {
   margin-bottom: var(--spacing-4);
 }
 
 .mt-2 {
   margin-top: var(--spacing-2);
+}
+
+.w-max-content {
+  width: max-content;
 }

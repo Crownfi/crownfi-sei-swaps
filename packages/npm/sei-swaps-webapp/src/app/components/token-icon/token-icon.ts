@@ -7,7 +7,7 @@ export class TokenIcon extends HTMLImageElement {
   }
 
   static get observedAttributes() {
-    return ["denom"];
+    return ["denom", "height"];
   }
 
   get denom() {
@@ -29,7 +29,8 @@ export class TokenIcon extends HTMLImageElement {
   }
 
   async connectedCallback() {
-    this.style.height = "24px";
+    if (!this.getAttribute("height"))
+      this.style.height = "24px";
     await this.loadIcon();
   }
 }
