@@ -5,10 +5,10 @@ import { coin } from "@cosmjs/proto-signing";
 import { useGetAccount } from "../../../hooks/use-get-account.js";
 import { getTokensFromPairs } from "../../../utils/tokens-from-pairs.js";
 import { swapService } from "../../index.js";
-import { SwapFromTokenChangedAmountEventDetails, SwapFromTokenComponent } from "../exports.js";
 import { SwapComponentAutogen } from "./_autogen/swap.js";
 import { SwapToComponent } from "./to-token/to-token.js";
 import { ConfirmSwapDialog } from "./dialogs/confirm-swap/confirm-swap.js";
+import { SwapFromTokenChangedAmountEventDetails, SwapFromTokenComponent } from "./from-token/from-token.js";
 
 export class SwapComponent extends SwapComponentAutogen {
   private fromToken: SwapFromTokenComponent;

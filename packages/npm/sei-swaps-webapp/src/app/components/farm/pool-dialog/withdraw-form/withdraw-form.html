@@ -1,0 +1,25 @@
+<template cewt-name="withdraw-form-component" cewt-extends="form">
+  <div class="col text-center">
+    <span class="label">Shares</span>
+
+    <input type="text" cewt-ref="operationAmount" value="0" required />
+
+    <div class="row justify-content-between mb-1">
+      <div>
+        <span>Current: </span>
+        <span cewt-ref="currentValue">0</span>
+      </div>
+      
+      <div>
+        <span>Receive:</span>
+        <span cewt-ref="receiveValue">0 + 0</span>
+      </div>
+    </div>
+
+    <div class="row justify-content-end">
+      <button class="small w-max-content" cewt-ref="submitButton" disabled>
+        Finish
+      </button>
+    </div>
+  </div>
+</template>

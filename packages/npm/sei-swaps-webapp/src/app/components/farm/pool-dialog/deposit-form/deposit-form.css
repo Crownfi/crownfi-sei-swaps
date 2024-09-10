@@ -1,0 +1,3 @@
+form[is="deposit-form-component"] .submit-button {
+  font-size: var(--font-size-medium);
+}

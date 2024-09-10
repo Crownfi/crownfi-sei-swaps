@@ -44,6 +44,10 @@
   margin-bottom: var(--spacing-1);
 }
 
+.ml-1 {
+  margin-left: var(--spacing-1);
+}
+
 .mb-4 {
   margin-bottom: var(--spacing-4);
 }
@@ -52,6 +56,14 @@
   margin-top: var(--spacing-2);
 }
 
+.mt-3 {
+  margin-top: var(--spacing-3);
+}
+
 .w-max-content {
   width: max-content;
+}
+
+.text-neutral-secondary {
+  color: var(--colour-neutral-secondary);
 }

@@ -2,7 +2,7 @@ import { bigIntToStringDecimal, getUserTokenInfo, UnifiedDenom } from "@crownfi/
 
 import { useGetClient } from "./use-get-client.js";
 
-type UseGetBalanceOutput = {
+export type UseGetBalanceOutput = {
   raw: bigint;
   decimal: string;
 };

@@ -1,0 +1,31 @@
+<template cewt-name="deposit-form-component" cewt-extends="form">
+  <div class="fantasy-input-group row mt-3">
+    <span></span>
+    <input type="text" placeholder="Deposit amount" cewt-ref="fromDepositAmount" />
+    <button type="button" class="button fantasy small" cewt-ref="fromMax">Max</button>
+  </div>
+  
+  <div class="ml-1">
+    <p class="text-neutral-secondary">
+      Balance:
+      <span is="token-display" cewt-ref="fromBalance" amount="0"></span>
+    </p>
+  </div>
+
+  <div class="fantasy-input-group row mt-2">
+    <span></span>
+    <input type="text" placeholder="Deposit amount" cewt-ref="toDepositAmount" />
+    <button type="button" class="button fantasy small" cewt-ref="toMax">Max</button>
+  </div>
+  
+  <div class="ml-1">
+    <p class="text-neutral-secondary">
+      Balance:
+      <span is="token-display" cewt-ref="toBalance" amount="0"></span>
+    </p>
+  </div>
+
+  <div class="col align-items-center">
+    <button class="mt-2 fantasy-ornamental submit-button" cewt-ref="submitButton" disabled>Submit</button>
+  </div>
+</template>

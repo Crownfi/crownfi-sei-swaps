@@ -1,22 +1,49 @@
 import { SwapMarketPair } from "@crownfi/sei-swaps-sdk";
 import { PoolDialogComponentAutogen } from "./_autogen/pool-dialog.js";
 import { useGetTokenInfo } from "../../../../hooks/use-get-token-info.js";
-import { bigIntToStringDecimal, stringDecimalToBigInt, UIAmount } from "@crownfi/sei-utils";
+import { bigIntToStringDecimal, stringDecimalToBigInt } from "@crownfi/sei-utils";
 import { swapService } from "../../../index.js";
-import { useGetBalance } from "../../../../hooks/use-get-balance.js";
+import { DepositForm } from "./deposit-form/deposit-form.js";
+import { WithdrawForm } from "./withdraw-form/withdraw-form.js";
 
 export class PoolDialogComponent extends PoolDialogComponentAutogen {
   constructor(readonly poolPair: SwapMarketPair) {
     super();
+
+    this.setListeners();
+  }
+
+  showDepositForm() {
+    this.refs.formContainer.innerHTML = '';
+    this.refs.formContainer.appendChild(new DepositForm(this.poolPair));
+  }
+
+  showWithdrawForm() {
+    this.refs.formContainer.innerHTML = '';
+    this.refs.formContainer.appendChild(new WithdrawForm());
+  }
+
+  setListeners() {
     this.addEventListener("close", () => {
       this.remove();
     });
+
     this.refs.closeButton.addEventListener("click", () => {
       this.close();
     });
+
+    this.refs.operationDeposit.addEventListener("change", ev => {
+      if ((ev.target as HTMLInputElement).checked)
+        this.showDepositForm();
+    });
+
+    this.refs.operationWithdraw.addEventListener("change", ev => {
+      if ((ev.target as HTMLInputElement).checked)
+        this.showWithdrawForm();
+    });
   }
 
-  async connectedCallback() {
+  async renderData() {
     await this.poolPair.refresh();
     const fromDenom = this.poolPair.assets[0];
     const toDenom = this.poolPair.assets[1];
@@ -48,9 +75,11 @@ export class PoolDialogComponent extends PoolDialogComponentAutogen {
     this.refs.shareValueFrom.amount = sharesValues[0][0];
     this.refs.shareValueTo.denom = toDenom;
     this.refs.shareValueTo.amount = sharesValues[1][0];
+  }
 
-    const sharesBalance = (await useGetBalance(this.poolPair.sharesDenom)).raw;
-    this.refs.currentValue.innerText = UIAmount(sharesBalance, this.poolPair.sharesDenom, true, false);
+  async connectedCallback() {
+    await this.renderData();
+    this.showDepositForm();
   }
 }
 

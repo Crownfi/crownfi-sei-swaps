@@ -18,6 +18,12 @@ dialog[is="pool-dialog-component"] .container {
   min-width: 455px;
 }
 
+dialog[is="pool-dialog-component"] .grid-container {
+  display: grid;
+  grid-template-columns: max-content auto;
+  gap: var(--spacing-1);
+}
+
 dialog[is="pool-dialog-component"] .badge {
   border: 1px solid var(--colour-primary-500);
   border-radius: 4px;
@@ -53,8 +59,5 @@ dialog[is="pool-dialog-component"] .container .col {
 
 dialog[is="pool-dialog-component"] .label {
   font-weight: 500;
-}
-
-dialog[is="pool-dialog-component"] input {
-  padding: 8px 12px;
+  color: var(--colour-neutral-secondary);
 }

@@ -101,13 +101,16 @@ div[is="farm-component"] .button {
   background-color: var(--colour-primary-800);
 }
 
-div[is="farm-component"] .fantasy-input-group {
+div[is="farm-component"] .search {
   min-height: 36px;
   border-image-outset: 4px;
 }
 
-div[is="farm-component"] .fantasy-input-group input {
+div[is="farm-component"] .search input {
   width: 367px;
+}
+
+div[is="farm-component"] .fantasy-input-group input {
   color: var(--colour-secondary-500);
   font-size: var(--font-size-normal);
   font-family: --font-family-default;
@@ -119,25 +122,21 @@ div[is="farm-component"] .fantasy-input-group input:hover {
 }
 
 div[is="farm-component"] .fantasy-input-group input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  color: var(--colour-secondary-500);
   font-size: var(--font-size-normal);
   font-family: --font-family-default;
 }
 
 div[is="farm-component"] .fantasy-input-group input::-moz-placeholder { /* Firefox 19+ */
-  color: var(--colour-secondary-500);
   font-size: var(--font-size-normal);
   font-family: --font-family-default;
 }
 
 div[is="farm-component"] .fantasy-input-group input:-ms-input-placeholder { /* IE 10+ */
-  color: var(--colour-secondary-500);
   font-size: var(--font-size-normal);
   font-family: --font-family-default;
 }
 
 div[is="farm-component"] .fantasy-input-group input:-moz-placeholder { /* Firefox 18- */
-  color: var(--colour-secondary-500);
   font-size: var(--font-size-normal);
   font-family: --font-family-default;
 }
