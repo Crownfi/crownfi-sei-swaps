@@ -27,3 +27,6 @@ bytemuck = {workspace = true}
 bitflags = {workspace = true}
 schemars = {workspace = true}
 crownfi-swaps-common = { path = "../../packages/cargo/crownfi-swaps-common" }
+
+[dev-dependencies]
+rand = "0.8.5"
