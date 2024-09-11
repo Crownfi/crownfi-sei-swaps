@@ -1,7 +1,7 @@
 import { WasmExtension } from "@cosmjs/cosmwasm-stargate";
-import { QueryClient } from "@cosmjs/stargate";
+import { Coin, QueryClient } from "@cosmjs/stargate";
 import { SwapMarket, SwapRouterExpectation, UnifiedDenom, UnifiedDenomPair } from "@crownfi/sei-swaps-sdk";
-import { Addr } from "@crownfi/sei-utils";
+import { Addr, BigIntCoin } from "@crownfi/sei-utils";
 
 import { useGetClient } from "../hooks/use-get-client.js";
 import { env } from "../env/index.js";
@@ -36,6 +36,14 @@ export class SwapService {
     return this.swapMarket.simulateSwap({ denom: from, amount }, to);
   }
 
+  async simulateDeposit(from: BigIntCoin, to: BigIntCoin) {
+    const pair = await this.getPair([from.denom, to.denom]);
+    if (!pair)
+      throw new Error("Invalid pair");
+    await pair.refresh();
+    return pair.calculateProvideLiquidity(from.amount, to.amount);
+  }
+
   getExchangeRate(from: UnifiedDenom, to: UnifiedDenom) {
     return this.swapMarket.exchangeRate(from, to, false);
   }
@@ -52,6 +60,16 @@ export class SwapService {
     const ixs = this.swapMarket.buildSwapIxs({ denom: from, amount }, to, receiver, slippageTolerance, expectation);
     if (!ixs)
       return;
+    const receipt = await client.executeContractHackySequence(ixs);
+    return receipt;
+  }
+
+  async executeDeposit(from: BigIntCoin, to: BigIntCoin, receiver: Addr, slippageTolerance: number = env.SLIPPAGE_TOLERANCE_PERCENTAGE) {
+    const pair = await this.getPair([from.denom, to.denom]);
+    if (!pair)
+      throw new Error("Invalid pair");
+    const client = await useGetClient();
+    const ixs = pair.buildProvideLiquidityIxs(from, to, slippageTolerance, receiver);
     const receipt = await client.executeContractHackySequence(ixs);
     return receipt;
   }

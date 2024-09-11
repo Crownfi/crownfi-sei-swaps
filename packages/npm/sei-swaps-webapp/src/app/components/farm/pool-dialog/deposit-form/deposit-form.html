@@ -1,28 +1,44 @@
 <template cewt-name="deposit-form-component" cewt-extends="form">
-  <div class="fantasy-input-group row mt-3">
+  <div class="fantasy-input-group row mt-2">
     <span></span>
     <input type="text" placeholder="Deposit amount" cewt-ref="fromDepositAmount" />
-    <button type="button" class="button fantasy small" cewt-ref="fromMax">Max</button>
+    <button type="button" class="button fantasy short" cewt-ref="fromMax">Max</button>
   </div>
   
   <div class="ml-1">
-    <p class="text-neutral-secondary">
+    <span class="text-neutral-secondary">
       Balance:
       <span is="token-display" cewt-ref="fromBalance" amount="0"></span>
-    </p>
+    </span>
   </div>
 
   <div class="fantasy-input-group row mt-2">
     <span></span>
     <input type="text" placeholder="Deposit amount" cewt-ref="toDepositAmount" />
-    <button type="button" class="button fantasy small" cewt-ref="toMax">Max</button>
+    <button type="button" class="button fantasy short" cewt-ref="toMax">Max</button>
   </div>
   
   <div class="ml-1">
-    <p class="text-neutral-secondary">
+    <span class="text-neutral-secondary">
       Balance:
       <span is="token-display" cewt-ref="toBalance" amount="0"></span>
-    </p>
+    </span>
+  </div>
+
+
+  <div class="mt-2">
+    <span class="ml-1 text-neutral-secondary">
+      Shares you will receive:
+    </span>
+    <div class="fantasy-input-group">
+      <input type="text" value="0" readonly cewt-ref="sharesAmount">
+    </div>
+
+    <div class="px-1 mt-2">
+      <p class="important-note warning">
+        These values aren't guaranteed as other trades may be processed before yours.
+      </p>
+    </div>
   </div>
 
   <div class="col align-items-center">

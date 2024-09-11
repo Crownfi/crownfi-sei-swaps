@@ -48,6 +48,13 @@ export class DepositFormComponentRefs {
 		}
 		return this.#toBalance;
 	}
+	#sharesAmount?: HTMLInputElement;
+	get sharesAmount() {
+		if (this.#sharesAmount === undefined) {
+			this.#sharesAmount = this.#element.querySelector("[cewt-ref=\"sharesAmount\"]:not(:scope [is] *)")!;
+		}
+		return this.#sharesAmount;
+	}
 	#submitButton?: HTMLButtonElement;
 	get submitButton() {
 		if (this.#submitButton === undefined) {
@@ -60,7 +67,7 @@ let _templateDepositFormComponent: HTMLTemplateElement | null = null;
 function getDepositFormComponentTemplate(): HTMLTemplateElement {
 	if (_templateDepositFormComponent == null) {
 		 _templateDepositFormComponent = document.createElement("template")
-		 _templateDepositFormComponent.innerHTML = "\n  <div class=\"fantasy-input-group row mt-3\">\n    <span></span>\n    <input type=\"text\" placeholder=\"Deposit amount\" cewt-ref=\"fromDepositAmount\">\n    <button type=\"button\" class=\"button fantasy small\" cewt-ref=\"fromMax\">Max</button>\n  </div>\n  \n  <div class=\"ml-1\">\n    <p class=\"text-neutral-secondary\">\n      Balance:\n      <span is=\"token-display\" cewt-ref=\"fromBalance\" amount=\"0\"></span>\n    </p>\n  </div>\n\n  <div class=\"fantasy-input-group row mt-2\">\n    <span></span>\n    <input type=\"text\" placeholder=\"Deposit amount\" cewt-ref=\"toDepositAmount\">\n    <button type=\"button\" class=\"button fantasy small\" cewt-ref=\"toMax\">Max</button>\n  </div>\n  \n  <div class=\"ml-1\">\n    <p class=\"text-neutral-secondary\">\n      Balance:\n      <span is=\"token-display\" cewt-ref=\"toBalance\" amount=\"0\"></span>\n    </p>\n  </div>\n\n  <div class=\"col align-items-center\">\n    <button class=\"mt-2 fantasy-ornamental submit-button\" cewt-ref=\"submitButton\" disabled=\"\">Submit</button>\n  </div>\n";
+		 _templateDepositFormComponent.innerHTML = "\n  <div class=\"fantasy-input-group row mt-2\">\n    <span></span>\n    <input type=\"text\" placeholder=\"Deposit amount\" cewt-ref=\"fromDepositAmount\">\n    <button type=\"button\" class=\"button fantasy short\" cewt-ref=\"fromMax\">Max</button>\n  </div>\n  \n  <div class=\"ml-1\">\n    <span class=\"text-neutral-secondary\">\n      Balance:\n      <span is=\"token-display\" cewt-ref=\"fromBalance\" amount=\"0\"></span>\n    </span>\n  </div>\n\n  <div class=\"fantasy-input-group row mt-2\">\n    <span></span>\n    <input type=\"text\" placeholder=\"Deposit amount\" cewt-ref=\"toDepositAmount\">\n    <button type=\"button\" class=\"button fantasy short\" cewt-ref=\"toMax\">Max</button>\n  </div>\n  \n  <div class=\"ml-1\">\n    <span class=\"text-neutral-secondary\">\n      Balance:\n      <span is=\"token-display\" cewt-ref=\"toBalance\" amount=\"0\"></span>\n    </span>\n  </div>\n\n\n  <div class=\"mt-2\">\n    <span class=\"ml-1 text-neutral-secondary\">\n      Shares you will receive:\n    </span>\n    <div class=\"fantasy-input-group\">\n      <input type=\"text\" value=\"0\" readonly=\"\" cewt-ref=\"sharesAmount\">\n    </div>\n\n    <div class=\"px-1 mt-2\">\n      <p class=\"important-note warning\">\n        These values aren\'t guaranteed as other trades may be processed before yours.\n      </p>\n    </div>\n  </div>\n\n  <div class=\"col align-items-center\">\n    <button class=\"mt-2 fantasy-ornamental submit-button\" cewt-ref=\"submitButton\" disabled=\"\">Submit</button>\n  </div>\n";
 	}
 	return _templateDepositFormComponent;
 }

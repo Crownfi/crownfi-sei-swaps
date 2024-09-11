@@ -12,7 +12,7 @@ export class DebouncedCallbacks {
   get timeouts() {
     return this._timeouts;
   }
-
+  // TODO: refactor method to execute the function instead of returning a new one
   debounce<T extends unknown[]>(func: (...args: T) => void, delay = 500) {
     return (...args: T) => {
       if (this._timeouts[func.toString()]) 
