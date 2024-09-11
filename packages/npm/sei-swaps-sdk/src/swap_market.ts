@@ -53,7 +53,7 @@ function normalizePayloadCoin(amount: string | bigint | Coin | IBigIntCoin, fall
 	return (typeof amount == "object" ? new BigIntCoin(amount) : new BigIntCoin(amount, fallbackDenom)).intoCosmCoin();
 }
 function assertValidDenom(amount: string | bigint | Coin | IBigIntCoin, ...validDenoms: string[]) {
-	if (typeof amount == "object" && validDenoms.indexOf(amount.denom) != -1) {
+	if (typeof amount == "object" && validDenoms.indexOf(amount.denom) === -1) {
 		throw new InvalidDenomError(amount.denom, validDenoms);
 	}
 }
