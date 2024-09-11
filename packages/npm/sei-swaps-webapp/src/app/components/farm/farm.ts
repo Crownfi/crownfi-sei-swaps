@@ -133,6 +133,11 @@ export class FarmComponent extends FarmComponentAutogen {
     this.refs.searchInput.addEventListener("input", ev => {
       this.handleSearch((ev.target as HTMLInputElement).value);
     });
+
+    this.addEventListener("depositFinished", async () => {
+      await this.refreshPoolPairs();
+      this.renderList();
+    });
   }
 }
 
