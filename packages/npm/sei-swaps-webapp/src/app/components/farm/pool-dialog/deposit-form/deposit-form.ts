@@ -2,13 +2,25 @@ import { SwapMarketPair } from "@crownfi/sei-swaps-sdk";
 import { BigIntCoin, UIAmount, stringDecimalToBigInt } from "@crownfi/sei-utils";
 import { msgBoxIfThrow } from "@crownfi/css-gothic-fantasy";
 
+import { swapService } from "../../../../index.js";
 import { DepositFormComponentAutogen } from "./_autogen/deposit-form.js";
 import { useGetBalance, UseGetBalanceOutput } from "../../../../../hooks/use-get-balance.js";
 import { DebouncedCallbacks } from "../../../../../lib/debounced-callbacks.js";
-import { swapService } from "../../../../index.js";
 import { useGetAccount } from "../../../../../hooks/use-get-account.js";
-import { Coin } from "@cosmjs/proto-signing";
 import { useGetTokenInfo } from "../../../../../hooks/use-get-token-info.js";
+
+type DepositFinishedEventDetails = {
+  offerFrom: BigIntCoin;
+  offerTo: BigIntCoin;
+};
+
+export type DepositFinishedEvent = CustomEvent<DepositFinishedEventDetails>;
+
+declare global {
+	interface GlobalEventHandlersEventMap {
+		"depositFinished": DepositFinishedEvent
+	}
+}
 
 export class DepositForm extends DepositFormComponentAutogen {
   private fromBalance: UseGetBalanceOutput;
@@ -79,12 +91,15 @@ export class DepositForm extends DepositFormComponentAutogen {
           const toAmount = stringDecimalToBigInt(this.refs.toDepositAmount.value, toInfo.decimals);
           if (!fromAmount || !toAmount)
             throw new Error("Invalid amounts");
+          const offerFrom = new BigIntCoin(fromAmount, this.denoms.from);
+          const offerTo = new BigIntCoin(toAmount, this.denoms.to);
           await swapService.executeDeposit(
-            new BigIntCoin(fromAmount, this.denoms.from),
-            new BigIntCoin(toAmount, this.denoms.to),
+            offerFrom,
+            offerTo,
             account.seiAddress,
           );
           await this.refreshBalances();
+          this.dispatchEvent(new CustomEvent("depositFinished", { detail: { offerFrom, offerTo }, bubbles: true }));
           this.setDefaults();
         } finally {
           await this.refreshBalances();

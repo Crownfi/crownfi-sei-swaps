@@ -41,6 +41,10 @@ export class PoolDialogComponent extends PoolDialogComponentAutogen {
       if ((ev.target as HTMLInputElement).checked)
         this.showWithdrawForm();
     });
+
+    this.addEventListener("depositFinished", () => {
+      this.renderData();
+    });
   }
 
   async renderData() {

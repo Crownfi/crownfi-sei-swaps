@@ -89,15 +89,9 @@ export class FarmComponent extends FarmComponentAutogen {
     this.refs.poolsList.innerHTML = "";
     const filteredList = this.getFilteredList(this.poolPairs);
     const sortedList = this.getSortedList(this.sortBy, filteredList);
-    let flag = false;
     for (const pair of sortedList) {
       this.refs.poolsList.appendChild(new EmptySeparatorAutogen());
       const poolItem = new PoolItemComponent(pair);
-      //TODO: remove test flag
-      if(!flag) {
-        this.showDialog(pair);
-        flag = true;
-      }
       poolItem.addEventListener("click", () => {
         this.showDialog(pair);
       });
