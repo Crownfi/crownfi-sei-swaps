@@ -87,8 +87,7 @@ export class PoolDialogComponent extends PoolDialogComponentAutogen {
 
   async connectedCallback() {
     await this.renderData();
-    // this.showDepositForm();
-    this.showWithdrawForm();
+    this.showDepositForm();
   }
 }
 
