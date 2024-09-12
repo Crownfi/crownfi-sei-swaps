@@ -1,5 +1,5 @@
 main[is="app-container-component"] {
-  min-width: 763px;
+  min-width: max-content;
   margin-bottom: 64px;
 }
 

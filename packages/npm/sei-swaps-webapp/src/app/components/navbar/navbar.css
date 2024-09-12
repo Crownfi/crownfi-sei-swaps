@@ -6,8 +6,41 @@ div[is="navbar-component"] {
   padding: 64px 80px;
 }
 
-div[is="navbar-component"] > div {
+div[is="navbar-component"] > .actions {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+@media (max-width: 1024px) {
+  div[is="navbar-component"] {
+    padding: var(--spacing-3);
+  }
+}
+
+@media (max-width: 768px) {
+  div[is="navbar-component"] {
+    padding: var(--spacing-2);
+  }
+
+  div[is="navbar-component"] .main-navbar-logo {
+    width: 108px;
+  }
+}
+
+@media (max-width: 425px) {
+  div[is="navbar-component"] .actions {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    justify-content: space-around;
+    background: var(--background-container);
+    z-index: 10;
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  div[is="navbar-component"] .actions button:only-child {
+    margin: 0 auto;
+  }
 }

@@ -1,7 +1,7 @@
 div[is="treasury-chests-component"] {
   display: flex;
   align-items: center;
-  gap: 232px;
+  justify-content: space-between;
 }
 
 div[is="treasury-chests-component"] .chest {
