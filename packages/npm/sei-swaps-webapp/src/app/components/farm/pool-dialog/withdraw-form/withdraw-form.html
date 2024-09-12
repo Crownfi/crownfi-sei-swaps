@@ -1,25 +1,35 @@
 <template cewt-name="withdraw-form-component" cewt-extends="form">
-  <div class="col text-center">
-    <span class="label">Shares</span>
+  <div class="mt-2">
+    <span class="text-neutral-secondary ml-1">
+      Shares
+    </span>
+  </div>
 
-    <input type="text" cewt-ref="operationAmount" value="0" required />
+  <div class="fantasy-input-group row">
+    <span></span>
+    <input type="text" placeholder="0" cewt-ref="sharesAmountInput" />
+    <button type="button" class="button fantasy short" cewt-ref="maxButton">Max</button>
+  </div>
 
-    <div class="row justify-content-between mb-1">
-      <div>
-        <span>Current: </span>
-        <span cewt-ref="currentValue">0</span>
-      </div>
-      
-      <div>
-        <span>Receive:</span>
-        <span cewt-ref="receiveValue">0 + 0</span>
-      </div>
+  <div class="ml-1">
+    <span class="text-neutral-secondary">
+      Balance:
+      <span cewt-ref="sharesBalance">0</span>
+    </span>
+  </div>
+
+  <div class="mt-2">
+    <span class="ml-1 text-neutral-secondary">
+      You will receive:
+    </span>
+
+    <div class="row gap-1 ml-1">
+      <span class="badge" is="token-display" amount="0" cewt-ref="receiveToken0"></span>
+      <span class="badge" is="token-display" amount="0" cewt-ref="receiveToken1"></span>
     </div>
+  </div>
 
-    <div class="row justify-content-end">
-      <button class="small w-max-content" cewt-ref="submitButton" disabled>
-        Finish
-      </button>
-    </div>
+  <div class="col align-items-center">
+    <button class="mt-2 fantasy-ornamental submit-button" cewt-ref="submitButton" disabled>Submit</button>
   </div>
 </template>

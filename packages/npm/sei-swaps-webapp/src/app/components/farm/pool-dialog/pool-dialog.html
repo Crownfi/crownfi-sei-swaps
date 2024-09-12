@@ -30,16 +30,6 @@
       </div>
 
       <div class="row align-items-center">
-        <span class="label">Exchange Rate</span>
-      </div>
-
-      <div class="row align-items-center gap-2 badge">
-        <span is="token-display" cewt-ref="exchangeRateFrom"></span>
-        <span class="equals">=</span>
-        <span is="token-display" cewt-ref="exchangeRateTo"></span>
-      </div>
-
-      <div class="row align-items-center">
         <span class="label">Total Deposits</span>
       </div>
 
@@ -58,6 +48,16 @@
       </div>
 
       <div class="row align-items-center">
+        <span class="label">Exchange Rate</span>
+      </div>
+
+      <div class="row align-items-center gap-2 badge">
+        <span is="token-display" cewt-ref="exchangeRateFrom"></span>
+        <span class="equals">=</span>
+        <span is="token-display" cewt-ref="exchangeRateTo"></span>
+      </div>
+
+      <div class="row align-items-center">
         <span class="label">Pool Shares</span>
       </div>
 
@@ -71,12 +71,12 @@
     <div class="row align-items-center justify-content-center gap-2 mb-1">
       <label class="button fantasy primary">
         <span>Deposit</span>
-        <input type="radio" name="operation" value="deposit" checked cewt-ref="operationDeposit" />
+        <input type="radio" name="operation" value="deposit" cewt-ref="operationDeposit" />
       </label>
 
       <label class="button fantasy primary">
         <span>Withdraw</span>
-        <input type="radio" name="operation" value="withdraw" cewt-ref="operationWithdraw" />
+        <input type="radio" name="operation" value="withdraw" checked cewt-ref="operationWithdraw" />
       </label>
     </div>
 

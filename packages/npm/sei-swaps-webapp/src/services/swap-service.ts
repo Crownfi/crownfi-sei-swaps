@@ -73,4 +73,14 @@ export class SwapService {
     const receipt = await client.executeContractHackySequence(ixs);
     return receipt;
   }
+
+  async executeWithdraw(from: UnifiedDenom, to: UnifiedDenom, amount: bigint, receiver: Addr) {
+    const pair = await this.getPair([from, to]);
+    if (!pair)
+      throw new Error("Invalid pair");
+    const client = await useGetClient();
+    const ixs = pair.buildWithdrawLiquidityIxs(amount, receiver);
+    const receipt = await client.executeContractHackySequence(ixs);
+    return receipt;
+  }
 }

@@ -1,8 +1,0 @@
-form[is="deposit-form-component"] .submit-button {
-  font-size: var(--font-size-medium);
-}
-
-form[is="deposit-form-component"] .fantasy-input-group {
-  min-height: 54px;
-  border-image-outset: 4px;
-}

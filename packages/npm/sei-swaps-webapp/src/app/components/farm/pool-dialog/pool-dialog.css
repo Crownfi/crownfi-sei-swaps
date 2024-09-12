@@ -61,3 +61,12 @@ dialog[is="pool-dialog-component"] .label {
   font-weight: 500;
   color: var(--colour-neutral-secondary);
 }
+
+dialog[is="pool-dialog-component"] .submit-button {
+  font-size: var(--font-size-medium);
+}
+
+dialog[is="pool-dialog-component"] .fantasy-input-group {
+  min-height: 54px;
+  border-image-outset: 4px;
+}

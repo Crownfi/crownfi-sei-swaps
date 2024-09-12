@@ -20,7 +20,7 @@ export class PoolDialogComponent extends PoolDialogComponentAutogen {
 
   showWithdrawForm() {
     this.refs.formContainer.innerHTML = '';
-    this.refs.formContainer.appendChild(new WithdrawForm());
+    this.refs.formContainer.appendChild(new WithdrawForm(this.poolPair));
   }
 
   setListeners() {
@@ -43,6 +43,10 @@ export class PoolDialogComponent extends PoolDialogComponentAutogen {
     });
 
     this.addEventListener("depositFinished", () => {
+      this.renderData();
+    });
+
+    this.addEventListener("withdrawFinished", () => {
       this.renderData();
     });
   }
@@ -83,7 +87,8 @@ export class PoolDialogComponent extends PoolDialogComponentAutogen {
 
   async connectedCallback() {
     await this.renderData();
-    this.showDepositForm();
+    // this.showDepositForm();
+    this.showWithdrawForm();
   }
 }
 
