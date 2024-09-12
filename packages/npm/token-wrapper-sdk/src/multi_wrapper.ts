@@ -1,7 +1,8 @@
-import { WasmExtension } from "@cosmjs/cosmwasm-stargate";
-import { QueryClient } from "@cosmjs/stargate";
+import { ExecuteInstruction, WasmExtension } from "@cosmjs/cosmwasm-stargate";
+import { Coin, QueryClient } from "@cosmjs/stargate";
 import { ERC20TokenWrapper } from "./erc20.js";
 import { CW20TokenWrapper } from "./cw20.js";
+import { EvmExecuteInstruction, IBigIntCoin, SeiClientAccountData } from "@crownfi/sei-utils";
 
 export class MultiTokenWrapper<Q extends QueryClient & WasmExtension> {
 	cw20Wrapper: CW20TokenWrapper<Q>
@@ -78,6 +79,49 @@ export class MultiTokenWrapper<Q extends QueryClient & WasmExtension> {
 		}
 		return denom;
 	}
-
-	
+	buildWrapIxs(
+		amount: number | bigint | string,
+		prefixedContractAddr: string,
+		sender: SeiClientAccountData,
+		recipient: SeiClientAccountData
+	): (EvmExecuteInstruction | ExecuteInstruction)[] {
+		if (prefixedContractAddr.startsWith("erc20/")) {
+			return this.erc20Wrapper.buildWrapIxs(
+				amount,
+				prefixedContractAddr,
+				sender.evmAddress,
+				recipient.seiAddress
+			);
+		} else if (prefixedContractAddr.startsWith("cw20/")) {
+			return [this.cw20Wrapper.buildWrapIx(amount, prefixedContractAddr, recipient.seiAddress)];
+		} else {
+			throw new Error(
+				"MultiTokenWrapper: " +
+				"buildWrapIxs: Must provide a contract address prefixed with \"erc20/\" or \"cw20/\""
+			);
+		}
+	}
+	buildUnwrapIxs(
+		wrappedTokens: (Coin | IBigIntCoin)[],
+		recipient: SeiClientAccountData
+	): ExecuteInstruction[] {
+		const wrappedCW20s = [];
+		const wrappedERC20s = [];
+		for (const wrappedToken of wrappedTokens) {
+			if (this.cw20Wrapper.isWrappedDenom(wrappedToken.denom)) {
+				wrappedCW20s.push(wrappedToken);
+			} else if (this.erc20Wrapper.isWrappedDenom(wrappedToken.denom)) {
+				wrappedERC20s.push(wrappedToken);
+			}
+			// Ignore non-wrapped tokens
+		}
+		const result = [];
+		if (wrappedCW20s.length) {
+			result.push(this.cw20Wrapper.buildUnwrapIx(wrappedCW20s, recipient.seiAddress));
+		}
+		if (wrappedERC20s.length) {
+			result.push(this.erc20Wrapper.buildUnwrapIx(wrappedERC20s, recipient.evmAddress));
+		}
+		return result;
+	}
 }
