@@ -1,3 +1,8 @@
+body {
+  overflow-x: hidden;
+  background: var(--colour-brand-palette-obsidian) url("../static/images/background-min.svg") 100% 100% / cover scroll no-repeat;
+}
+
 #main-content {
   display: flex;
   justify-content: center;
