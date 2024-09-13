@@ -4,6 +4,12 @@ import { ERC20TokenWrapper } from "./erc20.js";
 import { CW20TokenWrapper } from "./cw20.js";
 import { EvmExecuteInstruction, IBigIntCoin, SeiClientAccountData } from "@crownfi/sei-utils";
 
+export type MaybeContractTokenKind = ContractTokenKind | 0;
+export enum ContractTokenKind {
+	CW20 = 1,
+	ERC20 = 2
+}
+
 export class MultiTokenWrapper<Q extends QueryClient & WasmExtension> {
 	cw20Wrapper: CW20TokenWrapper<Q>
 	erc20Wrapper: ERC20TokenWrapper<Q>
@@ -35,6 +41,15 @@ export class MultiTokenWrapper<Q extends QueryClient & WasmExtension> {
 	 */
 	isWrappedDenom(denom: string): boolean {
 		return this.cw20Wrapper.isWrappedDenom(denom) || this.erc20Wrapper.isWrappedDenom(denom);
+	}
+
+	wrappedDenomKind(denom: string): MaybeContractTokenKind {
+		if (this.cw20Wrapper.isWrappedDenom(denom)) {
+			return ContractTokenKind.CW20;
+		} else if (this.erc20Wrapper.isWrappedDenom(denom)) {
+			return ContractTokenKind.ERC20;
+		}
+		return 0;
 	}
 
 	/**
@@ -123,5 +138,18 @@ export class MultiTokenWrapper<Q extends QueryClient & WasmExtension> {
 			result.push(this.erc20Wrapper.buildUnwrapIx(wrappedERC20s, recipient.evmAddress));
 		}
 		return result;
+	}
+	buildUnwrapIxsUnchecked(
+		contractTokenKind: ContractTokenKind,
+		recipient: SeiClientAccountData
+	): ExecuteInstruction {
+		switch (contractTokenKind) {
+			case ContractTokenKind.CW20:
+				return this.cw20Wrapper.buildUnwrapIxUnchecked(recipient.seiAddress);
+			case ContractTokenKind.ERC20:
+				return this.cw20Wrapper.buildUnwrapIxUnchecked(recipient.evmAddress);
+			default:
+				throw new Error("Invalid ContractTokenKind value");
+		}
 	}
 }

@@ -119,4 +119,16 @@ export class CW20TokenWrapper<Q extends QueryClient & WasmExtension> {
 		funds.sort(nativeDenomSortCompare);
 		return this.contract.buildUnwrapIx({receiver: recipient}, funds);
 	}
+	/**
+	 * Builds the unwrap instruction without checking if the coins to be sent match this contract.
+	 * 
+	 * @param recipient who to send the resulting unwrapped tokens to, defaults to the sender.
+	 * @returns the execute instructions to unwrap the token. Note that the `funds` property will be sent to an empty
+	 * array, which is invalid.
+	 */
+	buildUnwrapIxUnchecked(
+		recipient?: string
+	): ExecuteInstruction {
+		return this.contract.buildUnwrapIx({receiver: recipient});
+	}
 }

@@ -140,4 +140,19 @@ export class ERC20TokenWrapper<Q extends QueryClient & WasmExtension> {
 			evm_recipient: Buffer.from(recipientEvmAddr.substring(2), "hex").toString("base64")
 		}, funds);
 	}
+
+	/**
+	 * Builds the unwrap instruction without checking if the coins to be sent match this contract.
+	 * 
+	 * @param recipient who to send the resulting unwrapped tokens to, defaults to the sender.
+	 * @returns the execute instructions to unwrap the token. Note that the `funds` property will be sent to an empty
+	 * array, which is invalid.
+	 */
+	buildUnwrapIxUnchecked(
+		recipientEvmAddr: string
+	): ExecuteInstruction {
+		return this.contract.buildUnwrapIx({
+			evm_recipient: Buffer.from(recipientEvmAddr.substring(2), "hex").toString("base64")
+		});
+	}
 }

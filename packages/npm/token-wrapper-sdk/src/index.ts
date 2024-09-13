@@ -27,3 +27,4 @@ export * from "./error.js";
 export * from "./base/index.js";
 export * from "./cw20.js";
 export * from "./erc20.js";
+export * from "./multi_wrapper.js";
