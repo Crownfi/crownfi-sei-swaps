@@ -1,15 +1,20 @@
-import * as sei from "@crownfi/sei-js-core";
+import { WrapperContractDenomError } from "./error.js";
 
-export type Amount = bigint | number;
-export type SigningClient = Awaited<ReturnType<typeof sei.getSigningCosmWasmClient>>;
+export function assertFactoryTokenSourceMatches(
+	nativeDenom: string,
+	contractAddr: string,
+	validSubdenomCheck: (subdenom: string) => boolean
+) {
+	if (!factoryTokenSourceMatches(nativeDenom, contractAddr, validSubdenomCheck)) {
+		throw new WrapperContractDenomError(nativeDenom, contractAddr);
+	}
+}
 
-export const ERR_DOES_NOT_BELONG_TO_CONTRACT = new Error("token does not belong to contract");
-
-export const validate_native_denom_factory = (contract_addr: string) => (native_denom: string) => {
-	if (native_denom.split("/")[1] !== contract_addr) throw ERR_DOES_NOT_BELONG_TO_CONTRACT;
-};
-
-export const check_native_denom_factory =
-	(contract_addr: string) =>
-	(native_denom: string): boolean =>
-		native_denom.split("/")[1] === contract_addr;
+export function factoryTokenSourceMatches(
+	nativeDenom: string,
+	contractAddr: string,
+	validSubdenomCheck: (subdenom: string) => boolean
+): boolean {
+	const denomPrefix = "factory/" + contractAddr + "/";
+	return nativeDenom.startsWith(denomPrefix) && validSubdenomCheck(nativeDenom.substring(denomPrefix.length));
+}

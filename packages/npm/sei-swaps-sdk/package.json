@@ -11,12 +11,13 @@
 		"build": "rm -rf dist/* && mkdir -p dist && tsc"
 	},
 	"dependencies": {
-		"@cosmjs/amino": "^0.32.2",
-		"@cosmjs/cosmwasm-stargate": "^0.32.2",
-		"@cosmjs/proto-signing": "^0.32.2",
-		"@cosmjs/stargate": "^0.32.2",
+		"@cosmjs/amino": "^0.32.4",
+		"@cosmjs/cosmwasm-stargate": "^0.32.4",
+		"@cosmjs/proto-signing": "^0.32.4",
+		"@cosmjs/stargate": "^0.32.4",
 		"@crownfi/sei-js-core": "^5.2.5",
-		"@crownfi/sei-utils": "0.3.20",
+		"@crownfi/sei-utils": "^0.3.23",
+		"@crownfi/token-wrapper-sdk": "^0.9.0",
 		"math-bigint": "^1.0.0",
 		"tiny-emitter": "^2.1.0"
 	},

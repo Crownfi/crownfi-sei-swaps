@@ -10,7 +10,7 @@ import {
 	SwapRouterExpectation,
 	SwapReceiver,
 } from "./index.js";
-import { Addr, BigIntCoin, IBigIntCoin, ClientEnv, getBalanceChangesFor, getUserTokenInfo, nativeDenomSortCompare } from "@crownfi/sei-utils";
+import { Addr, BigIntCoin, IBigIntCoin, getUserTokenInfo, SeiClientAccountData, EvmExecuteInstruction } from "@crownfi/sei-utils";
 
 import { AddrWithPayload, UnifiedDenom, UnifiedDenomPair, matchTokenKind } from "./types.js";
 import { Coin, coin } from "@cosmjs/amino";
@@ -19,6 +19,7 @@ import { bigIntMin } from "math-bigint";
 import { WasmExtension } from "@cosmjs/cosmwasm-stargate";
 import { QueryClient } from "@cosmjs/stargate";
 import { InvalidDenomError, MarketPairNotFoundError, UnsatisfiableSwapRouteError } from "./error.js";
+import { MultiTokenWrapper } from "@crownfi/token-wrapper-sdk";
 
 // Copypasta'd from stackvoerflow
 // https://stackoverflow.com/questions/9383593/extracting-the-exponent-and-mantissa-of-a-javascript-number/78431217#78431217
@@ -146,7 +147,7 @@ export enum SwapMarketPairMatch {
 	InverseMatch = 2
 }
 
-export class SwapMarketPair {
+export class SwapMarketPair<Q extends QueryClient & WasmExtension = QueryClient & WasmExtension> {
 	/** Name of the pair (Stable for 1.0) */
 	readonly name: string;
 	/** The assets in the pair (Stable for 1.0) */
@@ -155,6 +156,10 @@ export class SwapMarketPair {
 	readonly sharesDenom: UnifiedDenom;
 	/** The assets in the pair, in lexicographical order */
 	readonly canonAssets: UnifiedDenomPair;
+	/** The assets in the pair, normalized to their unwrapped form */
+	readonly unwrappedAssets: UnifiedDenomPair;
+
+	#validAssets: UnifiedDenom[]
 
 	/** Maker fee in basis points. 10000‱ = 100% (Stable for 1.0) */
 	get makerFeeBasisPoints() {
@@ -184,23 +189,34 @@ export class SwapMarketPair {
 	// #pairKind: [TknKind, TknKind]
 	// #astroPairType: AstroPairType
 	protected constructor(
-		public readonly contract: PoolPairContract<QueryClient & WasmExtension>,
+		public readonly contract: PoolPairContract<Q>,
 		/** The amount of tokens deposited in the pool, maps with the `assets` property (Stable for 1.0) */
 		public readonly totalDeposits: [bigint, bigint],
 		makerFeeBasisPoints: number,
 		poolFeeBasisPoints: number,
 		// factoryConfig: PoolFactoryConfigJsonable,
 		// pairInfo: UnifiedDenomPair,
-		poolInfo: { assets: UnifiedDenomPair; total_shares: Uint128 }
+		poolInfo: { assets: UnifiedDenomPair; totalShares: Uint128; unwrappedAssets: UnifiedDenomPair },
+		public tokenWrapper: MultiTokenWrapper<Q>
 	) {
 		// this.totalDeposits = totalDeposits
 		this.assets = poolInfo.assets;
+		this.unwrappedAssets = poolInfo.unwrappedAssets;
 		this.#poolFeeBasisPoints = poolFeeBasisPoints;
 		this.#makerFeeBasisPoints = makerFeeBasisPoints;
-		this.#totalShares = BigInt(poolInfo.total_shares);
+		this.#totalShares = BigInt(poolInfo.totalShares);
 		this.name = this.assets.map((denom) => getUserTokenInfo(denom).symbol).join("-");
 		this.sharesDenom = "factory/" + contract.address + "/lp";
 		this.canonAssets = [...poolInfo.assets].sort() as UnifiedDenomPair;
+		this.#validAssets = [
+			...poolInfo.assets
+		];
+		if (this.assets[0] != this.unwrappedAssets[0]) {
+			this.#validAssets.push(this.unwrappedAssets[0]);
+		}
+		if (this.assets[1] != this.unwrappedAssets[1]) {
+			this.#validAssets.push(this.unwrappedAssets[1]);
+		}
 		Object.freeze(this.assets);
 		Object.freeze(this.canonAssets);
 
@@ -228,9 +244,10 @@ export class SwapMarketPair {
 		// this.#poolFeeBasisPoints = factoryConfig.default_total_fee_bps - factoryConfig.default_maker_fee_bps;
 	}
 
-	static async create(
-		endpoint: QueryClient & WasmExtension,
+	static async create<Q extends QueryClient & WasmExtension>(
+		endpoint: Q,
 		pairAddress: string,
+		tokenWrapper: MultiTokenWrapper<Q>
 	) {
 		const pairContract = new PoolPairContract(endpoint, pairAddress);
 
@@ -243,6 +260,10 @@ export class SwapMarketPair {
 			pairContract.queryTotalShares(),
 			pairContract.queryPairDenoms(),
 		]);
+		const unwrappedAssets = tokenWrapper == undefined ? poolAssets : await Promise.all([
+			tokenWrapper.normalizeToUnwrappedDenom(poolAssets[0]),
+			tokenWrapper.normalizeToUnwrappedDenom(poolAssets[1])
+		]);
 
 		const totalDeposits = await pairContract.queryShareValue({ amount: totalShares });
 		const poolFeeBasisPoints = config.total_fee_bps - config.maker_fee_bps;
@@ -252,7 +273,8 @@ export class SwapMarketPair {
 			[ BigInt(totalDeposits[0].amount), BigInt(totalDeposits[1].amount) ],
 			config.maker_fee_bps,
 			poolFeeBasisPoints,
-			{ assets: poolAssets, total_shares: totalShares }
+			{ assets: poolAssets, totalShares, unwrappedAssets },
+			tokenWrapper
 		);
 	}
 
@@ -321,6 +343,15 @@ export class SwapMarketPair {
 		}
 	}
 
+	otherDenom(denom: string, unwrapped?: boolean): string | null {
+		if (this.assets[0] == denom || this.unwrappedAssets[0] == denom) {
+			return unwrapped ? this.unwrappedAssets[1] : this.assets[1];
+		} else if (this.assets[1] == denom || this.unwrappedAssets[1] == denom) {
+			return unwrapped ? this.unwrappedAssets[0] : this.assets[0];
+		}
+		return null;
+	}
+
 	/**
 	 * Calculates the value of the shares amount specified
 	 */
@@ -356,7 +387,46 @@ export class SwapMarketPair {
 		}
 		return SwapMarketPairMatch.Unmatched;
 	}
-	
+	buildWrapAndProvideLiquidity(
+		sender: SeiClientAccountData,
+		receiver: SeiClientAccountData,
+		liquidityTokens: [Coin | IBigIntCoin, Coin | IBigIntCoin],
+		slippageTolerance: number = 0.01,
+	): (EvmExecuteInstruction | ExecuteInstruction)[] {
+		const result = [];
+		for (const liquidityToken of liquidityTokens) {
+			assertValidDenom(liquidityToken.denom, ...this.#validAssets);
+			if (this.tokenWrapper.isWrapable(liquidityToken.denom)) {
+				result.push(
+					...this.tokenWrapper.buildWrapIxs(
+						liquidityToken.amount,
+						liquidityToken.denom,
+						sender,
+						sender
+					)
+				);
+			}
+		}
+		const normalizedLiqTokens = liquidityTokens.map(v => {
+			return {
+				denom: this.tokenWrapper.normalizeToWrappedDenom(v.denom),
+				amount: v.amount
+			};
+		});
+		if (normalizedLiqTokens[0].denom != this.assets[0]) {
+			normalizedLiqTokens.reverse();
+		}
+		result.push(
+			...this.buildProvideLiquidityIxs(
+				normalizedLiqTokens[0].amount,
+				normalizedLiqTokens[1].amount,
+				slippageTolerance,
+				receiver.seiAddress
+			)
+		);
+		return result;
+		// This does assume that wrapped tokens are 1:1
+	}
 	buildProvideLiquidityIxs(
 		token0Amount: string | bigint | Coin | IBigIntCoin,
 		token1Amount: string | bigint | Coin | IBigIntCoin,
@@ -426,6 +496,49 @@ export class SwapMarketPair {
 		]
 	}
 
+	buildWithdrawAndUnwrapLiquidityIxs(
+		shares: bigint,
+		receiver: SeiClientAccountData
+	): ExecuteInstruction[] {
+		const leftWrapKind = this.tokenWrapper.wrappedDenomKind(this.assets[0]);
+		const rightWrapKind = this.tokenWrapper.wrappedDenomKind(this.assets[1]);
+		if (leftWrapKind == rightWrapKind) {
+			if (leftWrapKind == 0) {
+				return this.buildWithdrawLiquidityIxs(
+					shares,
+					receiver.seiAddress
+				);
+			} else {
+				const unwrapIx = this.tokenWrapper.buildUnwrapIxsUnchecked(leftWrapKind, receiver);
+				return this.buildWithdrawLiquidityIxs(
+					shares,
+					{
+						address: unwrapIx.contractAddress,
+						payload: Buffer.from(JSON.stringify(unwrapIx.msg))
+					}
+				);
+			}
+		}
+		const leftUnwrapIx = leftWrapKind == 0 ?
+			undefined :
+			this.tokenWrapper.buildUnwrapIxsUnchecked(leftWrapKind, receiver);
+		const rightUnwrapIx = rightWrapKind == 0 ?
+			undefined :
+			this.tokenWrapper.buildUnwrapIxsUnchecked(rightWrapKind, receiver);
+		return [
+			this.contract.buildWithdrawAndSplitLiquidityIx({
+				left_coin_receiver: leftUnwrapIx ? leftUnwrapIx.contractAddress : receiver.seiAddress,
+				left_coin_receiver_payload: leftUnwrapIx ? Buffer.from(
+					JSON.stringify(leftUnwrapIx.msg)
+				).toString("base64") : undefined,
+				right_coin_receiver: rightUnwrapIx ? rightUnwrapIx.contractAddress : receiver.seiAddress,
+				right_coin_receiver_payload: rightUnwrapIx ? Buffer.from(
+					JSON.stringify(rightUnwrapIx.msg)
+				).toString("base64") : undefined
+			}, [coin(shares + "", this.sharesDenom)])
+		];
+	}
+
 	/**
 	 * Builds the ExecuteInstruction(s) needed to perform the swap.
 	 *
@@ -453,11 +566,55 @@ export class SwapMarketPair {
 					receiver_payload: typeof receiver == "object" ? receiver?.payload?.toString("base64") : undefined,
 					slippage_tolerance: slippageTolerance + "",
 				},
-				[
-					(new BigIntCoin(offer)).intoCosmCoin(),
-				]
+				[{amount: offer.amount + "", denom: offer.denom}]
 			),
 		];
+	}
+
+	buildWrapableSwapIxs(
+		sender: SeiClientAccountData,
+		receiver: SeiClientAccountData,
+		offer: Coin | IBigIntCoin,
+		unwrapOnReceive: boolean,
+		slippageTolerance: number = 0.01,
+		expectedResult?: bigint | string | null
+	): (EvmExecuteInstruction | ExecuteInstruction)[] {
+		assertValidDenom(offer.denom, ...this.#validAssets);
+		const result = [];
+		if (this.tokenWrapper.isWrapable(offer.denom)) {
+			result.push(
+				...this.tokenWrapper.buildWrapIxs(
+					offer.amount,
+					offer.denom,
+					sender,
+					sender
+				)
+			);
+		}
+		const actualOffer = {
+				amount: offer.amount + "",
+				denom: this.tokenWrapper.normalizeToWrappedDenom(offer.denom)
+		};
+
+		const resultWrapKind = this.tokenWrapper.wrappedDenomKind(this.otherDenom(actualOffer.denom, true)!);
+		const resultUnwrapIx = (!unwrapOnReceive || resultWrapKind == 0) ?
+			undefined :
+			this.tokenWrapper.buildUnwrapIxsUnchecked(resultWrapKind, receiver);
+		
+		result.push(
+			this.contract.buildSwapIx(
+				{
+					receiver: resultUnwrapIx ? resultUnwrapIx.contractAddress : receiver.seiAddress,
+					receiver_payload: resultUnwrapIx ? Buffer.from(
+						JSON.stringify(resultUnwrapIx.msg)
+					).toString("base64") : undefined,
+					slippage_tolerance: slippageTolerance + "",
+					expected_result: expectedResult == null ? undefined : expectedResult + ""
+				},
+				[actualOffer]
+			),
+		);
+		return result;
 	}
 
 	async simulateSwap(
@@ -465,7 +622,7 @@ export class SwapMarketPair {
 	): Promise<PoolPairCalcSwapResult> {
 		// TODO: convert offer to wrapped variant if it is an erc20 or cw20 token.
 		return this.contract.querySimulateSwap({
-			offer: (new BigIntCoin(offer)).intoCosmCoin()
+			offer: {amount: offer.amount + "", denom: offer.denom}
 		});
 	}
 
@@ -474,7 +631,7 @@ export class SwapMarketPair {
 	): Promise<PoolPairCalcNaiveSwapResult> {
 		// TODO: convert offer to wrapped variant if it is an erc20 or cw20 token.
 		return this.contract.querySimulateNaiveSwap({
-			offer: (new BigIntCoin(offer)).intoCosmCoin()
+			offer: {amount: offer.amount + "", denom: offer.denom}
 		});
 	}
 
@@ -626,18 +783,28 @@ export type SwapMarketSwapSimResult = SwapRouterSimulateSwapsResponse & {
  *
  * After constructing this class, the `refresh` method must be called once for this class to be usable.
  */
-export class SwapMarket {
-	readonly factoryContract: PoolFactoryContract<QueryClient & WasmExtension>;
-	readonly routerContract: SwapRouterContract<QueryClient & WasmExtension>;
+export class SwapMarket<Q extends QueryClient & WasmExtension = QueryClient & WasmExtension> {
+	readonly tokenWrapper: MultiTokenWrapper<Q>;
+	readonly factoryContract: PoolFactoryContract<Q>;
+	readonly routerContract: SwapRouterContract<Q>;
 
 	#assetPairMap: { [pair: string]: SwapMarketPair };
 	#marketingNameToPair: { [marketingName: string]: SwapMarketPair };
+	#unwrappedToWrapped: { [wrappedDenom: UnifiedDenom]: UnifiedDenom };
 
-	constructor(endpoint: QueryClient & WasmExtension, factoryContractAddress: Addr, routerContractAddress: Addr) {
+	constructor(
+		endpoint: Q,
+		factoryContractAddress: Addr,
+		routerContractAddress: Addr,
+		cw20WrapperAddress: Addr,
+		erc20WrapperAddress: Addr
+	) {
+		this.tokenWrapper = new MultiTokenWrapper(endpoint, cw20WrapperAddress, erc20WrapperAddress);
 		this.factoryContract = new PoolFactoryContract(endpoint, factoryContractAddress);
 		this.routerContract = new SwapRouterContract(endpoint, routerContractAddress);
 		this.#assetPairMap = {};
 		this.#marketingNameToPair = {};
+		this.#unwrappedToWrapped = {};
 	}
 
 	/**
@@ -647,14 +814,19 @@ export class SwapMarket {
 	 * @param chainId network ID, if unspecified, the endpoint will be queried.
 	 * @returns The SwapMarket with the default contracts
 	 */
-	static async getFromChainId(endpoint: QueryClient & WasmExtension, chainId: string): Promise<SwapMarket> {
+	static async getFromChainId<Q extends QueryClient & WasmExtension>(
+		endpoint: QueryClient & WasmExtension,
+		chainId: string
+	): Promise<SwapMarket<Q>> {
 		switch (chainId) {
+			/*
 			case "atlantic-2":
 				return new SwapMarket(
 					endpoint,
 					"sei1nguta7v9s0tp0m07r46p7tsyg54rmuzjhcy0mkglxgekt2q3gdeqyhmyu7",
 					"sei1vnjfpnsm70puc2umdujw6fc3p0gv98p2vdymnt4ammqv46ht7vyss6rjhm"
 				);
+			*/
 			default:
 				throw new Error("SwapMarket contract addresses aren't known for chain: " + chainId);
 		}
@@ -675,16 +847,16 @@ export class SwapMarket {
 	 * Finds all available trading pairs. If the pair is already known to exist, its corrosponding
 	 */
 	async refresh(): Promise<void> {
-		const [factoryConfig, pairs] = await Promise.all([
-			this.factoryContract.queryConfig(),
-			// FIXME: Skip over pairs we already know about
-			this.factoryContract.queryPairs(),
-		]);
+		const pairs = await this.factoryContract.queryPairs();
 		for (const pairInfo of pairs) {
 			const pairKey = pairInfo.canonical_pair.join("\0");
 			if (this.#assetPairMap[pairKey] == null) {
-				const pair = await SwapMarketPair.create(this.factoryContract.endpoint, pairInfo.address);
-
+				const pair = await SwapMarketPair.create(this.factoryContract.endpoint, pairInfo.address, this.tokenWrapper);
+				for (let i = 0; i < pair.assets.length; i += 1) {
+					if (pair.assets[i] != pair.unwrappedAssets[i]) {
+						this.#unwrappedToWrapped[pair.unwrappedAssets[i]] = pair.assets[i];
+					}
+				}
 				this.#assetPairMap[pairKey] = pair;
 				this.#marketingNameToPair[pair.name] = pair;
 			} else {
@@ -706,6 +878,7 @@ export class SwapMarket {
 	 * @returns
 	 */
 	getPair(pair: UnifiedDenomPair, tryInverse: boolean = false): SwapMarketPair | null {
+		pair = pair.map(asset => this.#unwrappedToWrapped[asset] || asset) as UnifiedDenomPair;
 		return (
 			this.#assetPairMap[pair.join("\0")] ??
 			(tryInverse ? this.#assetPairMap[pair[1] + "\0" + pair[0]] ?? null : null)
@@ -760,7 +933,12 @@ export class SwapMarket {
 				return true;
 			}
 		}
-		return false;
+		for (let i = 0; i < asset.length; i += 1) {
+			if (!this.#unwrappedToWrapped[asset[i]]) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	#resolveMultiSwapRoute(
@@ -812,6 +990,8 @@ export class SwapMarket {
 	 * existance of the asset in this market.
 	 */
 	resolveMultiSwapRoute(from: UnifiedDenom, to: UnifiedDenom): UnifiedDenomPair[] | null {
+		from = this.#unwrappedToWrapped[from] || from;
+		to = this.#unwrappedToWrapped[to] || to;
 		if (from == to) {
 			return [];
 		}
@@ -842,15 +1022,20 @@ export class SwapMarket {
 		expectation: SwapRouterExpectation | null = null,
 	): ExecuteInstruction[] | null {
 		const result: ExecuteInstruction[] = [];
-
 		const route = this.resolveMultiSwapRoute(offer.denom, askDenom);
-
 		if (route == null || route.length == 0) {
 			return null;
 		}
+		if (route.length == 1) {
+			return this.getPair(route[0], true)!.buildSwapIxs(
+				offer,
+				slippageTolerance,
+				receiver
+			);
+		}
 
 		const swappers = route.map(pair => {
-			const pairAddress = this.getPair(pair)?.contract?.address;
+			const pairAddress = this.getPair(pair, true)?.contract?.address;
 			
 			if (!pairAddress)
 				throw new Error("Invalid pair");
@@ -861,10 +1046,82 @@ export class SwapMarket {
 		result.push(this.routerContract.buildExecuteSwapsIx({ 
 			swappers,
 			expectation,
-			"intermediate_slippage_tolerance": slippageTolerance.toString(),
+			intermediate_slippage_tolerance: slippageTolerance.toString(),
 			receiver: { direct: receiver },
 		}, [ coin(offer.amount.toString(), offer.denom)]));
 
+		return result;
+	}
+
+	buildWrapableSwapIxs(
+		sender: SeiClientAccountData,
+		receiver: SeiClientAccountData,
+		offer: Coin | IBigIntCoin,
+		askDenom: UnifiedDenom,
+		slippageTolerance: number = 0.01,
+		expectation: SwapRouterExpectation | null = null,
+	): (EvmExecuteInstruction | ExecuteInstruction)[] | null {
+		const result: (EvmExecuteInstruction | ExecuteInstruction)[] = [];
+		const route = this.resolveMultiSwapRoute(offer.denom, askDenom);
+		if (route == null || route.length == 0) {
+			return null;
+		}
+		if (route.length == 1) {
+			return this.getPair(route[0], true)!.buildWrapableSwapIxs(
+				sender,
+				receiver,
+				offer,
+				this.tokenWrapper.isWrapable(askDenom),
+				expectation == null ? undefined : Number(expectation.slippage_tolerance),
+				expectation == null ? undefined : expectation.expected_amount,
+			);
+		}
+		if (this.tokenWrapper.isWrapable(offer.denom)) {
+			result.push(
+				...this.tokenWrapper.buildWrapIxs(
+					offer.amount,
+					offer.denom,
+					sender,
+					sender
+				)
+			);
+		}
+		const swappers = route.map(pair => {
+			const pairAddress = this.getPair(pair, true)?.contract?.address;
+			if (!pairAddress)
+				throw new Error("Should not happen: Route returned an invalid pair");
+
+			return pairAddress;
+		});
+		result.push(this.routerContract.buildExecuteSwapsIx({ 
+			swappers,
+			expectation,
+			intermediate_slippage_tolerance: slippageTolerance.toString(),
+			receiver: matchTokenKind<SwapReceiver>(
+				askDenom,
+				cw20Addr => {
+					return {
+						wasm_unwrap: {
+							contract: cw20Addr,
+							receiver: receiver.seiAddress
+						}
+					};
+				},
+				erc20Addr => {
+					return {
+						evm_unwrap: {
+							contract: erc20Addr,
+							evm_receiver: Buffer.from(receiver.evmAddress.substring(2), "hex").toString("base64")
+						}
+					};
+				},
+				_ => {
+					return {
+						direct: receiver.seiAddress
+					};
+				}
+			),
+		}, [coin(offer.amount.toString(), offer.denom)]));
 		return result;
 	}
 
@@ -933,6 +1190,8 @@ export class SwapMarket {
 	 * @returns The exchange rate or NaN if either of the assets aren't in the market
 	 */
 	exchangeRate(fromDenom: UnifiedDenom, toDenom: UnifiedDenom, includeFees?: boolean): number {
+		fromDenom = this.#unwrappedToWrapped[fromDenom] ?? fromDenom;
+		toDenom = this.#unwrappedToWrapped[toDenom] ?? toDenom;
 		if (fromDenom == toDenom) {
 			return 1;
 		}
@@ -962,6 +1221,8 @@ export class SwapMarket {
 	 * @returns The exchange value or null if either of the assets aren't in the market
 	 */
 	exchangeValue(value: bigint, fromDenom: UnifiedDenom, toDenom: UnifiedDenom, includeFees?: boolean): bigint | null {
+		fromDenom = this.#unwrappedToWrapped[fromDenom] ?? fromDenom;
+		toDenom = this.#unwrappedToWrapped[toDenom] ?? toDenom;
 		if (fromDenom == toDenom) {
 			return value;
 		}
@@ -988,7 +1249,7 @@ export class SwapMarket {
 		valuationDenom: UnifiedDenom,
 		pairs: SwapMarketPair[] = this.getAllPairs()
 	): bigint {
-		// TODO: Convert pairs and valuation denom to wrapped variant if needed
+		valuationDenom = this.#unwrappedToWrapped[valuationDenom] ?? valuationDenom;
 		let approxTVL = 0n;
 		for (const pair of pairs) {
 			// If it didn't happen to you yet, this should be your "santa isn't real" moment with the finance industry.
@@ -1003,7 +1264,7 @@ export class SwapMarket {
 		valuationDenom: UnifiedDenom,
 		pairs?: UnifiedDenomPair[],
 	): Promise<SwapMarketMultiNormalizedVolumeResult> {
-		// TODO: Convert pairs and valuation denom to wrapped variant if needed
+		valuationDenom = this.#unwrappedToWrapped[valuationDenom] ?? valuationDenom;
 		const marketPairs = pairs == null ?
 			this.getAllPairs() :
 			pairs.map(pairId => {
