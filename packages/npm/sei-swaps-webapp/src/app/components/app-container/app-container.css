@@ -13,6 +13,23 @@ main[is="app-container-component"] > .container {
   box-sizing: border-box;
 }
 
+@media (max-width: 425px) {
+  main[is="app-container-component"] {
+    margin-bottom: 100px;
+  }
+}
+
+@media (max-width: 768px) {
+  main[is="app-container-component"] > .container {
+    padding: var(--spacing-1);
+  }
+
+  main[is="app-container-component"] > .container {
+    background: none;
+    border: none;
+  }
+}
+
 main[is="app-container-component"] > .container >  menu[is="fantasy-tabs"] {
   gap: var(--spacing-7);
 }

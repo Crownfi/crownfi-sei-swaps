@@ -1,3 +1,12 @@
+div[is="farm-component"] {
+  width: 100%;
+}
+
+div[is="farm-component"] table {
+  width: 100%;
+}
+
+
 div[is="farm-component"] table thead {
   margin-bottom: var(--spacing-1);
 }
@@ -139,4 +148,30 @@ div[is="farm-component"] .fantasy-input-group input:-ms-input-placeholder { /* I
 div[is="farm-component"] .fantasy-input-group input:-moz-placeholder { /* Firefox 18- */
   font-size: var(--font-size-normal);
   font-family: --font-family-default;
+}
+
+div[is="farm-component"] tr[is="empty-separator"] {
+  background-color: transparent;
+}
+
+@media (max-width: 1024px) {
+  div[is="farm-component"] .apy-col {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  div[is="farm-component"] .fee-col {
+    display: none;
+  }
+}
+
+@media (max-width: 425px) {
+  .deposits-col, .pools-col, .fee-col, .apy-col {
+    display: none;
+  }
+
+  div[is="farm-component"] .fantasy-menu-item-block td {
+    padding: var(--spacing-1) 0;
+  }
 }
