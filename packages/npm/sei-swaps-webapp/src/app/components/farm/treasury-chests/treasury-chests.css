@@ -2,6 +2,19 @@ div[is="treasury-chests-component"] {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  overflow: auto;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  -webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  div[is="treasury-chests-component"] {
+    gap: 1rem;
+    padding: 0 20vw;
+  }
 }
 
 div[is="treasury-chests-component"] .chest {

@@ -29,6 +29,10 @@ div[is="navbar-component"] > .actions {
 }
 
 @media (max-width: 425px) {
+  div[is="navbar-component"] {
+    margin-bottom: 1rem;
+  }
+
   div[is="navbar-component"] .actions {
     position: fixed;
     bottom: 0;
