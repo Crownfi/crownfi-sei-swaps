@@ -40,3 +40,9 @@ div[is="swap-component"] .warning-container .important-note {
   width: 100%;
   padding: var(--spacing-1) var(--spacing-2);
 }
+
+@media screen and (max-width: 768px) {
+  div[is="swap-component"] .fantasy-input-group {
+    background-color: var(--colour-primary-800);
+  }
+}

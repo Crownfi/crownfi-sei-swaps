@@ -1,6 +1,9 @@
 body {
   overflow-x: hidden;
+  min-height: 100vh;
+  height: max-content;
   background: var(--colour-brand-palette-obsidian) url("../static/images/background-min.svg") 100% 100% / cover scroll no-repeat;
+  background-position: 0;
 }
 
 @media screen and (max-width: 768px) {
@@ -10,8 +13,10 @@ body {
 }
 
 #main-content {
+  min-height: calc(100vh - 110px);
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 * {

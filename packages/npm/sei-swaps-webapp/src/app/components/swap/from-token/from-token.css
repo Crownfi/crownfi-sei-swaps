@@ -27,7 +27,7 @@ div[is="swap-from-component"] .slider-container {
   flex-direction: column;
 }
 
-div[is="swap-from-component"] .slider-container > input {
+div[is="swap-from-component"] .slider-amounts > input {
   width: 100%;
 }
 
@@ -66,4 +66,10 @@ div[is="swap-from-component"] .slider-container .slider-amounts input[type=numbe
 }
 div[is="swap-from-component"] .slider-container .slider-amounts input[type=number] {
 	-moz-appearance: textfield;
+}
+
+@media screen and (max-width: 768px) {
+  div[is="swap-from-component"] .labels-row {
+    color: var(--colour-secondary-500);
+  }
 }

@@ -30,6 +30,13 @@ div[is="swap-to-component"] .fantasy-input-group input[type=number]::-webkit-inn
 	-webkit-appearance: none;
   margin: 0;
 }
+
 div[is="swap-to-component"] .fantasy-input-group input[type=number] {
 	-moz-appearance: textfield;
+}
+
+@media screen and (max-width: 768px) {
+  div[is="swap-to-component"] .labels-row {
+    color: var(--colour-secondary-500);
+  }
 }

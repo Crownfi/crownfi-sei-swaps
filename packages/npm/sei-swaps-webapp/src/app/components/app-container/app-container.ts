@@ -11,7 +11,7 @@ export class AppContainer extends AppContainerComponentAutogen {
 
   connectedCallback() {
     this.listenToTabChanged();
-    this.refs.appTabs.setAttribute("selected-value", "farm");
+    this.refs.appTabs.setAttribute("selected-value", "swap");
   }
 
   listenToTabChanged() {

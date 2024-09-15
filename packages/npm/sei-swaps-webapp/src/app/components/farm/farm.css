@@ -207,7 +207,7 @@ div[is="farm-component"] .filters-container button {
     border-right-width: 2px;
   }
 
-  div[is="farm-component"] .filters-container .fantasy-input-group{
+  div[is="farm-component"] .filters-container .fantasy-input-group {
     background-color: var(--colour-primary-800);
   }
 
@@ -218,7 +218,7 @@ div[is="farm-component"] .filters-container button {
 
 
 @media screen and (max-width: 768px) {
-  div[is="farm-component"] .filters-container .fantasy-input-group{
+  div[is="farm-component"] .filters-container .fantasy-input-group {
     background-color: var(--colour-primary-800);
   }
 
