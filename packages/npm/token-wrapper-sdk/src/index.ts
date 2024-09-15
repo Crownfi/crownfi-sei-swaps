@@ -23,8 +23,8 @@
 // 	make_native_denom_erc20 = this.erc20wrapper!.make_native_denom
 // }
 
+export * from "./error.js";
 export * from "./base/index.js";
 export * from "./cw20.js";
 export * from "./erc20.js";
-
-export { Amount, SigningClient } from "./common.js";
+export * from "./multi_wrapper.js";
