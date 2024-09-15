@@ -15,8 +15,16 @@ export class SwapService {
     client: QueryClient & WasmExtension,
     factoryContractAddress: string,
     routerContractAddress: string,
+    cw20WrapperContractAddress: string,
+    erc20WrappercontractAddress: string,
   ) {
-    const swapMarket = new SwapMarket(client, factoryContractAddress, routerContractAddress);
+    const swapMarket = new SwapMarket(
+      client,
+      factoryContractAddress,
+      routerContractAddress,
+      cw20WrapperContractAddress,
+      erc20WrappercontractAddress
+    );
     await swapMarket.refresh();
     return new SwapService(swapMarket);
   }

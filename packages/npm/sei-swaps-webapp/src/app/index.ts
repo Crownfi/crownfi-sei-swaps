@@ -31,7 +31,13 @@ export async function main() {
 
 	const client = await useGetClient();
 
-	swapService = await SwapService.create(client.queryClient, env.POOL_FACTORY_CONTRACT_ADDRESS, env.ROUTER_CONTRACT_ADDRESS);
+	swapService = await SwapService.create(
+		client.queryClient,
+		env.POOL_FACTORY_CONTRACT_ADDRESS,
+		env.ROUTER_CONTRACT_ADDRESS,
+		env.CW20_WRAPPER_CONTRACT_ADDRESS,
+		env.ERC20_WRAPPER_CONTRACT_ADDRESS,
+	);
 
 	const mainContent = q("#main-content") as HTMLElement;
 	mainContent.innerHTML = "";
