@@ -12,13 +12,13 @@ div[is="navbar-component"] > .actions {
   gap: 12px;
 }
 
-@media (max-width: 1024px) {
+@media screen and (max-width: 1024px) {
   div[is="navbar-component"] {
     padding: var(--spacing-3);
   }
 }
 
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
   div[is="navbar-component"] {
     padding: var(--spacing-2);
   }
@@ -28,7 +28,7 @@ div[is="navbar-component"] > .actions {
   }
 }
 
-@media (max-width: 425px) {
+@media screen and (max-width: 600px) {
   div[is="navbar-component"] {
     margin-bottom: 1rem;
   }

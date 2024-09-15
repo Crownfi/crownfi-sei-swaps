@@ -89,6 +89,10 @@ div[is="farm-component"] .fantasy-menu-item-block .total-deposits {
   gap: var(--spacing-1);
 }
 
+div[is="farm-component"] .overlapping-icons {
+  display: flex;
+}
+
 div[is="farm-component"] .overlapping-icons > i {
   background-color: var(--colour-primary-500);
   border-radius: 50%;
@@ -113,10 +117,11 @@ div[is="farm-component"] .button {
 div[is="farm-component"] .search {
   min-height: 36px;
   border-image-outset: 4px;
+  margin: 0;
 }
 
 div[is="farm-component"] .search input {
-  width: 367px;
+  flex-grow: 1;
 }
 
 div[is="farm-component"] .fantasy-input-group input {
@@ -156,7 +161,7 @@ div[is="farm-component"] tr[is="empty-separator"] {
 
 div[is="farm-component"] .filters-container {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 50% 1fr auto;
   align-items: center;
   gap: var(--spacing-1);
 }
@@ -165,23 +170,7 @@ div[is="farm-component"] .filters-container button {
   width: max-content;
 }
 
-@media (max-width: 1024px) {
-  div[is="farm-component"] .apy-col {
-    display: none;
-  }
-}
-
-@media (max-width: 768px) {
-  div[is="farm-component"] .fee-col {
-    display: none;
-  }
-}
-
-@media (max-width: 425px) {
-  .deposits-col, .pools-col, .fee-col, .apy-col {
-    display: none;
-  }
-
+@media screen and (max-width: 425px) {
   div[is="farm-component"] .search input {
     width: 110px;
   }
@@ -189,7 +178,9 @@ div[is="farm-component"] .filters-container button {
   div[is="farm-component"] .fantasy-menu-item-block td {
     padding: var(--spacing-1) 0;
   }
+}
 
+@media screen and (max-width: 600px) {
   div[is="farm-component"] .filters-container {
     grid-template-columns: 50% 50%;
     grid-template-rows: 50% 50%;
@@ -202,5 +193,67 @@ div[is="farm-component"] .filters-container button {
   
   div[is="farm-component"] .filters-container button {
     width: auto;
+  }
+}
+
+@media screen and (max-width: 658px) {
+  .pools-col {
+    display: none;
+  }
+}
+
+@media screen and (min-width: 426px) and (max-width: 768px) {
+  div[is="farm-component"] .fantasy-menu-item-block {
+    border-right-width: 2px;
+  }
+
+  div[is="farm-component"] .filters-container .fantasy-input-group{
+    background-color: var(--colour-primary-800);
+  }
+
+  .deposits-col {
+    display: none;
+  }
+}
+
+
+@media screen and (max-width: 768px) {
+  div[is="farm-component"] .filters-container .fantasy-input-group{
+    background-color: var(--colour-primary-800);
+  }
+
+  .deposits-col {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 920px) {
+  div[is="farm-component"] .fee-col {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  div[is="farm-component"] table {
+    margin-bottom: var(--spacing-4);
+  }
+
+  div[is="farm-component"] .apy-col {
+    display: none;
+  }
+}
+
+@media  screen and  (max-width: 1260px) {
+  div[is="farm-component"] table thead tr th {
+    padding: 0 var(--spacing-1);
+    padding-bottom: var(--spacing-1);
+  }
+
+  div[is="farm-component"] .fantasy-menu-item-block td {
+    padding: var(--spacing-1) var(--spacing-1);
+  }
+
+  div[is="farm-component"] table {
+    margin-bottom: var(--spacing-4);
   }
 }
