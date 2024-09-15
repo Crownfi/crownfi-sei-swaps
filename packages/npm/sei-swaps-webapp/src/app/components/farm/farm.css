@@ -243,7 +243,7 @@ div[is="farm-component"] .filters-container button {
   }
 }
 
-@media  screen and  (max-width: 1260px) {
+@media  screen and (min-width: 426px) and (max-width: 1260px) {
   div[is="farm-component"] table thead tr th {
     padding: 0 var(--spacing-1);
     padding-bottom: var(--spacing-1);

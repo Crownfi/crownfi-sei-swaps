@@ -15,7 +15,6 @@ dialog[is="pool-dialog-component"] .container {
   padding: var(--spacing-2);
   border: 1px dashed var(--colour-primary-500);
   border-radius: 8px;
-  min-width: 455px;
 }
 
 dialog[is="pool-dialog-component"] .grid-container {
@@ -69,4 +68,20 @@ dialog[is="pool-dialog-component"] .submit-button {
 dialog[is="pool-dialog-component"] .fantasy-input-group {
   min-height: 54px;
   border-image-outset: 4px;
+}
+
+@media screen and (max-width: 425px) {
+  dialog[is="pool-dialog-component"] {
+    overflow-x: hidden;
+    min-width: 100vw;
+  }
+
+  dialog[is="pool-dialog-component"] .grid-container {
+    grid-template-columns: auto;
+    gap: 0;
+  }
+
+  dialog[is="pool-dialog-component"] .grid-container > *:not(:first-child):nth-child(odd) {
+    margin-top: var(--spacing-1);
+  }
 }
