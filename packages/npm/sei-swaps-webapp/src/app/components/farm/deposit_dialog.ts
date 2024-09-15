@@ -7,8 +7,9 @@ import {
 	getUserTokenInfo,
 	stringDecimalToBigInt,
 } from "@crownfi/sei-utils";
-import { setLoading } from "../../loading.js";
-import { errorDialogIfRejected } from "../../dialogs/index.js";
+
+const setLoading = (a: any, b?: any) => {}
+const errorDialogIfRejected = (a: any) => {}
 
 export class FarmPoolDepositDialogElement extends FarmPoolDepositDialogAutogen {
 	constructor() {

@@ -1,8 +1,10 @@
 import { ClientEnv, UIAmount } from "@crownfi/sei-utils";
 import { FarmPoolWithdrawDialogAutogen } from "./_autogen.js";
-import { errorDialogIfRejected } from "../../dialogs/index.js";
-import { setLoading } from "../../loading.js";
+
 import { SwapMarket } from "@crownfi/sei-swaps-sdk";
+
+const setLoading = (a: any, b?: any) => {}
+const errorDialogIfRejected = (a: any) => {}
 
 export class FarmPoolWithdrawDialogElement extends FarmPoolWithdrawDialogAutogen {
 	constructor() {

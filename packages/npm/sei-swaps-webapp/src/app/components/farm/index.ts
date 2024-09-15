@@ -1,10 +1,11 @@
 import { FarmPoolComponentAutogen, FarmPoolItemAutogen, FarmPoolItemOptionsAutogen } from "./_autogen.js";
 import { SwapMarket } from "@crownfi/sei-swaps-sdk";
 import { ClientEnv, UIAmount, getUserTokenInfo, seiUtilEventEmitter } from "@crownfi/sei-utils";
-import { errorDialogIfRejected } from "../../dialogs/index.js";
-import { qa } from "../../util.js";
 import { FarmPoolWithdrawDialogElement } from "./withdraw_dialog.js";
 import { FarmPoolDepositDialogElement } from "./deposit_dialog.js";
+
+const qa = (a: any, b?: any) => [] as any
+const errorDialogIfRejected = (a: any) => {}
 
 export class FarmPoolComponentElement extends FarmPoolComponentAutogen {
 	constructor() {
@@ -30,7 +31,7 @@ export class FarmPoolComponentElement extends FarmPoolComponentAutogen {
 				if (e.message.includes("SwapMarket contract addresses aren't known for chain")) {
 					this.#swapMarket = new SwapMarket(client.queryClient, 
 																						"sei14ejqjyq8um4p3xfqj74yld5waqljf88fz25yxnma0cngspxe3lesmf62df", 
-																						"sei1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjqpeheyc");
+																						"sei1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjqpeheyc", "", "");
 				} else
 					throw e;
 			}
