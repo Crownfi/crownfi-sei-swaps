@@ -46,8 +46,12 @@ export class SwapService {
       lastDayTotalValueLocked
     ] = await Promise.all([
       this.swapMarket.getTotalValueLocked(evaluationDenom),
-      this.swapMarket.normalizedTradeVolumeAllTime(evaluationDenom),
+      this.swapMarket.normalizedTradeVolumeAllTime(evaluationDenom)
+        .then(({ totalVolume }) => totalVolume)
+        .catch(() => -1n),
       this.swapMarket.normalizedTradeVolumePastHours(evaluationDenom, 24)
+        .then(({ totalVolume }) => totalVolume)
+        .catch(() => -1n)
     ]);
 
     return {
