@@ -53,10 +53,10 @@ export class PoolDialogComponent extends PoolDialogComponentAutogen {
 
   async renderData() {
     await this.poolPair.refresh();
-    const fromDenom = this.poolPair.assets[0];
-    const toDenom = this.poolPair.assets[1];
+    const fromDenom = this.poolPair.unwrappedAssets[0];
+    const toDenom = this.poolPair.unwrappedAssets[1];
 
-    const fromTokenInfo = await useGetTokenInfo(this.poolPair.assets[0]);
+    const fromTokenInfo = await useGetTokenInfo(fromDenom);
     const exchangeRateFrom = stringDecimalToBigInt(swapService.getExchangeRate(fromDenom, toDenom), fromTokenInfo.decimals);
     this.refs.fromSymbol.innerText = fromTokenInfo.symbol;
     this.refs.fromName.innerText = fromTokenInfo.name;
@@ -66,7 +66,7 @@ export class PoolDialogComponent extends PoolDialogComponentAutogen {
     this.refs.totalDepositsFrom.denom = fromDenom;
     this.refs.totalDepositsFrom.amount = this.poolPair.totalDeposits[0];
     
-    const toTokenInfo = await useGetTokenInfo(this.poolPair.assets[1]);
+    const toTokenInfo = await useGetTokenInfo(toDenom);
     const exchangeRateTo = stringDecimalToBigInt(swapService.getExchangeRate(toDenom, fromDenom), toTokenInfo.decimals);
     this.refs.toSymbol.innerText = toTokenInfo.symbol;
     this.refs.toName.innerText = toTokenInfo.name;

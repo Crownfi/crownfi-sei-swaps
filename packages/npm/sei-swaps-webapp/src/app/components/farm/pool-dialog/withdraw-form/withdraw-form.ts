@@ -36,8 +36,8 @@ export class WithdrawForm extends WithdrawFormComponentAutogen {
 
   get denoms() {
     return {
-      from: this.poolPair.assets[0],
-      to: this.poolPair.assets[1],
+      from: this.poolPair.unwrappedAssets[0],
+      to: this.poolPair.unwrappedAssets[1],
     }
   }
 

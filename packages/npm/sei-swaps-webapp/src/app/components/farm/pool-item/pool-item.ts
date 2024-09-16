@@ -13,9 +13,9 @@ export class PoolItemComponent extends PoolItemComponentAutogen {
   async connectedCallback() {
     this.classList.add("fantasy-menu-item-block");
 
-    const fromDenom = this.poolPair.assets[0];
+    const fromDenom = this.poolPair.unwrappedAssets[0];
     const fromTokenInfo = await useGetTokenInfo(fromDenom);
-    const toDenom = this.poolPair.assets[1];
+    const toDenom = this.poolPair.unwrappedAssets[1];
     const toTokenInfo = await useGetTokenInfo(toDenom);
   
     const exchangeRateFrom = stringDecimalToBigInt(swapService.getExchangeRate(fromDenom, toDenom), fromTokenInfo.decimals);
