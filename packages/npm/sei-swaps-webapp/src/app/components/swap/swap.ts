@@ -139,7 +139,7 @@ export class SwapComponent extends SwapComponentAutogen {
         }
         try {
           this.setSwapButtonLoading(true);
-          await swapService.executeSwap(this.fromToken.token!, this.toToken.token!, this.fromToken.amount, account.seiAddress!);
+          await swapService.executeSwap(this.fromToken.token!, this.toToken.token!, this.fromToken.amount);
           this.fromToken.refreshBalance();
           this.fromToken.setDefaults();
           this.toToken.setDefaults();

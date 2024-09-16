@@ -96,7 +96,6 @@ export class DepositForm extends DepositFormComponentAutogen {
           await swapService.executeDeposit(
             offerFrom,
             offerTo,
-            account.seiAddress,
           );
           await this.refreshBalances();
           this.dispatchEvent(new CustomEvent("depositFinished", { detail: { offerFrom, offerTo }, bubbles: true }));

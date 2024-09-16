@@ -60,24 +60,41 @@ export class SwapService {
     from: UnifiedDenom,
     to: UnifiedDenom,
     amount: bigint,
-    receiver: Addr,
     slippageTolerance: number = env.SLIPPAGE_TOLERANCE_PERCENTAGE,
     expectation: SwapRouterExpectation | null = null,
   ) {
     const client = await useGetClient();
-    const ixs = this.swapMarket.buildSwapIxs({ denom: from, amount }, to, receiver, slippageTolerance, expectation);
+    const sender = client.account;
+    if (!sender)
+      throw new Error("Wallet not connected");
+    const ixs = this.swapMarket.buildWrapableSwapIxs(
+      sender,
+      sender,
+      { denom: from, amount }, 
+      to, 
+      slippageTolerance, 
+      expectation
+    );
     if (!ixs)
       return;
     const receipt = await client.executeContractHackySequence(ixs);
     return receipt;
   }
 
-  async executeDeposit(from: BigIntCoin, to: BigIntCoin, receiver: Addr, slippageTolerance: number = env.SLIPPAGE_TOLERANCE_PERCENTAGE) {
+  async executeDeposit(from: BigIntCoin, to: BigIntCoin, slippageTolerance: number = env.SLIPPAGE_TOLERANCE_PERCENTAGE) {
     const pair = await this.getPair([from.denom, to.denom]);
     if (!pair)
       throw new Error("Invalid pair");
     const client = await useGetClient();
-    const ixs = pair.buildProvideLiquidityIxs(from, to, slippageTolerance, receiver);
+    const sender = client.account;
+    if (!sender)
+      throw new Error("Wallet not connected");
+    const ixs = pair.buildWrapAndProvideLiquidity(
+      sender,
+      sender,
+      [from, to],
+      slippageTolerance
+    );
     const receipt = await client.executeContractHackySequence(ixs);
     return receipt;
   }
@@ -87,7 +104,10 @@ export class SwapService {
     if (!pair)
       throw new Error("Invalid pair");
     const client = await useGetClient();
-    const ixs = pair.buildWithdrawLiquidityIxs(amount, receiver);
+    const sender = client.account;
+    if (!sender)
+      throw new Error("Wallet not connected");
+    const ixs = pair.buildWithdrawAndUnwrapLiquidityIxs(amount, sender);
     const receipt = await client.executeContractHackySequence(ixs);
     return receipt;
   }
