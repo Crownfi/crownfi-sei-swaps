@@ -39,6 +39,24 @@ export class SwapService {
     return this.swapMarket.getPair(pair) ?? this.swapMarket.getPair(pair, true);
   }
 
+  async getNetworkSummary(evaluationDenom: UnifiedDenom) {
+    const [
+      totalValueLocked,
+      totalVolumeTraded,
+      lastDayTotalValueLocked
+    ] = await Promise.all([
+      this.swapMarket.getTotalValueLocked(evaluationDenom),
+      this.swapMarket.normalizedTradeVolumeAllTime(evaluationDenom),
+      this.swapMarket.normalizedTradeVolumePastHours(evaluationDenom, 24)
+    ]);
+
+    return {
+      totalValueLocked,
+      totalVolumeTraded,
+      lastDayTotalValueLocked,
+    }
+  }
+
   async simulateSwap(from: UnifiedDenom, to: UnifiedDenom, amount: bigint) {
     await this.swapMarket.refresh();
     return this.swapMarket.simulateSwap({ denom: from, amount }, to);

@@ -5,12 +5,33 @@ export class TreasuryChestsComponentRefs {
 	constructor(element: HTMLElement | ShadowRoot) {
 		this.#element = element;
 	}
+	#tvlAmount?: HTMLSpanElement;
+	get tvlAmount() {
+		if (this.#tvlAmount === undefined) {
+			this.#tvlAmount = this.#element.querySelector("[cewt-ref=\"tvl-amount\"]:not(:scope [is] *)")!;
+		}
+		return this.#tvlAmount;
+	}
+	#tvtAmount?: HTMLSpanElement;
+	get tvtAmount() {
+		if (this.#tvtAmount === undefined) {
+			this.#tvtAmount = this.#element.querySelector("[cewt-ref=\"tvt-amount\"]:not(:scope [is] *)")!;
+		}
+		return this.#tvtAmount;
+	}
+	#tvlLastDayAmount?: HTMLSpanElement;
+	get tvlLastDayAmount() {
+		if (this.#tvlLastDayAmount === undefined) {
+			this.#tvlLastDayAmount = this.#element.querySelector("[cewt-ref=\"tvl-last-day-amount\"]:not(:scope [is] *)")!;
+		}
+		return this.#tvlLastDayAmount;
+	}
 }
 let _templateTreasuryChestsComponent: HTMLTemplateElement | null = null;
 function getTreasuryChestsComponentTemplate(): HTMLTemplateElement {
 	if (_templateTreasuryChestsComponent == null) {
 		 _templateTreasuryChestsComponent = document.createElement("template")
-		 _templateTreasuryChestsComponent.innerHTML = "\n  <div class=\"col align-items-center\">\n    <span class=\"label\">CrownFI TVL</span>\n    <span class=\"amount\">\n      <img class=\"loading-spinner\" width=\"32\">\n    </span>\n    <img class=\"chest\" src=\"/images/chest-obsidian.png\" alt=\"Chest Obsidian\">\n  </div>\n\n  <div class=\"col align-items-center\">\n    <span class=\"label\">Total Volume Traded</span>\n    <span class=\"amount\">\n      <img class=\"loading-spinner\" width=\"32\">\n    </span>\n    <img class=\"chest\" src=\"/images/chest-gold.png\" alt=\"Chest Gold\">\n  </div>\n\n  <div class=\"col align-items-center\">\n    <span class=\"label\">CrownFI TVL (24h)</span>\n    <span class=\"amount\">\n      <img class=\"loading-spinner\" width=\"32\">\n    </span>\n    <img class=\"chest\" src=\"/images/chest-silver.png\" alt=\"Chest Silver\">\n  </div>\n";
+		 _templateTreasuryChestsComponent.innerHTML = "\n  <div class=\"col align-items-center\">\n    <span class=\"label\">CrownFI TVL</span>\n    <span class=\"amount\" cewt-ref=\"tvl-amount\">\n      <img class=\"loading-spinner\" width=\"32\">\n    </span>\n    <img class=\"chest\" src=\"/images/chest-obsidian.png\" alt=\"Chest Obsidian\">\n  </div>\n\n  <div class=\"col align-items-center\">\n    <span class=\"label\">Total Volume Traded</span>\n    <span class=\"amount\" cewt-ref=\"tvt-amount\">\n      <img class=\"loading-spinner\" width=\"32\">\n    </span>\n    <img class=\"chest\" src=\"/images/chest-gold.png\" alt=\"Chest Gold\">\n  </div>\n\n  <div class=\"col align-items-center\">\n    <span class=\"label\">CrownFI TVL (24h)</span>\n    <span class=\"amount\" cewt-ref=\"tvl-last-day-amount\">\n      <img class=\"loading-spinner\" width=\"32\">\n    </span>\n    <img class=\"chest\" src=\"/images/chest-silver.png\" alt=\"Chest Silver\">\n  </div>\n";
 	}
 	return _templateTreasuryChestsComponent;
 }
