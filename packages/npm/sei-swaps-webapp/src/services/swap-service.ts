@@ -48,10 +48,16 @@ export class SwapService {
       this.swapMarket.getTotalValueLocked(evaluationDenom),
       this.swapMarket.normalizedTradeVolumeAllTime(evaluationDenom)
         .then(({ totalVolume }) => totalVolume)
-        .catch(() => -1n),
+        .catch(error => {
+          console.debug("normalizedTradeVolumeAllTime error", error);
+          return -1n;
+        }),
       this.swapMarket.normalizedTradeVolumePastHours(evaluationDenom, 24)
         .then(({ totalVolume }) => totalVolume)
-        .catch(() => -1n)
+        .catch(error => {
+          console.debug("normalizedTradeVolumePastHours error", error);
+          return -1n;
+        }),
     ]);
 
     return {

@@ -1,16 +1,21 @@
-import { bigIntToStringDecimal } from "@crownfi/sei-utils";
-
-import { useGetTokenInfo } from "../../../../hooks/use-get-token-info.js";
 import { swapService } from "../../../index.js";
 import { TreasuryChestsComponentAutogen } from "./_autogen/treasury-chests.js";
 import { getCurrency } from "../../../../utils/get-currency.js";
+import { TokenDisplayElement } from "@crownfi/sei-webui-utils";
 
 export class TreasuryChests extends TreasuryChestsComponentAutogen {
   private loader = '<img class="loading-spinner" width="32" />';
   private error = '<span class="cicon cicon-size-medium cicon-cry"></span>';
 
-  valueOrError(value: string) {
-    return +value < 0 ? this.error : value;
+  setValue(el: TokenDisplayElement, currency: string, value: bigint) {
+    if (value < 0n) {
+      el.denom = "";
+      el.amount = "";
+      el.innerHTML = this.error;
+      return;
+    }
+    el.denom = currency;
+    el.amount = value;
   }
 
   async refresh(currency = getCurrency()) {
@@ -18,15 +23,12 @@ export class TreasuryChests extends TreasuryChestsComponentAutogen {
     this.refs.tvtAmount.innerHTML = this.loader;
     this.refs.tvlLastDayAmount.innerHTML = this.loader;
 
-    const currencyInfo = await useGetTokenInfo(currency);
     const summary = await swapService.getNetworkSummary(currency);
-    const tvl = bigIntToStringDecimal(summary.totalValueLocked, currencyInfo.decimals, true);
-    const tvt = bigIntToStringDecimal(summary.totalVolumeTraded, currencyInfo.decimals, true);
-    const tvlLastDay = bigIntToStringDecimal(summary.lastDayTotalValueLocked, currencyInfo.decimals, true);
+    console.log("summary", summary)
 
-    this.refs.tvlAmount.innerHTML = this.valueOrError(tvl);
-    this.refs.tvtAmount.innerHTML = this.valueOrError(tvt);
-    this.refs.tvlLastDayAmount.innerHTML = this.valueOrError(tvlLastDay);
+    this.setValue(this.refs.tvlAmount, currency, summary.totalValueLocked);
+    this.setValue(this.refs.tvtAmount, currency, summary.totalVolumeTraded);
+    this.setValue(this.refs.tvlLastDayAmount, currency, summary.lastDayTotalValueLocked);
   }
 
   async connectedCallback() {
