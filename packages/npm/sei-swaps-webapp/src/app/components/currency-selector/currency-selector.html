@@ -1,0 +1,8 @@
+<template cewt-name="currency-selector" cewt-extends="div">
+  <button class="fantasy-ornamental">
+    <span is="token-display" cewt-ref="selected-currency"></span>
+  </button>
+
+  <dropdown-menu click-trigger="primary" cewt-ref="currency-selector" linked-elements="[is='currency-selector']:has(#this)">
+  </dropdown-menu>
+</template>

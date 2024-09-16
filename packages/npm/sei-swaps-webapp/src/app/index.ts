@@ -7,7 +7,7 @@ import "./components/exports.js";
 import { SwapService } from "../services/swap-service.js";
 
 import { env } from "../env/index.js";
-import { AppContainer } from "./components/exports.js";
+import { AppContainer, CurrencySelector } from "./components/exports.js";
 import { useGetClient } from "../hooks/use-get-client.js";
 
 export let swapService: SwapService;
@@ -42,4 +42,7 @@ export async function main() {
 	const mainContent = q("#main-content") as HTMLElement;
 	mainContent.innerHTML = "";
 	mainContent.appendChild(new AppContainer());
+	const navbar = q('[is="navbar-component"]') as HTMLElement;
+	const actionsWrapper = navbar.querySelector(".actions-wrapper");
+	actionsWrapper?.appendChild(new CurrencySelector());
 }

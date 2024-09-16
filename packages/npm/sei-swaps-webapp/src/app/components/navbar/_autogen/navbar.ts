@@ -17,7 +17,7 @@ let _templateNavbarComponent: HTMLTemplateElement | null = null;
 function getNavbarComponentTemplate(): HTMLTemplateElement {
 	if (_templateNavbarComponent == null) {
 		 _templateNavbarComponent = document.createElement("template")
-		 _templateNavbarComponent.innerHTML = "\n  <a href=\"\">\n    <img class=\"main-navbar-logo\">\n  </a>\n\n  <div class=\"actions\">\n    <button class=\"fantasy-ornamental danger\" is=\"wallet-disconnect\" aria-label=\"Disconnect Wallet\">\n      <span class=\"cicon cicon-size-medium cicon-logout cicon-gradient danger\"></span>\n    </button>\n  \n    <button class=\"fantasy-ornamental\" is=\"wallet-options\" cewt-ref=\"wallet-button\"></button>\n  </div>\n";
+		 _templateNavbarComponent.innerHTML = "\n  <a href=\"\">\n    <img class=\"main-navbar-logo\">\n  </a>\n\n  <div class=\"actions-wrapper\">\n    <div class=\"actions\">\n      <button class=\"fantasy-ornamental danger\" is=\"wallet-disconnect\" aria-label=\"Disconnect Wallet\">\n        <span class=\"cicon cicon-size-medium cicon-logout cicon-gradient danger\"></span>\n      </button>\n\n      <button class=\"fantasy-ornamental\" is=\"wallet-options\" cewt-ref=\"wallet-button\"></button>\n    </div>\n  </div>\n";
 	}
 	return _templateNavbarComponent;
 }
