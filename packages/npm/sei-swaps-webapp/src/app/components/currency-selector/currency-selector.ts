@@ -57,8 +57,13 @@ export class CurrencySelector extends CurrencySelectorAutogen {
   }
 
   async connectedCallback() {
-    this.refreshOptions();
+    this.dispatchEvent(new CustomEvent("currencySelected", { 
+      detail: { denom: this.selectedDenom }, 
+      bubbles: true, 
+      cancelable: false
+    }));
 
+    this.refreshOptions();
     this.addEventListener("dropdownSelect", ev => {
       ev.stopPropagation();
       const denom = ev.detail.selectedValue;
