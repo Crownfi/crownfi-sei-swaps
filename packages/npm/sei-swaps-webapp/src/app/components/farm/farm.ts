@@ -1,12 +1,10 @@
 import { SwapMarketPair, UnifiedDenom } from "@crownfi/sei-swaps-sdk";
-import { seiUtilEventEmitter } from "@crownfi/sei-utils";
 
 import { swapService } from "../../index.js";
 import { EmptySeparatorAutogen, FarmComponentAutogen, FilterSeparatorAutogen } from "./_autogen/farm.js";
 import { PoolItemComponent } from "./pool-item/pool-item.js";
 import { useGetBalance } from "../../../hooks/use-get-balance.js";
 import { DebouncedCallbacks } from "../../../lib/debounced-callbacks.js";
-import { q, qa } from "@aritz-cracker/browser-utils";
 import { SortBy } from "./sort-by/sort-by.js";
 import { FarmFiltersEventDetail } from "./filters/filters.js";
 import { PoolDialogComponent } from "./pool-dialog/pool-dialog.js";
