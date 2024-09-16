@@ -60,8 +60,8 @@ export class SwapService {
     from: UnifiedDenom,
     to: UnifiedDenom,
     amount: bigint,
+    amountExpected: string,
     slippageTolerance: number = env.SLIPPAGE_TOLERANCE_PERCENTAGE,
-    expectation: SwapRouterExpectation | null = null,
   ) {
     const client = await useGetClient();
     const sender = client.account;
@@ -73,7 +73,10 @@ export class SwapService {
       { denom: from, amount }, 
       to, 
       slippageTolerance, 
-      expectation
+      {
+        slippage_tolerance: `${env.SLIPPAGE_TOLERANCE_PERCENTAGE}`,
+        expected_amount: amountExpected
+      }
     );
     if (!ixs)
       return;
