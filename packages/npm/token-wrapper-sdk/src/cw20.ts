@@ -6,12 +6,33 @@ import base32 from "hi-base32";
 import { Cw20WrapperContract } from "./base/cw_20_wrapper.js";
 import { Nullable_Addr } from "./base/types.js";
 import { assertFactoryTokenSourceMatches, factoryTokenSourceMatches } from "./common.js";
-import { IBigIntCoin, nativeDenomSortCompare } from "@crownfi/sei-utils";
+import { IBigIntCoin, nativeDenomSortCompare, SeiChainId } from "@crownfi/sei-utils";
+
+const knownContractAddresses: {[chainId: string]: string} = {
+	"atlantic-2": "sei16fsl0qcgz59gk7gu74r0curu9kegqs87t4fhxu4cg4p0gmusctas9hkget"
+};
 
 export class CW20TokenWrapper<Q extends QueryClient & WasmExtension> {
 	contract: Cw20WrapperContract<Q>;
 	constructor(client: Q, contractAddress: string) {
 		this.contract = new Cw20WrapperContract(client, contractAddress)
+	}
+	getFromChainId(chainId: SeiChainId) {
+		let contractAddress = knownContractAddresses[chainId];
+		if (!contractAddress && typeof localStorage !== "undefined") {
+			contractAddress = localStorage.getItem("@crownfi/token-wrapper-sdk/cw20_contract_address/" + chainId) || "";
+		}
+		if (!contractAddress && typeof window !== "undefined" && "prompt" in window) {
+			const result = window.prompt("Cw20WrapperContract address:");
+			if (!result) {
+				throw new Error("There's no default CW20TokenWrapper contract address for " + chainId);
+			}
+			contractAddress = result;
+			localStorage.setItem("@crownfi/token-wrapper-sdk/cw20_contract_address/" + chainId, contractAddress);
+		}
+		if (!contractAddress) {
+			throw new Error("There's no default CW20TokenWrapper contract address for " + chainId);
+		}
 	}
 	/**
 	 * Checks if the specified denom starts with "cw20/" followed by a sei1 contract address

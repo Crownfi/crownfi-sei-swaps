@@ -8,19 +8,22 @@
 	],
 	"scripts": {
 		"build": "rm -rf dist/* && mkdir -p dist && tsc",
+		"docs": "typedoc src/index.ts",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"dependencies": {
-		"@cosmjs/cosmwasm-stargate": "^0.32.3",
-		"@cosmjs/stargate": "^0.32.3",
+		"@cosmjs/tendermint-rpc": "^0.32.4",
+		"@cosmjs/cosmwasm-stargate": "^0.32.4",
+		"@cosmjs/stargate": "^0.32.4",
 		"@crownfi/sei-js-core": "^5.2.5",
-		"@crownfi/sei-utils": "^0.3.17",
+		"@crownfi/sei-utils": "^0.3.23",
 		"hi-base32": "^0.5.1"
 	},
 	"publishConfig": {
 		"registry": "https://npm.crownfi.io"
 	},
 	"devDependencies": {
-		"typescript": "^5.5.2"
+		"typescript": "^5.5.2",
+		"typedoc": "^0.26.4"
 	}
 }

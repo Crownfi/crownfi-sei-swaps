@@ -1,15 +1,36 @@
 
-import {ERC20_FUNC_APPROVE, EvmExecuteInstruction, IBigIntCoin, isValidEvmAddress, nativeDenomSortCompare, toChecksumAddressEvm} from "@crownfi/sei-utils";
+import {ERC20_FUNC_APPROVE, EvmExecuteInstruction, IBigIntCoin, isValidEvmAddress, nativeDenomSortCompare, SeiChainId, toChecksumAddressEvm} from "@crownfi/sei-utils";
 import {ExecuteInstruction, WasmExtension} from "@cosmjs/cosmwasm-stargate";
 import {Coin, QueryClient} from "@cosmjs/stargate";
 import { assertFactoryTokenSourceMatches, factoryTokenSourceMatches } from "./common.js";
 import { Erc20WrapperContract } from "./base/erc_20_wrapper.js";
 import { stringToCanonicalAddr } from "@crownfi/sei-js-core";
 
+const knownContractAddresses: {[chainId: string]: string} = {
+	"atlantic-2": "sei1p07lrqwadup97zg9snwu9tgcn6mxwl53d8lrgaldy8rsswvra07qe33fgc"
+};
+
 export class ERC20TokenWrapper<Q extends QueryClient & WasmExtension> {
 	contract: Erc20WrapperContract<Q>;
 	constructor(client: Q, contractAddress: string) {
 		this.contract = new Erc20WrapperContract(client, contractAddress);
+	}
+	getFromChainId(chainId: SeiChainId) {
+		let contractAddress = knownContractAddresses[chainId];
+		if (!contractAddress && typeof localStorage !== "undefined") {
+			contractAddress = localStorage.getItem("@crownfi/token-wrapper-sdk/erc20_contract_address/" + chainId) || "";
+		}
+		if (!contractAddress && typeof window !== "undefined" && "prompt" in window) {
+			const result = window.prompt("Erc20WrapperContract address:");
+			if (!result) {
+				throw new Error("There's no default ERC20TokenWrapper contract address for " + chainId);
+			}
+			contractAddress = result;
+			localStorage.setItem("@crownfi/token-wrapper-sdk/erc20_contract_address/" + chainId, contractAddress);
+		}
+		if (!contractAddress) {
+			throw new Error("There's no default ERC20TokenWrapper contract address for " + chainId);
+		}
 	}
 
 	/**
