@@ -1,10 +1,12 @@
 import { SwapMarketPair } from "@crownfi/sei-swaps-sdk";
+import { bigIntToStringDecimal, BigIntCoin } from "@crownfi/sei-utils";
+
 import { PoolDialogComponentAutogen } from "./_autogen/pool-dialog.js";
 import { useGetTokenInfo } from "../../../../hooks/use-get-token-info.js";
-import { bigIntToStringDecimal, stringDecimalToBigInt } from "@crownfi/sei-utils";
 import { swapService } from "../../../index.js";
 import { DepositForm } from "./deposit-form/deposit-form.js";
 import { WithdrawForm } from "./withdraw-form/withdraw-form.js";
+import { getCurrency } from "../../../../utils/get-currency.js";
 
 export class PoolDialogComponent extends PoolDialogComponentAutogen {
   constructor(readonly poolPair: SwapMarketPair) {
@@ -53,36 +55,63 @@ export class PoolDialogComponent extends PoolDialogComponentAutogen {
 
   async renderData() {
     await this.poolPair.refresh();
+    const currency = getCurrency();
     const fromDenom = this.poolPair.unwrappedAssets[0];
     const toDenom = this.poolPair.unwrappedAssets[1];
 
     const fromTokenInfo = await useGetTokenInfo(fromDenom);
-    const exchangeRateFrom = stringDecimalToBigInt(swapService.getExchangeRate(fromDenom, toDenom), fromTokenInfo.decimals);
     this.refs.fromSymbol.innerText = fromTokenInfo.symbol;
     this.refs.fromName.innerText = fromTokenInfo.name;
     this.refs.fromIcon.setAttribute("denom", fromTokenInfo.base);
-    this.refs.exchangeRateFrom.denom = fromDenom;
-    this.refs.exchangeRateFrom.amount = exchangeRateFrom;
-    this.refs.totalDepositsFrom.denom = fromDenom;
-    this.refs.totalDepositsFrom.amount = this.poolPair.totalDeposits[0];
+    this.refs.exchangeRateFromIcon.setAttribute("denom", fromDenom);
+    this.refs.exchangeRateFromAmount.innerText = swapService.getExchangeRate(fromDenom, toDenom).toString();
+    this.refs.totalDepositsFromIcon.setAttribute("denom", fromDenom);
+    this.refs.totalDepositsFromAmount.innerText = bigIntToStringDecimal(this.poolPair.totalDeposits[0], fromTokenInfo.decimals, true);
+
+    const [fromDepositNormalized, toDepositNormalized] = await Promise.all([
+      swapService.getNormalizedValue(new BigIntCoin({
+        denom: fromDenom,
+        amount: this.poolPair.totalDeposits[0]
+      }), currency),
+      swapService.getNormalizedValue(new BigIntCoin({
+        denom: toDenom,
+        amount: this.poolPair.totalDeposits[1]
+      }), currency)
+    ]);
+
+    this.refs.totalDepositsNormalized.amount = (fromDepositNormalized + toDepositNormalized);
+    this.refs.totalDepositsNormalized.denom = currency;
     
     const toTokenInfo = await useGetTokenInfo(toDenom);
-    const exchangeRateTo = stringDecimalToBigInt(swapService.getExchangeRate(toDenom, fromDenom), toTokenInfo.decimals);
     this.refs.toSymbol.innerText = toTokenInfo.symbol;
     this.refs.toName.innerText = toTokenInfo.name;
     this.refs.toIcon.setAttribute("denom", toTokenInfo.base);
-    this.refs.exchangeRateTo.denom = toDenom;
-    this.refs.exchangeRateTo.amount = exchangeRateTo;
-    this.refs.totalDepositsTo.denom = toDenom;
-    this.refs.totalDepositsTo.amount = this.poolPair.totalDeposits[1];
+    this.refs.exchangeRateToIcon.setAttribute("denom", toDenom);
+    this.refs.exchangeRateToAmount.innerText = swapService.getExchangeRate(toDenom, fromDenom).toString();
+    this.refs.totalDepositsToIcon.setAttribute("denom", toDenom);
+    this.refs.totalDepositsToAmount.innerText = bigIntToStringDecimal(this.poolPair.totalDeposits[1], toTokenInfo.decimals, true);
 
     const sharesTokenInfo = await useGetTokenInfo(this.poolPair.sharesDenom);
-    this.refs.poolSharesValue.innerText = bigIntToStringDecimal(this.poolPair.totalShares, sharesTokenInfo.decimals);
+    this.refs.poolSharesValue.innerText = bigIntToStringDecimal(this.poolPair.totalShares, sharesTokenInfo.decimals, true);
     const sharesValues = this.poolPair.shareValue(this.poolPair.totalShares);
-    this.refs.shareValueFrom.denom = fromDenom;
-    this.refs.shareValueFrom.amount = sharesValues[0][0];
-    this.refs.shareValueTo.denom = toDenom;
-    this.refs.shareValueTo.amount = sharesValues[1][0];
+    this.refs.shareValueFromIcon.setAttribute("denom", fromDenom);
+    this.refs.shareValueFromAmount.innerText = bigIntToStringDecimal(sharesValues[0][0], fromTokenInfo.decimals, true);
+    this.refs.shareValueToIcon.setAttribute("denom", toDenom);
+    this.refs.shareValueToAmount.innerText = bigIntToStringDecimal(sharesValues[1][0], toTokenInfo.decimals, true);
+
+    const [fromShareNormalized, toShareNormalized] = await Promise.all([
+      swapService.getNormalizedValue(new BigIntCoin({
+        denom: fromDenom,
+        amount: sharesValues[0][0]
+      }), currency),
+      swapService.getNormalizedValue(new BigIntCoin({
+        denom: toDenom,
+        amount: sharesValues[1][0]
+      }), currency)
+    ]);
+
+    this.refs.shareValuesNormalized.amount = (fromShareNormalized + toShareNormalized);
+    this.refs.shareValuesNormalized.denom = currency;
   }
 
   async connectedCallback() {

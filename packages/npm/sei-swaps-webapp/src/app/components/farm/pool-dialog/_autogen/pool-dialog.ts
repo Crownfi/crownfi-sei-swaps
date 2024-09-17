@@ -55,47 +55,103 @@ export class PoolDialogComponentRefs {
 		}
 		return this.#toName;
 	}
-	#totalDepositsFrom?: TokenDisplayElement;
-	get totalDepositsFrom() {
-		if (this.#totalDepositsFrom === undefined) {
-			this.#totalDepositsFrom = this.#element.querySelector("[cewt-ref=\"totalDepositsFrom\"]:not(:scope [is] *)")!;
+	#totalDepositsFromAmount?: HTMLSpanElement;
+	get totalDepositsFromAmount() {
+		if (this.#totalDepositsFromAmount === undefined) {
+			this.#totalDepositsFromAmount = this.#element.querySelector("[cewt-ref=\"totalDepositsFromAmount\"]:not(:scope [is] *)")!;
 		}
-		return this.#totalDepositsFrom;
+		return this.#totalDepositsFromAmount;
 	}
-	#totalDepositsTo?: TokenDisplayElement;
-	get totalDepositsTo() {
-		if (this.#totalDepositsTo === undefined) {
-			this.#totalDepositsTo = this.#element.querySelector("[cewt-ref=\"totalDepositsTo\"]:not(:scope [is] *)")!;
+	#totalDepositsFromIcon?: HTMLImageElement;
+	get totalDepositsFromIcon() {
+		if (this.#totalDepositsFromIcon === undefined) {
+			this.#totalDepositsFromIcon = this.#element.querySelector("[cewt-ref=\"totalDepositsFromIcon\"]:not(:scope [is] *)")!;
 		}
-		return this.#totalDepositsTo;
+		return this.#totalDepositsFromIcon;
 	}
-	#shareValueFrom?: TokenDisplayElement;
-	get shareValueFrom() {
-		if (this.#shareValueFrom === undefined) {
-			this.#shareValueFrom = this.#element.querySelector("[cewt-ref=\"shareValueFrom\"]:not(:scope [is] *)")!;
+	#totalDepositsToAmount?: HTMLSpanElement;
+	get totalDepositsToAmount() {
+		if (this.#totalDepositsToAmount === undefined) {
+			this.#totalDepositsToAmount = this.#element.querySelector("[cewt-ref=\"totalDepositsToAmount\"]:not(:scope [is] *)")!;
 		}
-		return this.#shareValueFrom;
+		return this.#totalDepositsToAmount;
 	}
-	#shareValueTo?: TokenDisplayElement;
-	get shareValueTo() {
-		if (this.#shareValueTo === undefined) {
-			this.#shareValueTo = this.#element.querySelector("[cewt-ref=\"shareValueTo\"]:not(:scope [is] *)")!;
+	#totalDepositsToIcon?: HTMLImageElement;
+	get totalDepositsToIcon() {
+		if (this.#totalDepositsToIcon === undefined) {
+			this.#totalDepositsToIcon = this.#element.querySelector("[cewt-ref=\"totalDepositsToIcon\"]:not(:scope [is] *)")!;
 		}
-		return this.#shareValueTo;
+		return this.#totalDepositsToIcon;
 	}
-	#exchangeRateFrom?: TokenDisplayElement;
-	get exchangeRateFrom() {
-		if (this.#exchangeRateFrom === undefined) {
-			this.#exchangeRateFrom = this.#element.querySelector("[cewt-ref=\"exchangeRateFrom\"]:not(:scope [is] *)")!;
+	#totalDepositsNormalized?: TokenDisplayElement;
+	get totalDepositsNormalized() {
+		if (this.#totalDepositsNormalized === undefined) {
+			this.#totalDepositsNormalized = this.#element.querySelector("[cewt-ref=\"totalDepositsNormalized\"]:not(:scope [is] *)")!;
 		}
-		return this.#exchangeRateFrom;
+		return this.#totalDepositsNormalized;
 	}
-	#exchangeRateTo?: TokenDisplayElement;
-	get exchangeRateTo() {
-		if (this.#exchangeRateTo === undefined) {
-			this.#exchangeRateTo = this.#element.querySelector("[cewt-ref=\"exchangeRateTo\"]:not(:scope [is] *)")!;
+	#shareValueFromAmount?: HTMLSpanElement;
+	get shareValueFromAmount() {
+		if (this.#shareValueFromAmount === undefined) {
+			this.#shareValueFromAmount = this.#element.querySelector("[cewt-ref=\"shareValueFromAmount\"]:not(:scope [is] *)")!;
 		}
-		return this.#exchangeRateTo;
+		return this.#shareValueFromAmount;
+	}
+	#shareValueFromIcon?: HTMLImageElement;
+	get shareValueFromIcon() {
+		if (this.#shareValueFromIcon === undefined) {
+			this.#shareValueFromIcon = this.#element.querySelector("[cewt-ref=\"shareValueFromIcon\"]:not(:scope [is] *)")!;
+		}
+		return this.#shareValueFromIcon;
+	}
+	#shareValueToAmount?: HTMLSpanElement;
+	get shareValueToAmount() {
+		if (this.#shareValueToAmount === undefined) {
+			this.#shareValueToAmount = this.#element.querySelector("[cewt-ref=\"shareValueToAmount\"]:not(:scope [is] *)")!;
+		}
+		return this.#shareValueToAmount;
+	}
+	#shareValueToIcon?: HTMLImageElement;
+	get shareValueToIcon() {
+		if (this.#shareValueToIcon === undefined) {
+			this.#shareValueToIcon = this.#element.querySelector("[cewt-ref=\"shareValueToIcon\"]:not(:scope [is] *)")!;
+		}
+		return this.#shareValueToIcon;
+	}
+	#shareValuesNormalized?: TokenDisplayElement;
+	get shareValuesNormalized() {
+		if (this.#shareValuesNormalized === undefined) {
+			this.#shareValuesNormalized = this.#element.querySelector("[cewt-ref=\"shareValuesNormalized\"]:not(:scope [is] *)")!;
+		}
+		return this.#shareValuesNormalized;
+	}
+	#exchangeRateFromAmount?: HTMLSpanElement;
+	get exchangeRateFromAmount() {
+		if (this.#exchangeRateFromAmount === undefined) {
+			this.#exchangeRateFromAmount = this.#element.querySelector("[cewt-ref=\"exchangeRateFromAmount\"]:not(:scope [is] *)")!;
+		}
+		return this.#exchangeRateFromAmount;
+	}
+	#exchangeRateFromIcon?: HTMLImageElement;
+	get exchangeRateFromIcon() {
+		if (this.#exchangeRateFromIcon === undefined) {
+			this.#exchangeRateFromIcon = this.#element.querySelector("[cewt-ref=\"exchangeRateFromIcon\"]:not(:scope [is] *)")!;
+		}
+		return this.#exchangeRateFromIcon;
+	}
+	#exchangeRateToAmount?: HTMLSpanElement;
+	get exchangeRateToAmount() {
+		if (this.#exchangeRateToAmount === undefined) {
+			this.#exchangeRateToAmount = this.#element.querySelector("[cewt-ref=\"exchangeRateToAmount\"]:not(:scope [is] *)")!;
+		}
+		return this.#exchangeRateToAmount;
+	}
+	#exchangeRateToIcon?: HTMLImageElement;
+	get exchangeRateToIcon() {
+		if (this.#exchangeRateToIcon === undefined) {
+			this.#exchangeRateToIcon = this.#element.querySelector("[cewt-ref=\"exchangeRateToIcon\"]:not(:scope [is] *)")!;
+		}
+		return this.#exchangeRateToIcon;
 	}
 	#poolSharesValue?: HTMLSpanElement;
 	get poolSharesValue() {
@@ -130,7 +186,7 @@ let _templatePoolDialogComponent: HTMLTemplateElement | null = null;
 function getPoolDialogComponentTemplate(): HTMLTemplateElement {
 	if (_templatePoolDialogComponent == null) {
 		 _templatePoolDialogComponent = document.createElement("template")
-		 _templatePoolDialogComponent.innerHTML = "\n  <h1>\n    <div class=\"row align-items-center justify-content-between\">\n      Pool Details\n\n      <button class=\"button close-button\" cewt-ref=\"close-button\">\n        <span class=\"cicon cicon-close primary cicon-size-small cicon-gradient\"></span>\n      </button>\n    </div>\n  </h1>\n\n  <div class=\"container\">\n    <div class=\"grid-container\">\n      <div class=\"row align-items-center\">\n        <span class=\"label\">Pools</span>\n      </div>\n\n      <div class=\"row align-items-center gap-1\">\n        <div class=\"row gap-1 align-items-center badge\">\n          <span cewt-ref=\"fromSymbol\">-</span>\n          <img is=\"token-icon\" height=\"16\" cewt-ref=\"fromIcon\">\n          <span cewt-ref=\"fromName\">-</span>\n        </div>\n\n        <div class=\"row gap-1 align-items-center badge\">\n          <span cewt-ref=\"toSymbol\">-</span>\n          <img is=\"token-icon\" height=\"16\" cewt-ref=\"toIcon\">\n          <span cewt-ref=\"toName\">-</span>\n        </div>\n      </div>\n\n      <div class=\"row align-items-center\">\n        <span class=\"label\">Total Deposits</span>\n      </div>\n\n      <div class=\"row align-items-center gap-1\">\n        <span class=\"badge\" is=\"token-display\" cewt-ref=\"totalDepositsFrom\"></span>\n        <span class=\"badge\" is=\"token-display\" cewt-ref=\"totalDepositsTo\"></span>\n      </div>\n\n      <div class=\"row align-items-center\">\n        <span class=\"label\">Share Values</span>\n      </div>\n\n      <div class=\"row align-items-center gap-1\">\n        <span class=\"badge\" is=\"token-display\" cewt-ref=\"shareValueFrom\"></span>\n        <span class=\"badge\" is=\"token-display\" cewt-ref=\"shareValueTo\"></span>\n      </div>\n\n      <div class=\"row align-items-center\">\n        <span class=\"label\">Exchange Rate</span>\n      </div>\n\n      <div class=\"row align-items-center gap-2 badge\">\n        <span is=\"token-display\" cewt-ref=\"exchangeRateFrom\"></span>\n        <span class=\"equals\">=</span>\n        <span is=\"token-display\" cewt-ref=\"exchangeRateTo\"></span>\n      </div>\n\n      <div class=\"row align-items-center\">\n        <span class=\"label\">Pool Shares</span>\n      </div>\n\n      <div class=\"row align-items-center gap-1\">\n        <span class=\"badge\" cewt-ref=\"poolSharesValue\">0</span>\n      </div>\n    </div>\n  </div>\n\n  <div class=\"container\">\n    <div class=\"row align-items-center justify-content-center gap-2 mb-1\">\n      <label class=\"button fantasy primary\">\n        <span>Deposit</span>\n        <input type=\"radio\" name=\"operation\" value=\"deposit\" checked=\"\" cewt-ref=\"operationDeposit\">\n      </label>\n\n      <label class=\"button fantasy primary\">\n        <span>Withdraw</span>\n        <input type=\"radio\" name=\"operation\" value=\"withdraw\" cewt-ref=\"operationWithdraw\">\n      </label>\n    </div>\n\n    <div cewt-ref=\"form-container\">\n\n    </div>\n  </div>\n";
+		 _templatePoolDialogComponent.innerHTML = "\n  <h1>\n    <div class=\"row align-items-center justify-content-between\">\n      Pool Details\n\n      <button class=\"button close-button\" cewt-ref=\"close-button\">\n        <span class=\"cicon cicon-close primary cicon-size-small cicon-gradient\"></span>\n      </button>\n    </div>\n  </h1>\n\n  <div class=\"container\">\n    <div class=\"grid-container\">\n      <div class=\"row align-items-center\">\n        <span class=\"label\">Pools</span>\n      </div>\n\n      <div class=\"row align-items-center gap-1\">\n        <div class=\"row gap-1 align-items-center badge\">\n          <span cewt-ref=\"fromSymbol\">-</span>\n          <img is=\"token-icon\" height=\"16\" cewt-ref=\"fromIcon\">\n          <span cewt-ref=\"fromName\">-</span>\n        </div>\n\n        <div class=\"row gap-1 align-items-center badge\">\n          <span cewt-ref=\"toSymbol\">-</span>\n          <img is=\"token-icon\" height=\"16\" cewt-ref=\"toIcon\">\n          <span cewt-ref=\"toName\">-</span>\n        </div>\n      </div>\n\n      <div class=\"row align-items-center\">\n        <span class=\"label\">Total Deposits</span>\n      </div>\n\n      <div class=\"row align-items-center gap-1\">\n        <div class=\"badge row align-items-center gap-1\">\n          <span cewt-ref=\"totalDepositsFromAmount\">0</span>\n          <img is=\"token-icon\" height=\"16\" cewt-ref=\"totalDepositsFromIcon\">\n        </div>\n        <span class=\"math-symbol\">+</span>\n        <div class=\"badge row align-items-center gap-1\">\n          <span cewt-ref=\"totalDepositsToAmount\">0</span>\n          <img is=\"token-icon\" height=\"16\" cewt-ref=\"totalDepositsToIcon\">\n        </div>\n        <span class=\"math-symbol\">≅</span>\n        <span class=\"badge\" is=\"token-display\" cewt-ref=\"totalDepositsNormalized\"></span>\n      </div>\n\n      <div class=\"row align-items-center\">\n        <span class=\"label\">Share Values</span>\n      </div>\n\n      <div class=\"row align-items-center gap-1\">\n        <div class=\"badge row align-items-center gap-1\">\n          <span cewt-ref=\"shareValueFromAmount\">0</span>\n          <img is=\"token-icon\" height=\"16\" cewt-ref=\"shareValueFromIcon\">\n        </div>\n        <span class=\"math-symbol\">+</span>\n        <div class=\"badge row align-items-center gap-1\">\n          <span cewt-ref=\"shareValueToAmount\">0</span>\n          <img is=\"token-icon\" height=\"16\" cewt-ref=\"shareValueToIcon\">\n        </div>\n        <span class=\"math-symbol\">≅</span>\n        <span class=\"badge\" is=\"token-display\" cewt-ref=\"shareValuesNormalized\"></span>\n      </div>\n\n      <div class=\"row align-items-center\">\n        <span class=\"label\">Exchange Rate</span>\n      </div>\n\n      <div class=\"row align-items-center gap-2 badge\">\n        <div class=\"row align-items-center gap-1\">\n          <span cewt-ref=\"exchangeRateFromAmount\">0</span>\n          <img is=\"token-icon\" height=\"16\" cewt-ref=\"exchangeRateFromIcon\">\n        </div>\n        <span class=\"math-symbol\">=</span>\n        <div class=\"row align-items-center gap-1\">\n          <span cewt-ref=\"exchangeRateToAmount\">0</span>\n          <img is=\"token-icon\" height=\"16\" cewt-ref=\"exchangeRateToIcon\">\n        </div>\n      </div>\n\n      <div class=\"row align-items-center\">\n        <span class=\"label\">Pool Shares</span>\n      </div>\n\n      <div class=\"row align-items-center gap-1\">\n        <span class=\"badge\" cewt-ref=\"poolSharesValue\">0</span>\n      </div>\n    </div>\n  </div>\n\n  <div class=\"container\">\n    <div class=\"row align-items-center justify-content-center gap-2 mb-1\">\n      <label class=\"button fantasy primary\">\n        <span>Deposit</span>\n        <input type=\"radio\" name=\"operation\" value=\"deposit\" checked=\"\" cewt-ref=\"operationDeposit\">\n      </label>\n\n      <label class=\"button fantasy primary\">\n        <span>Withdraw</span>\n        <input type=\"radio\" name=\"operation\" value=\"withdraw\" cewt-ref=\"operationWithdraw\">\n      </label>\n    </div>\n\n    <div cewt-ref=\"form-container\">\n\n    </div>\n  </div>\n";
 	}
 	return _templatePoolDialogComponent;
 }

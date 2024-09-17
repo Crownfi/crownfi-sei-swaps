@@ -31,7 +31,7 @@ dialog[is="pool-dialog-component"] .badge {
   width: max-content;
 }
 
-dialog[is="pool-dialog-component"] .equals {
+dialog[is="pool-dialog-component"] .math-symbol {
   font-weight: bolder;
   color: var(--colour-secondary-900);
   font-size: var(--font-size-medium);

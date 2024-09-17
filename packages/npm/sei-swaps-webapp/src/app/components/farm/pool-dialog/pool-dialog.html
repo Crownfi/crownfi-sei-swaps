@@ -34,8 +34,17 @@
       </div>
 
       <div class="row align-items-center gap-1">
-        <span class="badge" is="token-display" cewt-ref="totalDepositsFrom"></span>
-        <span class="badge" is="token-display" cewt-ref="totalDepositsTo"></span>
+        <div class="badge row align-items-center gap-1">
+          <span cewt-ref="totalDepositsFromAmount">0</span>
+          <img is="token-icon" height="16" cewt-ref="totalDepositsFromIcon" />
+        </div>
+        <span class="math-symbol">&#43;</span>
+        <div class="badge row align-items-center gap-1">
+          <span cewt-ref="totalDepositsToAmount">0</span>
+          <img is="token-icon" height="16" cewt-ref="totalDepositsToIcon" />
+        </div>
+        <span class="math-symbol">&#8773;</span>
+        <span class="badge" is="token-display" cewt-ref="totalDepositsNormalized"></span>
       </div>
 
       <div class="row align-items-center">
@@ -43,8 +52,17 @@
       </div>
 
       <div class="row align-items-center gap-1">
-        <span class="badge" is="token-display" cewt-ref="shareValueFrom"></span>
-        <span class="badge" is="token-display" cewt-ref="shareValueTo"></span>
+        <div class="badge row align-items-center gap-1">
+          <span cewt-ref="shareValueFromAmount">0</span>
+          <img is="token-icon" height="16" cewt-ref="shareValueFromIcon" />
+        </div>
+        <span class="math-symbol">&#43;</span>
+        <div class="badge row align-items-center gap-1">
+          <span cewt-ref="shareValueToAmount">0</span>
+          <img is="token-icon" height="16" cewt-ref="shareValueToIcon" />
+        </div>
+        <span class="math-symbol">&#8773;</span>
+        <span class="badge" is="token-display" cewt-ref="shareValuesNormalized"></span>
       </div>
 
       <div class="row align-items-center">
@@ -52,9 +70,15 @@
       </div>
 
       <div class="row align-items-center gap-2 badge">
-        <span is="token-display" cewt-ref="exchangeRateFrom"></span>
-        <span class="equals">=</span>
-        <span is="token-display" cewt-ref="exchangeRateTo"></span>
+        <div class="row align-items-center gap-1">
+          <span cewt-ref="exchangeRateFromAmount">0</span>
+          <img is="token-icon" height="16" cewt-ref="exchangeRateFromIcon" />
+        </div>
+        <span class="math-symbol">&#61;</span>
+        <div class="row align-items-center gap-1">
+          <span cewt-ref="exchangeRateToAmount">0</span>
+          <img is="token-icon" height="16" cewt-ref="exchangeRateToIcon" />
+        </div>
       </div>
 
       <div class="row align-items-center">

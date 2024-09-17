@@ -1,6 +1,6 @@
 import { WasmExtension } from "@cosmjs/cosmwasm-stargate";
-import { Coin, QueryClient } from "@cosmjs/stargate";
-import { SwapMarket, SwapRouterExpectation, UnifiedDenom, UnifiedDenomPair } from "@crownfi/sei-swaps-sdk";
+import { QueryClient } from "@cosmjs/stargate";
+import { SwapMarket, UnifiedDenom, UnifiedDenomPair } from "@crownfi/sei-swaps-sdk";
 import { Addr, BigIntCoin } from "@crownfi/sei-utils";
 
 import { useGetClient } from "../hooks/use-get-client.js";
@@ -38,6 +38,14 @@ export class SwapService {
     await this.swapMarket.refresh();
     return this.swapMarket.getPair(pair) ?? this.swapMarket.getPair(pair, true);
   }
+
+  async getNormalizedValue(
+    from: BigIntCoin,
+		valuationDenom: UnifiedDenom
+	): Promise<bigint> {
+    await this.swapMarket.refresh();
+		return this.swapMarket.exchangeValue(from.amount, from.denom, valuationDenom) ?? 0n;
+	}
 
   async getNetworkSummary(evaluationDenom: UnifiedDenom) {
     const [

@@ -24,7 +24,6 @@ export class TreasuryChests extends TreasuryChestsComponentAutogen {
     this.refs.tvlLastDayAmount.innerHTML = this.loader;
 
     const summary = await swapService.getNetworkSummary(currency);
-    console.log("summary", summary)
 
     this.setValue(this.refs.tvlAmount, currency, summary.totalValueLocked);
     this.setValue(this.refs.tvtAmount, currency, summary.totalVolumeTraded);
