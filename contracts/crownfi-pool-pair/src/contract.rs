@@ -369,6 +369,19 @@ pub fn process_swap(
 		return Err(CrownfiSwapsCommonError::PayoutIsZero.into());
 	}
 
+	let total_output = swap_result.result_amount + swap_result.maker_fee_amount;
+	let (amt_left, amt_right) = payment
+		.inverse
+		.then(|| (total_output, payment.amount))
+		.unwrap_or_else(|| (payment.amount, total_output));
+
+	VolumeStatisticsCounter::new()?.update_volumes(
+		env.block.time,
+		amt_left.u128(),
+		amt_right.u128(),
+		payment.inverse,
+	)?;
+
 	let out_coin = coin(swap_result.result_amount.u128(), pool_id.denom(!payment.inverse));
 
 	let response = if swap_result.maker_fee_amount.is_zero() {
@@ -470,6 +483,7 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 				return Err(PaymentError::ExtraDenom(offer.denom).into());
 			}
 			let config = PoolPairConfig::load_non_empty()?;
+			let config = config.as_ref();
 			let pool_balances = get_pool_balance(&deps.querier, &env, &pool_id)?;
 			to_json_binary(&calc_swap(
 				&pool_balances.map(|coin| coin.amount),
@@ -487,6 +501,7 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 				return Err(PaymentError::ExtraDenom(offer.denom).into());
 			}
 			let config = PoolPairConfig::load_non_empty()?;
+			let config = config.as_ref();
 			let pool_balances = get_pool_balance(&deps.querier, &env, &pool_id)?;
 			to_json_binary(&calc_naive_swap(
 				&pool_balances.map(|coin| coin.amount),
@@ -526,10 +541,9 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 				get_pool_balance(
 					&deps.querier,
 					&env,
-					&CanonicalPoolPairIdentifier::load_non_empty()?.into_inner().into()
-				).map(|coins| {
-					coins.map(|coin| {coin.amount.u128()})
-				})
+					CanonicalPoolPairIdentifier::load_non_empty()?.as_ref(),
+				)
+				.map(|coins| coins.map(|coin| coin.amount.u128()))
 			};
 			to_json_binary(
 				&if let Some(past_hours) = NonZeroU8::new(past_hours.unwrap_or_default()) {
@@ -538,17 +552,16 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 					volume_stats.get_exchange_rate_since_hour_start(env.block.time, fallback)?
 				},
 			)?
-		},
+		}
 		PoolPairQueryMsg::ExchangeRateDaily { past_days } => {
 			let volume_stats = VolumeStatisticsCounter::new()?;
 			let fallback = || {
 				get_pool_balance(
 					&deps.querier,
 					&env,
-					&CanonicalPoolPairIdentifier::load_non_empty()?.into_inner().into()
-				).map(|coins| {
-					coins.map(|coin| {coin.amount.u128()})
-				})
+					CanonicalPoolPairIdentifier::load_non_empty()?.as_ref(),
+				)
+				.map(|coins| coins.map(|coin| coin.amount.u128()))
 			};
 			to_json_binary(
 				&if let Some(past_days) = NonZeroU8::new(past_days.unwrap_or_default()) {
@@ -557,19 +570,33 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 					volume_stats.get_exchange_rate_since_day_start(env.block.time, fallback)?
 				},
 			)?
-		},
+		}
 		PoolPairQueryMsg::ExchangeRateAllTime => {
 			let volume_stats = VolumeStatisticsCounter::new()?;
 			let fallback = || {
 				get_pool_balance(
 					&deps.querier,
 					&env,
-					&CanonicalPoolPairIdentifier::load_non_empty()?.into_inner().into()
-				).map(|coins| {
-					coins.map(|coin| {coin.amount.u128()})
-				})
+					CanonicalPoolPairIdentifier::load_non_empty()?.as_ref(),
+				)
+				.map(|coins| coins.map(|coin| coin.amount.u128()))
 			};
 			to_json_binary(&volume_stats.get_exchange_rate_all_time(env.block.time, fallback)?)?
-		},
+		}
+		PoolPairQueryMsg::EstimateApy { past_days } => {
+			let config = PoolPairConfig::load_non_empty()?;
+			let config = config.as_ref();
+			let volume_stats = VolumeStatisticsCounter::new()?;
+			let left_token_balance = deps.querier.query_balance(
+				&env.contract.address,
+				&CanonicalPoolPairIdentifier::load_non_empty()?.left,
+			)?;
+			to_json_binary(&volume_stats.estimate_apy(
+				env.block.time,
+				left_token_balance.amount.u128(),
+				config,
+				past_days,
+			)?)?
+		}
 	})
 }
