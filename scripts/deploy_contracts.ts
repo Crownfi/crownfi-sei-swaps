@@ -102,7 +102,7 @@ console.log("Creating new Pool Pair with Pool Factory...");
 await clientEnv.executeContract(
   poolFactory.buildCreatePoolIx(
     { left_denom: "uatom", initial_shares_receiver: walletSeiAddress }, 
-    [ coin(2000000000, "uatom"), coin(4000000000, "usei") ]
+    [ coin(1000000000, "uatom"), coin(1000000000, "usei") ]
   ),
   "pool-factory-uatom-usei",
   "auto"
@@ -111,7 +111,7 @@ await clientEnv.executeContract(
 await clientEnv.executeContract(
   poolFactory.buildCreatePoolIx(
     { left_denom: "usei", initial_shares_receiver: walletSeiAddress }, 
-    [ coin(4000000000, "usei"), coin(5000000000, "uusdc") ]
+    [ coin(1000000000, "usei"), coin(1000000000, "uusdc") ]
   ),
   "pool-factory-usei-uusdc",
   "auto"
