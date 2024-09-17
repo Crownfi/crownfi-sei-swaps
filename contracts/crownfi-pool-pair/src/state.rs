@@ -175,13 +175,15 @@ impl ExchangeRatio {
 			*self = value;
 		}
 	}
-	pub fn ratio_into_f64(numerator: u128, denominator: u128) -> f64 {
+	pub fn ratio_into_str(numerator: u128, denominator: u128) -> String {
 		// A float has a 52 bit mantissa, do as many right-shifts as needed until we get a value which fits into 52
 		// bits.
-		let amount_to_shr = numerator.ilog2().saturating_sub(52).max(
-			denominator.ilog2().saturating_sub(52)
-		);
-		(numerator >> amount_to_shr) as f64 / (denominator >> amount_to_shr) as f64
+		let amount_to_shr = numerator
+			.ilog2()
+			.saturating_sub(52)
+			.max(denominator.ilog2().saturating_sub(52));
+		let res = (numerator >> amount_to_shr) as f64 / (denominator >> amount_to_shr) as f64;
+		res.to_string()
 	}
 }
 impl Ord for ExchangeRatio {
@@ -205,13 +207,16 @@ impl PartialOrd for ExchangeRatio {
 		Some(self.cmp(other))
 	}
 }
-impl From<ExchangeRatio> for f64 {
+
+impl From<ExchangeRatio> for String {
 	fn from(value: ExchangeRatio) -> Self {
-		if value.is_inverse() {
+		let value = if value.is_inverse() {
 			2147483648.0 / f64::from(value.0)
 		} else {
 			f64::from(value.0) / 2147483648.0
-		}
+		};
+
+		value.to_string()
 	}
 }
 
@@ -303,7 +308,7 @@ impl VolumeStatisticsCounter {
 				amount_left,
 				amount_right,
 				exchange_rate_low: exchange_ratio,
-				exchange_rate_high: exchange_ratio
+				exchange_rate_high: exchange_ratio,
 			})?;
 		}
 		if let Some(mut all_time) = storage_read_item::<TradingVolume>(VOLUME_STATS_ALL_TIME_NAMESPACE)? {
@@ -376,12 +381,13 @@ impl VolumeStatisticsCounter {
 				to_timestamp_ms,
 			});
 		}
+
 		let mut left_total = 0u128;
 		let mut right_total = 0u128;
 		let mut record_iter = self.hourly.iter().rev();
 
 		let first_record = record_iter.next().expect("is empty was checked")?;
-		if first_record.from_time < current_timestamp_hour && first_record.from_time >= from_timestamp_hour {
+		if first_record.from_time <= current_timestamp_hour && first_record.from_time >= from_timestamp_hour {
 			left_total = first_record.amount_left;
 			right_total = first_record.amount_right;
 		}
@@ -403,25 +409,17 @@ impl VolumeStatisticsCounter {
 	pub fn get_volume_since_day_start(&self, current_timestamp: Timestamp) -> Result<VolumeQueryResponse, StdError> {
 		let timestamp_ms = current_timestamp.millis();
 		let timestamp_day = timestamp_ms / MILLISECONDS_IN_A_DAY;
-		// FIXME: use get().unwrap_or_default() instead of checking is_empty when StoredVecDeque is fixed.
-		if self.daily.is_empty() {
-			Ok(VolumeQueryResponse {
-				volume: [0u128.into(), 0u128.into()],
-				from_timestamp_ms: timestamp_day * MILLISECONDS_IN_A_DAY,
-				to_timestamp_ms: timestamp_ms,
-			})
-		} else {
-			let latest_record = self.daily.get_back()?.expect("is empty was checked");
-			Ok(VolumeQueryResponse {
-				volume: if latest_record.from_time < timestamp_day {
-					[0u128.into(), 0u128.into()]
-				} else {
-					[latest_record.amount_left.into(), latest_record.amount_right.into()]
-				},
-				from_timestamp_ms: timestamp_day * MILLISECONDS_IN_A_DAY,
-				to_timestamp_ms: timestamp_ms,
-			})
-		}
+		let latest_record = self.daily.get_back()?.unwrap_or_default();
+
+		Ok(VolumeQueryResponse {
+			volume: if latest_record.from_time < timestamp_day {
+				[0u128.into(), 0u128.into()]
+			} else {
+				[latest_record.amount_left.into(), latest_record.amount_right.into()]
+			},
+			from_timestamp_ms: timestamp_day * MILLISECONDS_IN_A_DAY,
+			to_timestamp_ms: timestamp_ms,
+		})
 	}
 	pub fn get_volume_per_days(
 		&self,
@@ -450,7 +448,7 @@ impl VolumeStatisticsCounter {
 		let mut record_iter = self.daily.iter().rev();
 
 		let first_record = record_iter.next().expect("is empty was checked")?;
-		if first_record.from_time < current_timestamp_day && first_record.from_time >= from_timestamp_day {
+		if first_record.from_time <= current_timestamp_day && first_record.from_time >= from_timestamp_day {
 			left_total = first_record.amount_left;
 			right_total = first_record.amount_right;
 		}
@@ -472,63 +470,71 @@ impl VolumeStatisticsCounter {
 	pub fn get_exchange_rate_all_time(
 		&self,
 		current_timestamp: Timestamp,
-		fallback_balances: impl Fn() -> Result<[u128; 2], StdError>
+		fallback_balances: impl Fn() -> Result<[u128; 2], StdError>,
 	) -> Result<ExchangeRateQueryResponse, StdError> {
 		let timestamp_ms = current_timestamp.millis();
-		storage_read_item::<TradingVolume>(VOLUME_STATS_ALL_TIME_NAMESPACE)?.as_deref().map(|all_time| {
-			Ok(ExchangeRateQueryResponse {
-				from_timestamp_ms: all_time.from_time,
-				to_timestamp_ms: timestamp_ms,
-				exchange_rate_low: all_time.exchange_rate_low.into(),
-				exchange_rate_high: all_time.exchange_rate_high.into(),
-				exchange_rate_avg: ExchangeRatio::ratio_into_f64(all_time.amount_right, all_time.amount_left),
+		storage_read_item::<TradingVolume>(VOLUME_STATS_ALL_TIME_NAMESPACE)?
+			.as_deref()
+			.map(|all_time| {
+				Ok(ExchangeRateQueryResponse {
+					from_timestamp_ms: all_time.from_time,
+					to_timestamp_ms: timestamp_ms,
+					exchange_rate_low: all_time.exchange_rate_low.into(),
+					exchange_rate_high: all_time.exchange_rate_high.into(),
+					exchange_rate_avg: ExchangeRatio::ratio_into_str(all_time.amount_right, all_time.amount_left),
+				})
 			})
-		}).unwrap_or_else(|| {
-			let exchange_rate = fallback_balances()?;
-			let exchange_rate = ExchangeRatio::ratio_into_f64(exchange_rate[1], exchange_rate[0]);
-			Ok(ExchangeRateQueryResponse {
-				exchange_rate_low: exchange_rate,
-				exchange_rate_high: exchange_rate,
-				exchange_rate_avg: exchange_rate,
-				from_timestamp_ms: 0,
-				to_timestamp_ms: timestamp_ms
+			.unwrap_or_else(|| {
+				let exchange_rate = fallback_balances()?;
+				let exchange_rate = ExchangeRatio::ratio_into_str(exchange_rate[1], exchange_rate[0]);
+				Ok(ExchangeRateQueryResponse {
+					exchange_rate_low: exchange_rate.clone(),
+					exchange_rate_high: exchange_rate.clone(),
+					exchange_rate_avg: exchange_rate,
+					from_timestamp_ms: 0,
+					to_timestamp_ms: timestamp_ms,
+				})
 			})
-		})
 	}
 	pub fn get_exchange_rate_since_hour_start(
 		&self,
 		current_timestamp: Timestamp,
-		fallback_balances: impl Fn() -> Result<[u128; 2], StdError>
+		fallback_balances: impl Fn() -> Result<[u128; 2], StdError>,
 	) -> Result<ExchangeRateQueryResponse, StdError> {
 		let timestamp_ms = current_timestamp.millis();
 		let timestamp_hour = timestamp_ms / MILLISECONDS_IN_AN_HOUR;
-		self.hourly.get_back()?.filter(|latest_record| {
-			latest_record.from_time >= timestamp_hour
-		}).map(|latest_record| {
-			Ok(ExchangeRateQueryResponse {
-				exchange_rate_low: latest_record.exchange_rate_low.into(),
-				exchange_rate_high: latest_record.exchange_rate_high.into(),
-				exchange_rate_avg: ExchangeRatio::ratio_into_f64(latest_record.amount_right, latest_record.amount_left),
-				from_timestamp_ms: timestamp_hour * MILLISECONDS_IN_AN_HOUR,
-				to_timestamp_ms: timestamp_ms,
+		self.hourly
+			.get_back()?
+			.filter(|latest_record| latest_record.from_time >= timestamp_hour)
+			.map(|latest_record| {
+				Ok(ExchangeRateQueryResponse {
+					exchange_rate_low: latest_record.exchange_rate_low.into(),
+					exchange_rate_high: latest_record.exchange_rate_high.into(),
+					exchange_rate_avg: ExchangeRatio::ratio_into_str(
+						latest_record.amount_right,
+						latest_record.amount_left,
+					),
+					from_timestamp_ms: timestamp_hour * MILLISECONDS_IN_AN_HOUR,
+					to_timestamp_ms: timestamp_ms,
+				})
 			})
-		}).unwrap_or_else(|| {
-			let exchange_rate = fallback_balances()?;
-			let exchange_rate = ExchangeRatio::ratio_into_f64(exchange_rate[1], exchange_rate[0]);
-			Ok(ExchangeRateQueryResponse {
-				exchange_rate_low: exchange_rate,
-				exchange_rate_high: exchange_rate,
-				exchange_rate_avg: exchange_rate,
-				from_timestamp_ms: timestamp_hour * MILLISECONDS_IN_AN_HOUR,
-				to_timestamp_ms: timestamp_ms,
+			.unwrap_or_else(|| {
+				let exchange_rate = fallback_balances()?;
+				let exchange_rate = ExchangeRatio::ratio_into_str(exchange_rate[1], exchange_rate[0]);
+				Ok(ExchangeRateQueryResponse {
+					exchange_rate_low: exchange_rate.clone(),
+					exchange_rate_high: exchange_rate.clone(),
+					exchange_rate_avg: exchange_rate,
+					from_timestamp_ms: timestamp_hour * MILLISECONDS_IN_AN_HOUR,
+					to_timestamp_ms: timestamp_ms,
+				})
 			})
-		})
 	}
 	pub fn get_exchange_rate_per_hours(
 		&self,
 		current_timestamp: Timestamp,
 		hours: NonZeroU8,
-		fallback_balances: impl Fn() -> Result<[u128; 2], StdError>
+		fallback_balances: impl Fn() -> Result<[u128; 2], StdError>,
 	) -> Result<ExchangeRateQueryResponse, StdError> {
 		let current_timestamp_ms = current_timestamp.millis();
 		let current_timestamp_hour = current_timestamp_ms / MILLISECONDS_IN_AN_HOUR;
@@ -542,10 +548,10 @@ impl VolumeStatisticsCounter {
 		let mut record_iter = self.hourly.iter().rev();
 		let Some(first_record) = record_iter.next().transpose()? else {
 			let exchange_rate = fallback_balances()?;
-			let exchange_rate = ExchangeRatio::ratio_into_f64(exchange_rate[1], exchange_rate[0]);
+			let exchange_rate = ExchangeRatio::ratio_into_str(exchange_rate[1], exchange_rate[0]);
 			return Ok(ExchangeRateQueryResponse {
-				exchange_rate_low: exchange_rate,
-				exchange_rate_high: exchange_rate,
+				exchange_rate_low: exchange_rate.clone(),
+				exchange_rate_high: exchange_rate.clone(),
 				exchange_rate_avg: exchange_rate,
 				from_timestamp_ms,
 				to_timestamp_ms,
@@ -555,7 +561,7 @@ impl VolumeStatisticsCounter {
 		let mut exchange_rate_high = ExchangeRatio::MIN;
 		let mut left_total = 0u128;
 		let mut right_total = 0u128;
-		if first_record.from_time < current_timestamp_hour && first_record.from_time >= from_timestamp_hour {
+		if first_record.from_time <= current_timestamp_hour && first_record.from_time >= from_timestamp_hour {
 			exchange_rate_low = first_record.exchange_rate_low;
 			exchange_rate_high = first_record.exchange_rate_high;
 			left_total = first_record.amount_left;
@@ -575,7 +581,7 @@ impl VolumeStatisticsCounter {
 		Ok(ExchangeRateQueryResponse {
 			exchange_rate_low: exchange_rate_low.into(),
 			exchange_rate_high: exchange_rate_high.into(),
-			exchange_rate_avg: ExchangeRatio::ratio_into_f64(right_total, left_total),
+			exchange_rate_avg: ExchangeRatio::ratio_into_str(right_total, left_total),
 			from_timestamp_ms,
 			to_timestamp_ms,
 		})
@@ -583,37 +589,42 @@ impl VolumeStatisticsCounter {
 	pub fn get_exchange_rate_since_day_start(
 		&self,
 		current_timestamp: Timestamp,
-		fallback_balances: impl Fn() -> Result<[u128; 2], StdError>
+		fallback_balances: impl Fn() -> Result<[u128; 2], StdError>,
 	) -> Result<ExchangeRateQueryResponse, StdError> {
 		let timestamp_ms = current_timestamp.millis();
 		let timestamp_day = timestamp_ms / MILLISECONDS_IN_A_DAY;
-		self.daily.get_back()?.filter(|latest_record| {
-			latest_record.from_time >= timestamp_day
-		}).map(|latest_record| {
-			Ok(ExchangeRateQueryResponse {
-				exchange_rate_low: latest_record.exchange_rate_low.into(),
-				exchange_rate_high: latest_record.exchange_rate_high.into(),
-				exchange_rate_avg: ExchangeRatio::ratio_into_f64(latest_record.amount_right, latest_record.amount_left),
-				from_timestamp_ms: timestamp_day * MILLISECONDS_IN_A_DAY,
-				to_timestamp_ms: timestamp_ms,
+		self.daily
+			.get_back()?
+			.filter(|latest_record| latest_record.from_time >= timestamp_day)
+			.map(|latest_record| {
+				Ok(ExchangeRateQueryResponse {
+					exchange_rate_low: latest_record.exchange_rate_low.into(),
+					exchange_rate_high: latest_record.exchange_rate_high.into(),
+					exchange_rate_avg: ExchangeRatio::ratio_into_str(
+						latest_record.amount_right,
+						latest_record.amount_left,
+					),
+					from_timestamp_ms: timestamp_day * MILLISECONDS_IN_A_DAY,
+					to_timestamp_ms: timestamp_ms,
+				})
 			})
-		}).unwrap_or_else(|| {
-			let exchange_rate = fallback_balances()?;
-			let exchange_rate = ExchangeRatio::ratio_into_f64(exchange_rate[1], exchange_rate[0]);
-			Ok(ExchangeRateQueryResponse {
-				exchange_rate_low: exchange_rate,
-				exchange_rate_high: exchange_rate,
-				exchange_rate_avg: exchange_rate,
-				from_timestamp_ms: timestamp_day * MILLISECONDS_IN_A_DAY,
-				to_timestamp_ms: timestamp_ms,
+			.unwrap_or_else(|| {
+				let exchange_rate = fallback_balances()?;
+				let exchange_rate = ExchangeRatio::ratio_into_str(exchange_rate[1], exchange_rate[0]);
+				Ok(ExchangeRateQueryResponse {
+					exchange_rate_low: exchange_rate.clone(),
+					exchange_rate_high: exchange_rate.clone(),
+					exchange_rate_avg: exchange_rate,
+					from_timestamp_ms: timestamp_day * MILLISECONDS_IN_A_DAY,
+					to_timestamp_ms: timestamp_ms,
+				})
 			})
-		})
 	}
 	pub fn get_exchange_rate_per_days(
 		&self,
 		current_timestamp: Timestamp,
 		days: NonZeroU8,
-		fallback_balances: impl Fn() -> Result<[u128; 2], StdError>
+		fallback_balances: impl Fn() -> Result<[u128; 2], StdError>,
 	) -> Result<ExchangeRateQueryResponse, StdError> {
 		let current_timestamp_ms = current_timestamp.millis();
 		let current_timestamp_day = current_timestamp_ms / MILLISECONDS_IN_A_DAY;
@@ -628,20 +639,20 @@ impl VolumeStatisticsCounter {
 		let mut exchange_rate_high = ExchangeRatio::MIN;
 		let mut left_total = 0u128;
 		let mut right_total = 0u128;
-		let mut record_iter = self.hourly.iter().rev();
+		let mut record_iter = self.daily.iter().rev();
 
 		let Some(first_record) = record_iter.next().transpose()? else {
 			let exchange_rate = fallback_balances()?;
-			let exchange_rate = ExchangeRatio::ratio_into_f64(exchange_rate[1], exchange_rate[0]);
+			let exchange_rate = ExchangeRatio::ratio_into_str(exchange_rate[1], exchange_rate[0]);
 			return Ok(ExchangeRateQueryResponse {
-				exchange_rate_low: exchange_rate,
-				exchange_rate_high: exchange_rate,
+				exchange_rate_low: exchange_rate.clone(),
+				exchange_rate_high: exchange_rate.clone(),
 				exchange_rate_avg: exchange_rate,
 				from_timestamp_ms,
 				to_timestamp_ms,
 			});
 		};
-		if first_record.from_time < from_timestamp_day && first_record.from_time >= from_timestamp_day {
+		if first_record.from_time <= current_timestamp_day && first_record.from_time >= from_timestamp_day {
 			exchange_rate_low = first_record.exchange_rate_low;
 			exchange_rate_high = first_record.exchange_rate_high;
 			left_total = first_record.amount_left;
@@ -661,7 +672,7 @@ impl VolumeStatisticsCounter {
 		Ok(ExchangeRateQueryResponse {
 			exchange_rate_low: exchange_rate_low.into(),
 			exchange_rate_high: exchange_rate_high.into(),
-			exchange_rate_avg: ExchangeRatio::ratio_into_f64(right_total, left_total),
+			exchange_rate_avg: ExchangeRatio::ratio_into_str(right_total, left_total),
 			from_timestamp_ms,
 			to_timestamp_ms,
 		})
