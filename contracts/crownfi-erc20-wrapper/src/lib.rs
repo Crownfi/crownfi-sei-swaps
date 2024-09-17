@@ -43,16 +43,26 @@ pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response<SeiMsg>, 
 				.into_result()
 				.map_err(ParseReplyError::SubMsgFailure)?
 				.data
-				.map(|x| x.0 == TRUE_BUT_IN_32_BYTES);
+				.ok_or(ParseReplyError::ParseFailure("No return data".into()))?;
 
-			if !matches!(data, Some(true)) {
+			if data == TRUE_BUT_IN_32_BYTES {
 				Ok(Response::new())
 			} else {
-				Err(Erc20WrapperError::InvalidERC20Contract)
+				Err(Erc20WrapperError::UnexpectedEvmReply(data))
 			}
 		}
 		id => Err(Erc20WrapperError::InvalidReplyId(id)),
 	}
+}
+
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+pub fn migrate(
+	deps: DepsMut<SeiQueryWrapper>,
+	_env: Env,
+	_msg: Empty,
+) -> Result<Response<SeiMsg>, Erc20WrapperError> {
+	cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+	Ok(Response::new())
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
@@ -80,7 +90,7 @@ pub fn execute(
 
 			querier
 				.erc20_token_info(token_addr.clone(), env.contract.address.to_string())
-				.map_err(|_| Erc20WrapperError::InvalidERC20Contract)?;
+				.map_err(|err| Erc20WrapperError::InvalidERC20Contract(err))?;
 
 			let capped_tkn_addr = token_addr[2..].to_uppercase();
 			let bare_addr: [u8; 20] =

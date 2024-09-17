@@ -1,4 +1,4 @@
-use cosmwasm_std::StdError;
+use cosmwasm_std::{Binary, StdError};
 use crownfi_swaps_common::impl_from_cosmwasm_std_error_common;
 use cw_utils::{ParseReplyError, PaymentError};
 
@@ -14,11 +14,13 @@ pub enum Erc20WrapperError {
 	InvalidEvmAddress(String),
 	#[error("The tokens received were not created by this contract")]
 	TokenDoesntBelongToContract,
-	#[error("The ERC20 Contract is not valid")]
-	InvalidERC20Contract,
+	#[error("Failed to verify contract was an ERC20 token: {0}")]
+	InvalidERC20Contract(StdError),
 	#[error("The recipiant address must be 20 bytes long")]
 	InvalidRecipient,
 	#[error("The reply id {0} is invalid")]
 	InvalidReplyId(u64),
+	#[error("Unexpected reply from EVM contract: {0}")]
+	UnexpectedEvmReply(Binary),
 }
 impl_from_cosmwasm_std_error_common!(Erc20WrapperError);
