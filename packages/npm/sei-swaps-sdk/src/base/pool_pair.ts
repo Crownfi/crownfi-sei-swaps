@@ -124,6 +124,15 @@ The stored encoding for highest and lowest price is lossy and gets more accurate
 		const msg = "exchange_rate_all_time" satisfies PoolPairQueryMsg;
 		return this.query(msg);
 	}
+	/** Returns an estimated APY using the volume from the past specified amount of days
+
+Data older than 30 days is not guaranteed. */
+	queryEstimateApy(args: {
+		"past_days": number
+	}): Promise<Decimal> {
+		const msg = {"estimate_apy": args} satisfies PoolPairQueryMsg;
+		return this.query(msg);
+	}
 	/** Update the pair configuration */
 	buildUpdateConfigIx(args: {
 		/** The head honcho, this is usually the factory contract */
