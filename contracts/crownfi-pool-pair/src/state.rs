@@ -217,7 +217,6 @@ impl From<ExchangeRatio> for Decimal {
 				Decimal::MAX
 			} else {
 				Decimal::from_ratio(2147483648u128, value)
-				
 			}
 		} else {
 			Decimal::from_ratio(value.0, 2147483648u128)
@@ -486,12 +485,14 @@ impl VolumeStatisticsCounter {
 					to_timestamp_ms: timestamp_ms,
 					exchange_rate_low: all_time.exchange_rate_low.into(),
 					exchange_rate_high: all_time.exchange_rate_high.into(),
-					exchange_rate_avg: Decimal::checked_from_ratio(all_time.amount_right, all_time.amount_left).unwrap_or(Decimal::MAX),
+					exchange_rate_avg: Decimal::checked_from_ratio(all_time.amount_right, all_time.amount_left)
+						.unwrap_or(Decimal::MAX),
 				})
 			})
 			.unwrap_or_else(|| {
 				let exchange_rate = fallback_balances()?;
-				let exchange_rate = Decimal::checked_from_ratio(exchange_rate[1], exchange_rate[0]).unwrap_or(Decimal::MAX);
+				let exchange_rate =
+					Decimal::checked_from_ratio(exchange_rate[1], exchange_rate[0]).unwrap_or(Decimal::MAX);
 				Ok(ExchangeRateQueryResponse {
 					exchange_rate_low: exchange_rate,
 					exchange_rate_high: exchange_rate,
@@ -518,14 +519,16 @@ impl VolumeStatisticsCounter {
 					exchange_rate_avg: Decimal::checked_from_ratio(
 						latest_record.amount_right,
 						latest_record.amount_left,
-					).unwrap_or(Decimal::MAX),
+					)
+					.unwrap_or(Decimal::MAX),
 					from_timestamp_ms: timestamp_hour * MILLISECONDS_IN_AN_HOUR,
 					to_timestamp_ms: timestamp_ms,
 				})
 			})
 			.unwrap_or_else(|| {
 				let exchange_rate = fallback_balances()?;
-				let exchange_rate = Decimal::checked_from_ratio(exchange_rate[1], exchange_rate[0]).unwrap_or(Decimal::MAX);
+				let exchange_rate =
+					Decimal::checked_from_ratio(exchange_rate[1], exchange_rate[0]).unwrap_or(Decimal::MAX);
 				Ok(ExchangeRateQueryResponse {
 					exchange_rate_low: exchange_rate,
 					exchange_rate_high: exchange_rate,
@@ -608,14 +611,16 @@ impl VolumeStatisticsCounter {
 					exchange_rate_avg: Decimal::checked_from_ratio(
 						latest_record.amount_right,
 						latest_record.amount_left,
-					).unwrap_or(Decimal::MAX),
+					)
+					.unwrap_or(Decimal::MAX),
 					from_timestamp_ms: timestamp_day * MILLISECONDS_IN_A_DAY,
 					to_timestamp_ms: timestamp_ms,
 				})
 			})
 			.unwrap_or_else(|| {
 				let exchange_rate = fallback_balances()?;
-				let exchange_rate = Decimal::checked_from_ratio(exchange_rate[1], exchange_rate[0]).unwrap_or(Decimal::MAX);
+				let exchange_rate =
+					Decimal::checked_from_ratio(exchange_rate[1], exchange_rate[0]).unwrap_or(Decimal::MAX);
 				Ok(ExchangeRateQueryResponse {
 					exchange_rate_low: exchange_rate,
 					exchange_rate_high: exchange_rate,

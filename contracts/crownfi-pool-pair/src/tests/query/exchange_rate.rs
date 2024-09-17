@@ -62,8 +62,14 @@ fn hourly_exchange_rate() {
 	// The hour hasn't passed yet, so we're still at 0
 	assert_eq!(exchange_rate.exchange_rate_high.to_string().as_str(), "0");
 	// Approaching infinity
-	assert_eq!(exchange_rate.exchange_rate_low.to_string().as_str(), "340282366920938463463.374607431768211455");
-	assert_eq!(exchange_rate.exchange_rate_avg.to_string().as_str(), "340282366920938463463.374607431768211455");
+	assert_eq!(
+		exchange_rate.exchange_rate_low.to_string().as_str(),
+		"340282366920938463463.374607431768211455"
+	);
+	assert_eq!(
+		exchange_rate.exchange_rate_avg.to_string().as_str(),
+		"340282366920938463463.374607431768211455"
+	);
 
 	// ...but we can still get stats for the current hour so far
 	let exchange_rate: ExchangeRateQueryResponse = from_json(
@@ -188,9 +194,15 @@ fn daily_exchange_rate() {
 	// The day hasn't passed yet, so we're still at 0
 	assert_eq!(exchange_rate.exchange_rate_high.to_string().as_str(), "0");
 	// Approaching infinity
-	assert_eq!(exchange_rate.exchange_rate_low.to_string().as_str(), "340282366920938463463.374607431768211455");
-	assert_eq!(exchange_rate.exchange_rate_avg.to_string().as_str(), "340282366920938463463.374607431768211455");
-	
+	assert_eq!(
+		exchange_rate.exchange_rate_low.to_string().as_str(),
+		"340282366920938463463.374607431768211455"
+	);
+	assert_eq!(
+		exchange_rate.exchange_rate_avg.to_string().as_str(),
+		"340282366920938463463.374607431768211455"
+	);
+
 	// ...but we can still get stats for the current day so far.
 	let exchange_rate: ExchangeRateQueryResponse = from_json(
 		query(

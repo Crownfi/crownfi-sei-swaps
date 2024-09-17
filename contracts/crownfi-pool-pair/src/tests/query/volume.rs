@@ -63,10 +63,7 @@ fn hourly_volume_sum() {
 	)
 	.unwrap();
 
-	assert_eq!(
-		hourly_volume_sum.volume.each_ref().map(Uint128::u128),
-		[0, 0]
-	);
+	assert_eq!(hourly_volume_sum.volume.each_ref().map(Uint128::u128), [0, 0]);
 
 	env.block.time = Timestamp::from_seconds(1725411002);
 	let hourly_volume_sum: VolumeQueryResponse = from_json(
@@ -162,10 +159,7 @@ fn daily_volume_sum() {
 	)
 	.unwrap();
 
-	assert_eq!(
-		daily_volume_sum.volume.each_ref().map(Uint128::u128),
-		[0, 0]
-	);
+	assert_eq!(daily_volume_sum.volume.each_ref().map(Uint128::u128), [0, 0]);
 
 	let daily_volume_sum: VolumeQueryResponse = from_json(
 		query(
