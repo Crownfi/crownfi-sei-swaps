@@ -1,15 +1,70 @@
 
-import {ERC20_FUNC_APPROVE, EvmExecuteInstruction, IBigIntCoin, isValidEvmAddress, nativeDenomSortCompare, toChecksumAddressEvm} from "@crownfi/sei-utils";
+import {Addr, addUserTokenInfo, addUserTokenInfoSearcher, ERC20_FUNC_APPROVE, EvmExecuteInstruction, getUserTokenInfo, hasUserTokenInfo, IBigIntCoin, isValidEvmAddress, nativeDenomSortCompare, SeiChainId, toChecksumAddressEvm} from "@crownfi/sei-utils";
 import {ExecuteInstruction, WasmExtension} from "@cosmjs/cosmwasm-stargate";
 import {Coin, QueryClient} from "@cosmjs/stargate";
 import { assertFactoryTokenSourceMatches, factoryTokenSourceMatches } from "./common.js";
 import { Erc20WrapperContract } from "./base/erc_20_wrapper.js";
 import { stringToCanonicalAddr } from "@crownfi/sei-js-core";
 
+const knownContractAddresses: {[chainId: string]: string} = {
+	"atlantic-2": "sei1p07lrqwadup97zg9snwu9tgcn6mxwl53d8lrgaldy8rsswvra07qe33fgc"
+};
+
+addUserTokenInfoSearcher(async (queryClient, network, baseDenom) => {
+	if (!knownContractAddresses[network]) {
+		return null;
+	}
+	const wrapper = new ERC20TokenWrapper(queryClient, knownContractAddresses[network]);
+	if (!wrapper.isWrappedDenom(baseDenom)) {
+		return null;
+	}
+	try {
+		const unwrappedDenom = wrapper.unwrappedDenomOf(baseDenom);
+		if (!unwrappedDenom) {
+			return null;
+		}
+		if (!hasUserTokenInfo(unwrappedDenom, network as SeiChainId)) {
+			// Hopefully this won't cause recursion
+			await addUserTokenInfo(queryClient, network, unwrappedDenom);
+		}
+		const unwrappedTokenInfo = getUserTokenInfo(unwrappedDenom, network as SeiChainId);
+		return {
+			decimals: unwrappedTokenInfo.decimals,
+			icon: unwrappedTokenInfo.icon,
+			name: unwrappedTokenInfo.name + " (CrownFi wrapped)",
+			symbol: unwrappedTokenInfo.symbol
+		};
+	} catch(ex: any) {
+		// Token hasn't been wrapped yet, probably
+		return null;
+	}
+});
+
 export class ERC20TokenWrapper<Q extends QueryClient & WasmExtension> {
 	contract: Erc20WrapperContract<Q>;
 	constructor(client: Q, contractAddress: string) {
 		this.contract = new Erc20WrapperContract(client, contractAddress);
+	}
+	static getAddressFromChainId(chainId: SeiChainId): Addr {
+		let contractAddress = knownContractAddresses[chainId];
+		if (!contractAddress && typeof localStorage !== "undefined") {
+			contractAddress = localStorage.getItem("@crownfi/token-wrapper-sdk/erc20_contract_address/" + chainId) || "";
+		}
+		if (!contractAddress && typeof window !== "undefined" && "prompt" in window) {
+			const result = window.prompt("Erc20WrapperContract address:");
+			if (!result) {
+				throw new Error("There's no default ERC20TokenWrapper contract address for " + chainId);
+			}
+			contractAddress = result;
+			localStorage.setItem("@crownfi/token-wrapper-sdk/erc20_contract_address/" + chainId, contractAddress);
+		}
+		if (!contractAddress) {
+			throw new Error("There's no default ERC20TokenWrapper contract address for " + chainId);
+		}
+		return contractAddress;
+	}
+	static getFromChainId<Q extends QueryClient & WasmExtension>(queryClient: Q, chainId: SeiChainId): ERC20TokenWrapper<Q> {
+		return new ERC20TokenWrapper(queryClient, ERC20TokenWrapper.getAddressFromChainId(chainId));
 	}
 
 	/**

@@ -349,7 +349,12 @@ export type PoolPairQueryMsg =
         past_days?: number | null;
       };
     }
-  | "exchange_rate_all_time";
+  | "exchange_rate_all_time"
+  | {
+      estimate_apy: {
+        past_days: number;
+      };
+    };
 /**
  * This interface was referenced by `CrownfiSdkMakerAutogen`'s JSON-Schema
  * via the `definition` "String".
@@ -438,9 +443,9 @@ export interface Coin {
  * via the `definition` "ExchangeRateQueryResponse".
  */
 export interface ExchangeRateQueryResponse {
-  exchange_rate_avg: number;
-  exchange_rate_high: number;
-  exchange_rate_low: number;
+  exchange_rate_avg: Decimal;
+  exchange_rate_high: Decimal;
+  exchange_rate_low: Decimal;
   from_timestamp_ms: number;
   to_timestamp_ms: number;
 }

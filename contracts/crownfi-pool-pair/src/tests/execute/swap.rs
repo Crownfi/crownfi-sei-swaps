@@ -1,14 +1,14 @@
 use cosmwasm_std::{
-	attr, coin,
+	attr, coin, from_json,
 	testing::{mock_env, mock_info},
 	Addr, BankMsg, CosmosMsg, Decimal, SubMsg, Uint128,
 };
 use cw_utils::PaymentError;
 
 use crate::{
-	contract::execute,
+	contract::{execute, query},
 	error::PoolPairContractError,
-	msg::PoolPairExecuteMsg,
+	msg::{PoolPairExecuteMsg, PoolPairQueryMsg, VolumeQueryResponse},
 	tests::{
 		deps, init, inner_share_in_assets, pool_balance, share_in_assets, AddressFactory, PoolPairConfig,
 		LEFT_TOKEN_AMT, LP_TOKEN, PAIR_DENOMS, RIGHT_TOKEN_AMT,
@@ -324,4 +324,35 @@ fn share_values_correctly_updated() {
 
 	let new_share_value = share_in_assets(deps.as_ref(), 1000);
 	assert_eq!(new_share_value, expected_share_value);
+}
+
+#[test]
+fn volume_tracking_updated() {
+	let mut deps = deps(&[]);
+	init(&mut deps);
+
+	let env = mock_env();
+	let msg = PoolPairExecuteMsg::Swap {
+		expected_result: None,
+		slippage_tolerance: Some(Decimal::bps(1000)),
+		receiver: None,
+		receiver_payload: None,
+	};
+	let sender = AddressFactory::random_address();
+	let amt = 10000;
+	let info = mock_info(&sender, &[coin(10000, PAIR_DENOMS[1])]);
+	let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
+	let maker_fee_amount = res
+		.attributes
+		.into_iter()
+		.find(|x| x.key == "maker_fee_amount")
+		.and_then(|x| x.value.parse::<u128>().ok())
+		.unwrap();
+
+	let volume_sum: VolumeQueryResponse =
+		from_json(query(deps.as_ref(), env.clone(), PoolPairQueryMsg::TotalVolumeSum).unwrap()).unwrap();
+	assert_eq!(
+		volume_sum.volume.each_ref().map(Uint128::u128),
+		[amt * 2 - maker_fee_amount, amt]
+	);
 }

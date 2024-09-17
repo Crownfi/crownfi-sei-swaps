@@ -3,10 +3,7 @@ use crownfi_cw_common::storage::base::{storage_read, storage_write};
 use sei_cosmwasm::SeiMsg;
 
 // These workarounds exist because of this issue: https://github.com/sei-protocol/sei-wasmd/issues/38
-pub fn mint_workaround(
-	response: Response<SeiMsg>,
-	coin: Coin,
-) -> StdResult<Response<SeiMsg>> {
+pub fn mint_workaround(response: Response<SeiMsg>, coin: Coin) -> StdResult<Response<SeiMsg>> {
 	let cur_supply = total_supply_workaround(&coin.denom);
 	storage_write(
 		coin.denom.as_bytes(),
@@ -15,10 +12,7 @@ pub fn mint_workaround(
 	Ok(response.add_message(SeiMsg::MintTokens { amount: coin.clone() }))
 }
 
-pub fn burn_token_workaround(
-	response: Response<SeiMsg>,
-	coin: Coin,
-) -> StdResult<Response<SeiMsg>> {
+pub fn burn_token_workaround(response: Response<SeiMsg>, coin: Coin) -> StdResult<Response<SeiMsg>> {
 	let cur_supply = total_supply_workaround(&coin.denom);
 	storage_write(
 		coin.denom.as_bytes(),

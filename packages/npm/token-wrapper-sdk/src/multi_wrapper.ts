@@ -2,7 +2,7 @@ import { ExecuteInstruction, WasmExtension } from "@cosmjs/cosmwasm-stargate";
 import { Coin, QueryClient } from "@cosmjs/stargate";
 import { ERC20TokenWrapper } from "./erc20.js";
 import { CW20TokenWrapper } from "./cw20.js";
-import { EvmExecuteInstruction, IBigIntCoin, SeiClientAccountData } from "@crownfi/sei-utils";
+import { EvmExecuteInstruction, IBigIntCoin, SeiChainId, SeiClientAccountData } from "@crownfi/sei-utils";
 
 export type MaybeContractTokenKind = ContractTokenKind | 0;
 export enum ContractTokenKind {
@@ -20,6 +20,13 @@ export class MultiTokenWrapper<Q extends QueryClient & WasmExtension> {
 	) {
 		this.cw20Wrapper = new CW20TokenWrapper(client, cw20WrapperAddress);
 		this.erc20Wrapper = new ERC20TokenWrapper(client, erc20WrapperAddress);
+	}
+	static getFromChainId<Q extends QueryClient & WasmExtension>(queryClient: Q, chainId: SeiChainId): MultiTokenWrapper<Q> {
+		return new MultiTokenWrapper(
+			queryClient,
+			CW20TokenWrapper.getAddressFromChainId(chainId),
+			ERC20TokenWrapper.getAddressFromChainId(chainId),
+		);
 	}
 
 	/**
