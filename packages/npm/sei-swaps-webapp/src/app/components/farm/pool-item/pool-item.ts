@@ -21,6 +21,7 @@ export class PoolItemComponent extends PoolItemComponentAutogen {
     const exchangeRateFrom = stringDecimalToBigInt(swapService.getExchangeRate(fromDenom, toDenom), fromTokenInfo.decimals);
     const exchangeRateTo = stringDecimalToBigInt(swapService.getExchangeRate(toDenom, fromDenom), toTokenInfo.decimals);
     const feeRate = this.poolPair.totalFeeBasisPoints;
+    const apy = await swapService.getEstimatedAPYPast30Days(fromDenom, toDenom);
 
     this.refs.fromIcon.setAttribute("denom", fromDenom);
     this.refs.toIcon.setAttribute("denom", toDenom);
@@ -35,6 +36,7 @@ export class PoolItemComponent extends PoolItemComponentAutogen {
     this.refs.totalDepositsTo.denom = toDenom;
     this.refs.totalDepositsTo.amount = this.poolPair.totalDeposits[1];
     this.refs.feeRate.innerText = `${feeRate.toFixed(2)}%`;
+    this.refs.apy.innerText = apy;
   }
 }
 

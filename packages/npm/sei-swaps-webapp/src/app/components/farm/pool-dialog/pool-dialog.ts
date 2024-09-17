@@ -64,7 +64,7 @@ export class PoolDialogComponent extends PoolDialogComponentAutogen {
     this.refs.fromName.innerText = fromTokenInfo.name;
     this.refs.fromIcon.setAttribute("denom", fromTokenInfo.base);
     this.refs.exchangeRateFromIcon.setAttribute("denom", fromDenom);
-    this.refs.exchangeRateFromAmount.innerText = swapService.getExchangeRate(fromDenom, toDenom).toString();
+    this.refs.exchangeRateFromAmount.innerText = swapService.getExchangeRate(fromDenom, toDenom).toFixed(5);
     this.refs.totalDepositsFromIcon.setAttribute("denom", fromDenom);
     this.refs.totalDepositsFromAmount.innerText = bigIntToStringDecimal(this.poolPair.totalDeposits[0], fromTokenInfo.decimals, true);
 
@@ -87,7 +87,7 @@ export class PoolDialogComponent extends PoolDialogComponentAutogen {
     this.refs.toName.innerText = toTokenInfo.name;
     this.refs.toIcon.setAttribute("denom", toTokenInfo.base);
     this.refs.exchangeRateToIcon.setAttribute("denom", toDenom);
-    this.refs.exchangeRateToAmount.innerText = swapService.getExchangeRate(toDenom, fromDenom).toString();
+    this.refs.exchangeRateToAmount.innerText = swapService.getExchangeRate(toDenom, fromDenom).toFixed(5);
     this.refs.totalDepositsToIcon.setAttribute("denom", toDenom);
     this.refs.totalDepositsToAmount.innerText = bigIntToStringDecimal(this.poolPair.totalDeposits[1], toTokenInfo.decimals, true);
 

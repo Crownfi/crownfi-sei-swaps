@@ -75,6 +75,14 @@ export class SwapService {
     }
   }
 
+  async getEstimatedAPYPast30Days(from: UnifiedDenom, to: UnifiedDenom) {
+    await this.swapMarket.refresh();
+    const pair = await this.getPair([from, to]);
+    if (!pair)
+      throw new Error("Invalid pair");
+    return pair.getEstimatedAPYPastDays(30);
+  }
+
   async simulateSwap(from: UnifiedDenom, to: UnifiedDenom, amount: bigint) {
     await this.swapMarket.refresh();
     return this.swapMarket.simulateSwap({ denom: from, amount }, to);
