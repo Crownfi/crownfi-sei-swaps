@@ -165,6 +165,11 @@ pub enum PoolPairQueryMsg {
 	#[returns(ExchangeRateQueryResponse)]
 	/// Returns the average, highest, and lowest price
 	ExchangeRateAllTime,
+	#[returns(Decimal)]
+	/// Returns an estimated APY using the volume from the past specified amount of days
+	///
+	/// Data older than 30 days is not guaranteed.
+	EstimateApy { past_days: u8 },
 }
 
 #[cw_serde]

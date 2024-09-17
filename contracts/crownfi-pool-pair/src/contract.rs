@@ -483,6 +483,7 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 				return Err(PaymentError::ExtraDenom(offer.denom).into());
 			}
 			let config = PoolPairConfig::load_non_empty()?;
+			let config = config.as_ref();
 			let pool_balances = get_pool_balance(&deps.querier, &env, &pool_id)?;
 			to_json_binary(&calc_swap(
 				&pool_balances.map(|coin| coin.amount),
@@ -500,6 +501,7 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 				return Err(PaymentError::ExtraDenom(offer.denom).into());
 			}
 			let config = PoolPairConfig::load_non_empty()?;
+			let config = config.as_ref();
 			let pool_balances = get_pool_balance(&deps.querier, &env, &pool_id)?;
 			to_json_binary(&calc_naive_swap(
 				&pool_balances.map(|coin| coin.amount),
@@ -539,7 +541,7 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 				get_pool_balance(
 					&deps.querier,
 					&env,
-					&CanonicalPoolPairIdentifier::load_non_empty()?.into_inner().into(),
+					CanonicalPoolPairIdentifier::load_non_empty()?.as_ref(),
 				)
 				.map(|coins| coins.map(|coin| coin.amount.u128()))
 			};
@@ -557,7 +559,7 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 				get_pool_balance(
 					&deps.querier,
 					&env,
-					&CanonicalPoolPairIdentifier::load_non_empty()?.into_inner().into(),
+					CanonicalPoolPairIdentifier::load_non_empty()?.as_ref(),
 				)
 				.map(|coins| coins.map(|coin| coin.amount.u128()))
 			};
@@ -575,11 +577,26 @@ pub fn query(deps: Deps<SeiQueryWrapper>, env: Env, msg: PoolPairQueryMsg) -> Re
 				get_pool_balance(
 					&deps.querier,
 					&env,
-					&CanonicalPoolPairIdentifier::load_non_empty()?.into_inner().into(),
+					CanonicalPoolPairIdentifier::load_non_empty()?.as_ref(),
 				)
 				.map(|coins| coins.map(|coin| coin.amount.u128()))
 			};
 			to_json_binary(&volume_stats.get_exchange_rate_all_time(env.block.time, fallback)?)?
+		}
+		PoolPairQueryMsg::EstimateApy { past_days } => {
+			let config = PoolPairConfig::load_non_empty()?;
+			let config = config.as_ref();
+			let volume_stats = VolumeStatisticsCounter::new()?;
+			let left_token_balance = deps.querier.query_balance(
+				&env.contract.address,
+				&CanonicalPoolPairIdentifier::load_non_empty()?.left,
+			)?;
+			to_json_binary(&volume_stats.estimate_apy(
+				env.block.time,
+				left_token_balance.amount.u128(),
+				config,
+				past_days,
+			)?)?
 		}
 	})
 }

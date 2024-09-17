@@ -1,5 +1,5 @@
 use core::f64;
-use std::{cmp::Ordering, num::NonZeroU8};
+use std::{cmp::Ordering, num::NonZeroU8, u64};
 
 use bitflags::bitflags;
 use bytemuck::{Pod, Zeroable};
@@ -385,18 +385,16 @@ impl VolumeStatisticsCounter {
 
 		// there has been more than 255 hours since jan 1 1970. We'll be fine.
 		let from_timestamp_hour = current_timestamp_hour - hours.get() as u64;
-
-		let from_timestamp_ms = from_timestamp_hour * MILLISECONDS_IN_AN_HOUR;
 		let to_timestamp_ms = current_timestamp_hour * MILLISECONDS_IN_AN_HOUR;
 
 		if self.hourly.is_empty() {
 			return Ok(VolumeQueryResponse {
 				volume: [0u128.into(), 0u128.into()],
-				from_timestamp_ms,
+				from_timestamp_ms: to_timestamp_ms,
 				to_timestamp_ms,
 			});
 		}
-
+		let mut earliest_timestamp_hour = u64::MAX;
 		let mut left_total = 0u128;
 		let mut right_total = 0u128;
 		let mut record_iter = self.hourly.iter().rev();
@@ -405,6 +403,7 @@ impl VolumeStatisticsCounter {
 		if first_record.from_time < current_timestamp_hour && first_record.from_time >= from_timestamp_hour {
 			left_total = first_record.amount_left;
 			right_total = first_record.amount_right;
+			earliest_timestamp_hour = first_record.from_time;
 		}
 		// Yes, loops are the root of all evil in contract code, but this isn't intended to be used in transactions.
 		for record in record_iter {
@@ -414,10 +413,11 @@ impl VolumeStatisticsCounter {
 			}
 			left_total = left_total.saturating_add(record.amount_left);
 			right_total = right_total.saturating_add(record.amount_right);
+			earliest_timestamp_hour = record.from_time;
 		}
 		Ok(VolumeQueryResponse {
 			volume: [left_total.into(), right_total.into()],
-			from_timestamp_ms,
+			from_timestamp_ms: earliest_timestamp_hour * MILLISECONDS_IN_AN_HOUR,
 			to_timestamp_ms,
 		})
 	}
@@ -446,18 +446,17 @@ impl VolumeStatisticsCounter {
 
 		// there has been more than 255 days since jan 1 1970. We'll be fine.
 		let from_timestamp_day = current_timestamp_day - days.get() as u64;
-
-		let from_timestamp_ms = from_timestamp_day * MILLISECONDS_IN_A_DAY;
 		let to_timestamp_ms = current_timestamp_day * MILLISECONDS_IN_A_DAY;
 
 		if self.daily.is_empty() {
 			return Ok(VolumeQueryResponse {
 				volume: [0u128.into(), 0u128.into()],
-				from_timestamp_ms,
+				from_timestamp_ms: to_timestamp_ms,
 				to_timestamp_ms,
 			});
 		}
 
+		let mut earliest_timestamp_day = u64::MAX;
 		let mut left_total = 0u128;
 		let mut right_total = 0u128;
 		let mut record_iter = self.daily.iter().rev();
@@ -466,6 +465,7 @@ impl VolumeStatisticsCounter {
 		if first_record.from_time < current_timestamp_day && first_record.from_time >= from_timestamp_day {
 			left_total = first_record.amount_left;
 			right_total = first_record.amount_right;
+			earliest_timestamp_day = first_record.from_time;
 		}
 		// Yes, loops are the root of all evil in contract code, but this isn't intended to be used in transactions.
 		for record in record_iter {
@@ -475,10 +475,11 @@ impl VolumeStatisticsCounter {
 			}
 			left_total = left_total.saturating_add(record.amount_left);
 			right_total = right_total.saturating_add(record.amount_right);
+			earliest_timestamp_day = first_record.from_time;
 		}
 		Ok(VolumeQueryResponse {
 			volume: [left_total.into(), right_total.into()],
-			from_timestamp_ms,
+			from_timestamp_ms: earliest_timestamp_day * MILLISECONDS_IN_A_DAY,
 			to_timestamp_ms,
 		})
 	}
@@ -560,8 +561,6 @@ impl VolumeStatisticsCounter {
 
 		// there has been more than 255 hours since jan 1 1970. We'll be fine.
 		let from_timestamp_hour = current_timestamp_hour - hours.get() as u64;
-
-		let from_timestamp_ms = from_timestamp_hour * MILLISECONDS_IN_AN_HOUR;
 		let to_timestamp_ms = current_timestamp_hour * MILLISECONDS_IN_AN_HOUR;
 
 		let mut record_iter = self.hourly.iter().rev();
@@ -572,10 +571,11 @@ impl VolumeStatisticsCounter {
 				exchange_rate_low: exchange_rate,
 				exchange_rate_high: exchange_rate,
 				exchange_rate_avg: exchange_rate,
-				from_timestamp_ms,
+				from_timestamp_ms: to_timestamp_ms,
 				to_timestamp_ms,
 			});
 		};
+		let mut earliest_timestamp_hour = u64::MAX;
 		let mut exchange_rate_low = ExchangeRatio::MAX;
 		let mut exchange_rate_high = ExchangeRatio::MIN;
 		let mut left_total = 0u128;
@@ -585,6 +585,7 @@ impl VolumeStatisticsCounter {
 			exchange_rate_high = first_record.exchange_rate_high;
 			left_total = first_record.amount_left;
 			right_total = first_record.amount_right;
+			earliest_timestamp_hour = first_record.from_time;
 		}
 		// Yes, loops are the root of all evil in contract code, but this isn't intended to be used in transactions.
 		for record in record_iter {
@@ -596,12 +597,13 @@ impl VolumeStatisticsCounter {
 			exchange_rate_high.set_if_greater(record.exchange_rate_high);
 			left_total = left_total.saturating_add(record.amount_left);
 			right_total = right_total.saturating_add(record.amount_right);
+			earliest_timestamp_hour = record.from_time;
 		}
 		Ok(ExchangeRateQueryResponse {
 			exchange_rate_low: exchange_rate_low.into(),
 			exchange_rate_high: exchange_rate_high.into(),
 			exchange_rate_avg: Decimal::checked_from_ratio(right_total, left_total).unwrap_or(Decimal::MAX),
-			from_timestamp_ms,
+			from_timestamp_ms: earliest_timestamp_hour * MILLISECONDS_IN_AN_HOUR,
 			to_timestamp_ms,
 		})
 	}
@@ -652,10 +654,9 @@ impl VolumeStatisticsCounter {
 
 		// there has been more than 255 days since jan 1 1970. We'll be fine.
 		let from_timestamp_day = current_timestamp_day - days.get() as u64;
-
-		let from_timestamp_ms = from_timestamp_day * MILLISECONDS_IN_A_DAY;
 		let to_timestamp_ms = current_timestamp_day * MILLISECONDS_IN_A_DAY;
 
+		let mut earliest_timestamp_day = u64::MAX;
 		let mut exchange_rate_low = ExchangeRatio::MAX;
 		let mut exchange_rate_high = ExchangeRatio::MIN;
 		let mut left_total = 0u128;
@@ -669,11 +670,12 @@ impl VolumeStatisticsCounter {
 				exchange_rate_low: exchange_rate,
 				exchange_rate_high: exchange_rate,
 				exchange_rate_avg: exchange_rate,
-				from_timestamp_ms,
+				from_timestamp_ms: to_timestamp_ms,
 				to_timestamp_ms,
 			});
 		};
 		if first_record.from_time < current_timestamp_day && first_record.from_time >= from_timestamp_day {
+			earliest_timestamp_day = first_record.from_time;
 			exchange_rate_low = first_record.exchange_rate_low;
 			exchange_rate_high = first_record.exchange_rate_high;
 			left_total = first_record.amount_left;
@@ -689,13 +691,55 @@ impl VolumeStatisticsCounter {
 			exchange_rate_high.set_if_greater(record.exchange_rate_high);
 			left_total = left_total.saturating_add(record.amount_left);
 			right_total = right_total.saturating_add(record.amount_right);
+			earliest_timestamp_day = first_record.from_time;
 		}
 		Ok(ExchangeRateQueryResponse {
 			exchange_rate_low: exchange_rate_low.into(),
 			exchange_rate_high: exchange_rate_high.into(),
 			exchange_rate_avg: Decimal::checked_from_ratio(right_total, left_total).unwrap_or(Decimal::MAX),
-			from_timestamp_ms,
+			from_timestamp_ms: earliest_timestamp_day * MILLISECONDS_IN_A_DAY,
 			to_timestamp_ms,
 		})
+	}
+	pub fn estimate_apy(
+		&self,
+		current_timestamp: Timestamp,
+		current_left_token_balance: u128,
+		config: &PoolPairConfig,
+		days: u8,
+	) -> Result<Decimal, StdError> {
+		if days == 0 || self.daily.is_empty() {
+			return Ok(Decimal::zero());
+		}
+		let current_timestamp_ms = current_timestamp.millis();
+		let current_timestamp_day = current_timestamp_ms / MILLISECONDS_IN_A_DAY;
+
+		// there has been more than 255 days since jan 1 1970. We'll be fine.
+		let from_timestamp_day = current_timestamp_day - days as u64;
+		let mut actual_from_timestamp_day = 0;
+
+		let mut normalized_output_total = 0u128;
+		let mut record_iter = self.daily.iter().rev();
+
+		let first_record = record_iter.next().expect("is empty was checked")?;
+		if first_record.from_time < current_timestamp_day && first_record.from_time >= from_timestamp_day {
+			normalized_output_total = first_record.amount_output_normalized;
+			actual_from_timestamp_day = first_record.from_time;
+		}
+		// Yes, loops are the root of all evil in contract code, but this isn't intended to be used in transactions.
+		for record in record_iter {
+			let record = record?;
+			if record.from_time < from_timestamp_day {
+				break;
+			}
+			normalized_output_total = normalized_output_total.saturating_add(record.amount_output_normalized);
+			actual_from_timestamp_day = record.from_time;
+		}
+		// Theoretical amount of "new" tokens added to the pool via fees over the year
+		normalized_output_total = normalized_output_total
+			.saturating_mul(config.total_fee_bps.saturating_sub(config.maker_fee_bps) as u128 * 365u128)
+			/ (10000 * (current_timestamp_day - actual_from_timestamp_day) as u128);
+
+		Ok(Decimal::from_ratio(normalized_output_total, current_left_token_balance))
 	}
 }
