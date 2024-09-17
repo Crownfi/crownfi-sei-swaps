@@ -771,6 +771,10 @@ export class SwapMarketPair<Q extends QueryClient & WasmExtension = QueryClient 
 			to: new Date(result.to_timestamp_ms)
 		}
 	}
+
+	async getEstimatedAPYPastDays(past_days: number) {
+		return this.contract.queryEstimateApy({ past_days });
+	}
 }
 
 export type SwapMarketSwapSimResult = SwapRouterSimulateSwapsResponse & {
