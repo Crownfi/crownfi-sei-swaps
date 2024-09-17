@@ -59,8 +59,25 @@ fn hourly_exchange_rate() {
 	)
 	.unwrap();
 
-	assert!(exchange_rate.exchange_rate_high.to_string().starts_with("0.49749"));
-	assert!(exchange_rate.exchange_rate_low.to_string().starts_with("0.50251"));
+	// The hour hasn't passed yet, so we're still at 0
+	assert_eq!(exchange_rate.exchange_rate_high.to_string().as_str(), "0");
+	// Approaching infinity
+	assert_eq!(exchange_rate.exchange_rate_low.to_string().as_str(), "340282366920938463463.374607431768211455");
+	assert_eq!(exchange_rate.exchange_rate_avg.to_string().as_str(), "340282366920938463463.374607431768211455");
+
+	// ...but we can still get stats for the current hour so far
+	let exchange_rate: ExchangeRateQueryResponse = from_json(
+		query(
+			deps.as_ref(),
+			env.clone(),
+			PoolPairQueryMsg::ExchangeRateHourly { past_hours: None },
+		)
+		.unwrap(),
+	)
+	.unwrap();
+
+	assert!(exchange_rate.exchange_rate_low.to_string().starts_with("0.49749"));
+	assert!(exchange_rate.exchange_rate_high.to_string().starts_with("0.50251"));
 	assert!(approximated_equality(
 		exchange_rate.exchange_rate_avg.to_string().parse().unwrap(),
 		(exchange_rate.exchange_rate_low.to_string().parse::<f64>().unwrap()
@@ -69,6 +86,28 @@ fn hourly_exchange_rate() {
 		3
 	));
 
+	env.block.time = Timestamp::from_seconds(1725411600);
+	let exchange_rate: ExchangeRateQueryResponse = from_json(
+		query(
+			deps.as_ref(),
+			env.clone(),
+			PoolPairQueryMsg::ExchangeRateHourly { past_hours: Some(1) },
+		)
+		.unwrap(),
+	)
+	.unwrap();
+
+	assert!(exchange_rate.exchange_rate_low.to_string().starts_with("0.49749"));
+	assert!(exchange_rate.exchange_rate_high.to_string().starts_with("0.50251"));
+	assert!(approximated_equality(
+		exchange_rate.exchange_rate_avg.to_string().parse().unwrap(),
+		(exchange_rate.exchange_rate_low.to_string().parse::<f64>().unwrap()
+			+ exchange_rate.exchange_rate_high.to_string().parse::<f64>().unwrap())
+			/ 2.0,
+		3
+	));
+
+	// A new hour's been started, but there are no trades yet. So the default is to return the balance ratio
 	let exchange_rate2: ExchangeRateQueryResponse = from_json(
 		query(
 			deps.as_ref(),
@@ -78,9 +117,9 @@ fn hourly_exchange_rate() {
 		.unwrap(),
 	)
 	.unwrap();
-	assert_eq!(exchange_rate.exchange_rate_avg, exchange_rate2.exchange_rate_avg);
-	assert_eq!(exchange_rate.exchange_rate_low, exchange_rate2.exchange_rate_low);
-	assert_eq!(exchange_rate.exchange_rate_high, exchange_rate2.exchange_rate_high);
+	assert_eq!(exchange_rate2.exchange_rate_avg.to_string(), "0.5");
+	assert_eq!(exchange_rate2.exchange_rate_low.to_string(), "0.5");
+	assert_eq!(exchange_rate2.exchange_rate_high.to_string(), "0.5");
 
 	env.block.time = Timestamp::from_seconds(1725414000);
 	let exchange_rate3: ExchangeRateQueryResponse = from_json(
@@ -98,7 +137,7 @@ fn hourly_exchange_rate() {
 }
 
 #[test]
-fn daily_volume_sum() {
+fn daily_exchange_rate() {
 	let mut deps = deps(&[]);
 	init(&mut deps);
 
@@ -146,8 +185,24 @@ fn daily_volume_sum() {
 	)
 	.unwrap();
 
-	assert!(exchange_rate.exchange_rate_high.to_string().starts_with("0.49749"));
-	assert!(exchange_rate.exchange_rate_low.to_string().starts_with("0.50251"));
+	// The day hasn't passed yet, so we're still at 0
+	assert_eq!(exchange_rate.exchange_rate_high.to_string().as_str(), "0");
+	// Approaching infinity
+	assert_eq!(exchange_rate.exchange_rate_low.to_string().as_str(), "340282366920938463463.374607431768211455");
+	assert_eq!(exchange_rate.exchange_rate_avg.to_string().as_str(), "340282366920938463463.374607431768211455");
+	
+	// ...but we can still get stats for the current day so far.
+	let exchange_rate: ExchangeRateQueryResponse = from_json(
+		query(
+			deps.as_ref(),
+			env.clone(),
+			PoolPairQueryMsg::ExchangeRateDaily { past_days: None },
+		)
+		.unwrap(),
+	)
+	.unwrap();
+	assert!(exchange_rate.exchange_rate_low.to_string().starts_with("0.49749"));
+	assert!(exchange_rate.exchange_rate_high.to_string().starts_with("0.50251"));
 	assert!(approximated_equality(
 		exchange_rate.exchange_rate_avg.to_string().parse().unwrap(),
 		(exchange_rate.exchange_rate_low.to_string().parse::<f64>().unwrap()
@@ -156,6 +211,28 @@ fn daily_volume_sum() {
 		3
 	));
 
+	// It is now the next day
+	env.block.time = Timestamp::from_seconds(1725494400);
+	let exchange_rate: ExchangeRateQueryResponse = from_json(
+		query(
+			deps.as_ref(),
+			env.clone(),
+			PoolPairQueryMsg::ExchangeRateDaily { past_days: Some(1) },
+		)
+		.unwrap(),
+	)
+	.unwrap();
+	assert!(exchange_rate.exchange_rate_low.to_string().starts_with("0.49749"));
+	assert!(exchange_rate.exchange_rate_high.to_string().starts_with("0.50251"));
+	assert!(approximated_equality(
+		exchange_rate.exchange_rate_avg.to_string().parse().unwrap(),
+		(exchange_rate.exchange_rate_low.to_string().parse::<f64>().unwrap()
+			+ exchange_rate.exchange_rate_high.to_string().parse::<f64>().unwrap())
+			/ 2.0,
+		3
+	));
+
+	// A new day's been started, but there are no trades yet. So the default is to return the balance ratio
 	let exchange_rate2: ExchangeRateQueryResponse = from_json(
 		query(
 			deps.as_ref(),
@@ -165,9 +242,9 @@ fn daily_volume_sum() {
 		.unwrap(),
 	)
 	.unwrap();
-	assert_eq!(exchange_rate.exchange_rate_avg, exchange_rate2.exchange_rate_avg);
-	assert_eq!(exchange_rate.exchange_rate_low, exchange_rate2.exchange_rate_low);
-	assert_eq!(exchange_rate.exchange_rate_high, exchange_rate2.exchange_rate_high);
+	assert_eq!(exchange_rate2.exchange_rate_avg.to_string(), "0.5");
+	assert_eq!(exchange_rate2.exchange_rate_low.to_string(), "0.5");
+	assert_eq!(exchange_rate2.exchange_rate_high.to_string(), "0.5");
 
 	env.block.time = Timestamp::from_seconds(1725494401);
 	let exchange_rate3: ExchangeRateQueryResponse = from_json(

@@ -65,6 +65,22 @@ fn hourly_volume_sum() {
 
 	assert_eq!(
 		hourly_volume_sum.volume.each_ref().map(Uint128::u128),
+		[0, 0]
+	);
+
+	env.block.time = Timestamp::from_seconds(1725411002);
+	let hourly_volume_sum: VolumeQueryResponse = from_json(
+		query(
+			deps.as_ref(),
+			env.clone(),
+			PoolPairQueryMsg::HourlyVolumeSum { past_hours: None },
+		)
+		.unwrap(),
+	)
+	.unwrap();
+
+	assert_eq!(
+		hourly_volume_sum.volume.each_ref().map(Uint128::u128),
 		[amt1 + (amt2 * 2 - maker_fee_amt2), (amt1 / 2 - maker_fee_amt1) + amt2]
 	);
 
@@ -135,11 +151,27 @@ fn daily_volume_sum() {
 	let maker_fee_amt2 = maker_fee_from_attrs(res.attributes);
 
 	env.block.time = Timestamp::from_seconds(1725493500);
+
 	let daily_volume_sum: VolumeQueryResponse = from_json(
 		query(
 			deps.as_ref(),
 			env.clone(),
 			PoolPairQueryMsg::DailyVolumeSum { past_days: Some(1) },
+		)
+		.unwrap(),
+	)
+	.unwrap();
+
+	assert_eq!(
+		daily_volume_sum.volume.each_ref().map(Uint128::u128),
+		[0, 0]
+	);
+
+	let daily_volume_sum: VolumeQueryResponse = from_json(
+		query(
+			deps.as_ref(),
+			env.clone(),
+			PoolPairQueryMsg::DailyVolumeSum { past_days: None },
 		)
 		.unwrap(),
 	)
