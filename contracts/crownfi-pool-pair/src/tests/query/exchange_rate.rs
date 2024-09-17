@@ -59,12 +59,12 @@ fn hourly_exchange_rate() {
 	)
 	.unwrap();
 
-	assert!(exchange_rate.exchange_rate_high.starts_with("0.49749"));
-	assert!(exchange_rate.exchange_rate_low.starts_with("0.50251"));
+	assert!(exchange_rate.exchange_rate_high.to_string().starts_with("0.49749"));
+	assert!(exchange_rate.exchange_rate_low.to_string().starts_with("0.50251"));
 	assert!(approximated_equality(
-		exchange_rate.exchange_rate_avg.parse().unwrap(),
-		(exchange_rate.exchange_rate_low.parse::<f64>().unwrap()
-			+ exchange_rate.exchange_rate_high.parse::<f64>().unwrap())
+		exchange_rate.exchange_rate_avg.to_string().parse().unwrap(),
+		(exchange_rate.exchange_rate_low.to_string().parse::<f64>().unwrap()
+			+ exchange_rate.exchange_rate_high.to_string().parse::<f64>().unwrap())
 			/ 2.0,
 		3
 	));
@@ -146,12 +146,12 @@ fn daily_volume_sum() {
 	)
 	.unwrap();
 
-	assert!(exchange_rate.exchange_rate_high.starts_with("0.49749"));
-	assert!(exchange_rate.exchange_rate_low.starts_with("0.50251"));
+	assert!(exchange_rate.exchange_rate_high.to_string().starts_with("0.49749"));
+	assert!(exchange_rate.exchange_rate_low.to_string().starts_with("0.50251"));
 	assert!(approximated_equality(
-		exchange_rate.exchange_rate_avg.parse().unwrap(),
-		(exchange_rate.exchange_rate_low.parse::<f64>().unwrap()
-			+ exchange_rate.exchange_rate_high.parse::<f64>().unwrap())
+		exchange_rate.exchange_rate_avg.to_string().parse().unwrap(),
+		(exchange_rate.exchange_rate_low.to_string().parse::<f64>().unwrap()
+			+ exchange_rate.exchange_rate_high.to_string().parse::<f64>().unwrap())
 			/ 2.0,
 		3
 	));
@@ -212,12 +212,12 @@ fn exchange_rate_all_time() {
 	let exchange_rate: ExchangeRateQueryResponse =
 		from_json(query(deps.as_ref(), env.clone(), PoolPairQueryMsg::ExchangeRateAllTime).unwrap()).unwrap();
 
-	assert!(exchange_rate.exchange_rate_high.starts_with("0.49749"));
-	assert!(exchange_rate.exchange_rate_low.starts_with("0.49749"));
+	assert!(exchange_rate.exchange_rate_high.to_string().starts_with("0.49749"));
+	assert!(exchange_rate.exchange_rate_low.to_string().starts_with("0.49749"));
 	assert!(approximated_equality(
-		exchange_rate.exchange_rate_avg.parse().unwrap(),
-		(exchange_rate.exchange_rate_low.parse::<f64>().unwrap()
-			+ exchange_rate.exchange_rate_high.parse::<f64>().unwrap())
+		exchange_rate.exchange_rate_avg.to_string().parse().unwrap(),
+		(exchange_rate.exchange_rate_low.to_string().parse::<f64>().unwrap()
+			+ exchange_rate.exchange_rate_high.to_string().parse::<f64>().unwrap())
 			/ 2.0,
 		3
 	));

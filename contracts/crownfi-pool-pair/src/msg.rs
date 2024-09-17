@@ -83,9 +83,9 @@ pub struct VolumeQueryResponse {
 #[cw_serde]
 #[derive(Default)]
 pub struct ExchangeRateQueryResponse {
-	pub exchange_rate_low: String,
-	pub exchange_rate_high: String,
-	pub exchange_rate_avg: String,
+	pub exchange_rate_low: Decimal,
+	pub exchange_rate_high: Decimal,
+	pub exchange_rate_avg: Decimal,
 	pub from_timestamp_ms: u64,
 	pub to_timestamp_ms: u64,
 }

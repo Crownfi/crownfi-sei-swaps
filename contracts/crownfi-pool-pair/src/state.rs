@@ -3,7 +3,7 @@ use std::{cmp::Ordering, num::NonZeroU8};
 
 use bitflags::bitflags;
 use bytemuck::{Pod, Zeroable};
-use cosmwasm_std::{Addr, StdError, Timestamp};
+use cosmwasm_std::{Addr, Decimal, StdError, Timestamp};
 use crownfi_cw_common::{
 	data_types::canonical_addr::SeiCanonicalAddr,
 	extentions::timestamp::TimestampExtentions,
@@ -175,15 +175,15 @@ impl ExchangeRatio {
 			*self = value;
 		}
 	}
-	pub fn ratio_into_str(numerator: u128, denominator: u128) -> String {
+	/// Sei's outdated cosmwasm prevents us from using this
+	pub fn ratio_into_f64(numerator: u128, denominator: u128) -> f64 {
 		// A float has a 52 bit mantissa, do as many right-shifts as needed until we get a value which fits into 52
 		// bits.
 		let amount_to_shr = numerator
 			.ilog2()
 			.saturating_sub(52)
 			.max(denominator.ilog2().saturating_sub(52));
-		let res = (numerator >> amount_to_shr) as f64 / (denominator >> amount_to_shr) as f64;
-		res.to_string()
+		(numerator >> amount_to_shr) as f64 / (denominator >> amount_to_shr) as f64
 	}
 }
 impl Ord for ExchangeRatio {
@@ -208,15 +208,19 @@ impl PartialOrd for ExchangeRatio {
 	}
 }
 
-impl From<ExchangeRatio> for String {
+impl From<ExchangeRatio> for Decimal {
 	fn from(value: ExchangeRatio) -> Self {
-		let value = if value.is_inverse() {
-			2147483648.0 / f64::from(value.0)
+		if value.is_inverse() {
+			if value.0 == 0 {
+				// JSON can't do Infinity, so we're gonna approach it as close we can
+				Decimal::MAX
+			} else {
+				Decimal::from_ratio(2147483648u128, value.0)
+				
+			}
 		} else {
-			f64::from(value.0) / 2147483648.0
-		};
-
-		value.to_string()
+			Decimal::from_ratio(value.0, 2147483648u128)
+		}
 	}
 }
 
@@ -481,15 +485,15 @@ impl VolumeStatisticsCounter {
 					to_timestamp_ms: timestamp_ms,
 					exchange_rate_low: all_time.exchange_rate_low.into(),
 					exchange_rate_high: all_time.exchange_rate_high.into(),
-					exchange_rate_avg: ExchangeRatio::ratio_into_str(all_time.amount_right, all_time.amount_left),
+					exchange_rate_avg: Decimal::from_ratio(all_time.amount_right, all_time.amount_left),
 				})
 			})
 			.unwrap_or_else(|| {
 				let exchange_rate = fallback_balances()?;
-				let exchange_rate = ExchangeRatio::ratio_into_str(exchange_rate[1], exchange_rate[0]);
+				let exchange_rate = Decimal::from_ratio(exchange_rate[1], exchange_rate[0]);
 				Ok(ExchangeRateQueryResponse {
-					exchange_rate_low: exchange_rate.clone(),
-					exchange_rate_high: exchange_rate.clone(),
+					exchange_rate_low: exchange_rate,
+					exchange_rate_high: exchange_rate,
 					exchange_rate_avg: exchange_rate,
 					from_timestamp_ms: 0,
 					to_timestamp_ms: timestamp_ms,
@@ -510,7 +514,7 @@ impl VolumeStatisticsCounter {
 				Ok(ExchangeRateQueryResponse {
 					exchange_rate_low: latest_record.exchange_rate_low.into(),
 					exchange_rate_high: latest_record.exchange_rate_high.into(),
-					exchange_rate_avg: ExchangeRatio::ratio_into_str(
+					exchange_rate_avg: Decimal::from_ratio(
 						latest_record.amount_right,
 						latest_record.amount_left,
 					),
@@ -520,10 +524,10 @@ impl VolumeStatisticsCounter {
 			})
 			.unwrap_or_else(|| {
 				let exchange_rate = fallback_balances()?;
-				let exchange_rate = ExchangeRatio::ratio_into_str(exchange_rate[1], exchange_rate[0]);
+				let exchange_rate = Decimal::from_ratio(exchange_rate[1], exchange_rate[0]);
 				Ok(ExchangeRateQueryResponse {
-					exchange_rate_low: exchange_rate.clone(),
-					exchange_rate_high: exchange_rate.clone(),
+					exchange_rate_low: exchange_rate,
+					exchange_rate_high: exchange_rate,
 					exchange_rate_avg: exchange_rate,
 					from_timestamp_ms: timestamp_hour * MILLISECONDS_IN_AN_HOUR,
 					to_timestamp_ms: timestamp_ms,
@@ -548,10 +552,10 @@ impl VolumeStatisticsCounter {
 		let mut record_iter = self.hourly.iter().rev();
 		let Some(first_record) = record_iter.next().transpose()? else {
 			let exchange_rate = fallback_balances()?;
-			let exchange_rate = ExchangeRatio::ratio_into_str(exchange_rate[1], exchange_rate[0]);
+			let exchange_rate = Decimal::from_ratio(exchange_rate[1], exchange_rate[0]);
 			return Ok(ExchangeRateQueryResponse {
-				exchange_rate_low: exchange_rate.clone(),
-				exchange_rate_high: exchange_rate.clone(),
+				exchange_rate_low: exchange_rate,
+				exchange_rate_high: exchange_rate,
 				exchange_rate_avg: exchange_rate,
 				from_timestamp_ms,
 				to_timestamp_ms,
@@ -581,7 +585,7 @@ impl VolumeStatisticsCounter {
 		Ok(ExchangeRateQueryResponse {
 			exchange_rate_low: exchange_rate_low.into(),
 			exchange_rate_high: exchange_rate_high.into(),
-			exchange_rate_avg: ExchangeRatio::ratio_into_str(right_total, left_total),
+			exchange_rate_avg: Decimal::from_ratio(right_total, left_total),
 			from_timestamp_ms,
 			to_timestamp_ms,
 		})
@@ -600,7 +604,7 @@ impl VolumeStatisticsCounter {
 				Ok(ExchangeRateQueryResponse {
 					exchange_rate_low: latest_record.exchange_rate_low.into(),
 					exchange_rate_high: latest_record.exchange_rate_high.into(),
-					exchange_rate_avg: ExchangeRatio::ratio_into_str(
+					exchange_rate_avg: Decimal::from_ratio(
 						latest_record.amount_right,
 						latest_record.amount_left,
 					),
@@ -610,10 +614,10 @@ impl VolumeStatisticsCounter {
 			})
 			.unwrap_or_else(|| {
 				let exchange_rate = fallback_balances()?;
-				let exchange_rate = ExchangeRatio::ratio_into_str(exchange_rate[1], exchange_rate[0]);
+				let exchange_rate = Decimal::from_ratio(exchange_rate[1], exchange_rate[0]);
 				Ok(ExchangeRateQueryResponse {
-					exchange_rate_low: exchange_rate.clone(),
-					exchange_rate_high: exchange_rate.clone(),
+					exchange_rate_low: exchange_rate,
+					exchange_rate_high: exchange_rate,
 					exchange_rate_avg: exchange_rate,
 					from_timestamp_ms: timestamp_day * MILLISECONDS_IN_A_DAY,
 					to_timestamp_ms: timestamp_ms,
@@ -643,10 +647,10 @@ impl VolumeStatisticsCounter {
 
 		let Some(first_record) = record_iter.next().transpose()? else {
 			let exchange_rate = fallback_balances()?;
-			let exchange_rate = ExchangeRatio::ratio_into_str(exchange_rate[1], exchange_rate[0]);
+			let exchange_rate = Decimal::from_ratio(exchange_rate[1], exchange_rate[0]);
 			return Ok(ExchangeRateQueryResponse {
-				exchange_rate_low: exchange_rate.clone(),
-				exchange_rate_high: exchange_rate.clone(),
+				exchange_rate_low: exchange_rate,
+				exchange_rate_high: exchange_rate,
 				exchange_rate_avg: exchange_rate,
 				from_timestamp_ms,
 				to_timestamp_ms,
@@ -672,7 +676,7 @@ impl VolumeStatisticsCounter {
 		Ok(ExchangeRateQueryResponse {
 			exchange_rate_low: exchange_rate_low.into(),
 			exchange_rate_high: exchange_rate_high.into(),
-			exchange_rate_avg: ExchangeRatio::ratio_into_str(right_total, left_total),
+			exchange_rate_avg: Decimal::from_ratio(right_total, left_total),
 			from_timestamp_ms,
 			to_timestamp_ms,
 		})
