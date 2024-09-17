@@ -375,7 +375,12 @@ pub fn process_swap(
 		.then(|| (total_output, payment.amount))
 		.unwrap_or_else(|| (payment.amount, total_output));
 
-	VolumeStatisticsCounter::new()?.update_volumes(env.block.time, amt_left.u128(), amt_right.u128())?;
+	VolumeStatisticsCounter::new()?.update_volumes(
+		env.block.time,
+		amt_left.u128(),
+		amt_right.u128(),
+		payment.inverse,
+	)?;
 
 	let out_coin = coin(swap_result.result_amount.u128(), pool_id.denom(!payment.inverse));
 

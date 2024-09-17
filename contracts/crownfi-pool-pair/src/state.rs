@@ -232,8 +232,38 @@ pub struct TradingVolume {
 	pub exchange_rate_high: ExchangeRatio,
 	pub amount_left: u128,
 	pub amount_right: u128,
+	pub amount_output_normalized: u128,
 }
 impl_serializable_as_ref!(TradingVolume);
+impl TradingVolume {
+	pub fn new(from_time: u64, amount_left: u128, amount_right: u128, output_is_left: bool) -> TradingVolume {
+		let exchange_ratio = ExchangeRatio::from_ratio(amount_right, amount_left);
+		TradingVolume {
+			from_time,
+			exchange_rate_low: exchange_ratio,
+			exchange_rate_high: exchange_ratio,
+			amount_left,
+			amount_right,
+			amount_output_normalized: if output_is_left {
+				amount_left
+			} else {
+				amount_right.saturating_mul(2)
+			},
+		}
+	}
+	pub fn add_volume(&mut self, amount_left: u128, amount_right: u128, output_is_left: bool) {
+		let exchange_ratio = ExchangeRatio::from_ratio(amount_right, amount_left);
+		self.amount_left = self.amount_left.saturating_add(amount_left);
+		self.amount_right = self.amount_right.saturating_add(amount_right);
+		self.exchange_rate_low.set_if_less(exchange_ratio);
+		self.exchange_rate_high.set_if_greater(exchange_ratio);
+		self.amount_output_normalized = self.amount_right.saturating_add(if output_is_left {
+			amount_left
+		} else {
+			amount_right.saturating_mul(2)
+		});
+	}
+}
 
 const MILLISECONDS_IN_AN_HOUR: u64 = 1000 * 60 * 60;
 const MILLISECONDS_IN_A_DAY: u64 = MILLISECONDS_IN_AN_HOUR * 24;
@@ -254,83 +284,64 @@ impl VolumeStatisticsCounter {
 		current_timestamp: Timestamp,
 		amount_left: u128,
 		amount_right: u128,
+		output_is_left: bool,
 	) -> Result<(), StdError> {
 		let timestamp_ms = current_timestamp.millis();
 		let timestamp_hour = timestamp_ms / MILLISECONDS_IN_AN_HOUR;
 		let timestamp_day = timestamp_ms / MILLISECONDS_IN_A_DAY;
-		let exchange_ratio = ExchangeRatio::from_ratio(amount_right, amount_left);
 		if let Some(mut latest_record) = self.hourly.get_back()? {
 			if latest_record.from_time < timestamp_hour {
-				self.hourly.push_back(&TradingVolume {
-					from_time: timestamp_hour,
+				self.hourly.push_back(&TradingVolume::new(
+					timestamp_hour,
 					amount_left,
 					amount_right,
-					exchange_rate_low: exchange_ratio,
-					exchange_rate_high: exchange_ratio,
-				})?;
+					output_is_left,
+				))?;
 			} else {
-				latest_record.amount_left = latest_record.amount_left.saturating_add(amount_left);
-				latest_record.amount_right = latest_record.amount_right.saturating_add(amount_right);
-				latest_record.exchange_rate_low.set_if_less(exchange_ratio);
-				latest_record.exchange_rate_high.set_if_greater(exchange_ratio);
+				latest_record.add_volume(amount_left, amount_right, output_is_left);
 				self.hourly.set_back(&latest_record)?;
 			}
 			if self.hourly.len() > MAX_HOURLY_RETENTION {
 				self.hourly.pop_front()?;
 			}
 		} else {
-			self.hourly.push_back(&TradingVolume {
-				from_time: timestamp_hour,
+			self.hourly.push_back(&TradingVolume::new(
+				timestamp_hour,
 				amount_left,
 				amount_right,
-				exchange_rate_low: exchange_ratio,
-				exchange_rate_high: exchange_ratio,
-			})?;
+				output_is_left,
+			))?;
 		}
 		if let Some(mut latest_record) = self.daily.get_back()? {
 			if latest_record.from_time < timestamp_day {
-				self.daily.push_back(&TradingVolume {
-					from_time: timestamp_day,
+				self.daily.push_back(&TradingVolume::new(
+					timestamp_day,
 					amount_left,
 					amount_right,
-					exchange_rate_low: exchange_ratio,
-					exchange_rate_high: exchange_ratio,
-				})?;
+					output_is_left,
+				))?;
 			} else {
-				latest_record.amount_left = latest_record.amount_left.saturating_add(amount_left);
-				latest_record.amount_right = latest_record.amount_right.saturating_add(amount_right);
-				latest_record.exchange_rate_low.set_if_less(exchange_ratio);
-				latest_record.exchange_rate_high.set_if_greater(exchange_ratio);
+				latest_record.add_volume(amount_left, amount_right, output_is_left);
 				self.daily.set_back(&latest_record)?;
 			}
 			if self.daily.len() > MAX_DAILY_RETENTION {
 				self.daily.pop_front()?;
 			}
 		} else {
-			self.daily.push_back(&TradingVolume {
-				from_time: timestamp_day,
+			self.daily.push_back(&TradingVolume::new(
+				timestamp_day,
 				amount_left,
 				amount_right,
-				exchange_rate_low: exchange_ratio,
-				exchange_rate_high: exchange_ratio,
-			})?;
+				output_is_left,
+			))?;
 		}
 		if let Some(mut all_time) = storage_read_item::<TradingVolume>(VOLUME_STATS_ALL_TIME_NAMESPACE)? {
-			all_time.amount_left = all_time.amount_left.saturating_add(amount_left);
-			all_time.amount_right = all_time.amount_right.saturating_add(amount_right);
-			all_time.exchange_rate_low.set_if_less(exchange_ratio);
-			all_time.exchange_rate_high.set_if_greater(exchange_ratio);
+			all_time.add_volume(amount_left, amount_right, output_is_left);
 			storage_write_item(VOLUME_STATS_ALL_TIME_NAMESPACE, all_time.as_ref())?;
 		} else {
 			storage_write_item(
 				VOLUME_STATS_ALL_TIME_NAMESPACE,
-				&TradingVolume {
-					from_time: timestamp_ms,
-					amount_left,
-					amount_right,
-					exchange_rate_low: exchange_ratio,
-					exchange_rate_high: exchange_ratio,
-				},
+				&TradingVolume::new(timestamp_ms, amount_left, amount_right, output_is_left),
 			)?;
 		}
 		Ok(())
