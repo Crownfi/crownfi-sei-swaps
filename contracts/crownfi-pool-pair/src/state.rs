@@ -394,7 +394,7 @@ impl VolumeStatisticsCounter {
 				to_timestamp_ms,
 			});
 		}
-		let mut earliest_timestamp_hour = u64::MAX;
+		let mut earliest_timestamp_hour = 0;
 		let mut left_total = 0u128;
 		let mut right_total = 0u128;
 		let mut record_iter = self.hourly.iter().rev();
@@ -456,7 +456,7 @@ impl VolumeStatisticsCounter {
 			});
 		}
 
-		let mut earliest_timestamp_day = u64::MAX;
+		let mut earliest_timestamp_day = 0;
 		let mut left_total = 0u128;
 		let mut right_total = 0u128;
 		let mut record_iter = self.daily.iter().rev();
@@ -575,7 +575,7 @@ impl VolumeStatisticsCounter {
 				to_timestamp_ms,
 			});
 		};
-		let mut earliest_timestamp_hour = u64::MAX;
+		let mut earliest_timestamp_hour = 0;
 		let mut exchange_rate_low = ExchangeRatio::MAX;
 		let mut exchange_rate_high = ExchangeRatio::MIN;
 		let mut left_total = 0u128;
@@ -656,7 +656,7 @@ impl VolumeStatisticsCounter {
 		let from_timestamp_day = current_timestamp_day - days.get() as u64;
 		let to_timestamp_ms = current_timestamp_day * MILLISECONDS_IN_A_DAY;
 
-		let mut earliest_timestamp_day = u64::MAX;
+		let mut earliest_timestamp_day = 0;
 		let mut exchange_rate_low = ExchangeRatio::MAX;
 		let mut exchange_rate_high = ExchangeRatio::MIN;
 		let mut left_total = 0u128;
