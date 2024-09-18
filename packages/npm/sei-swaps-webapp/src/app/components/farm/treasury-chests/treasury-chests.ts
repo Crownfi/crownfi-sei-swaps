@@ -5,15 +5,8 @@ import { TokenDisplayElement } from "@crownfi/sei-webui-utils";
 
 export class TreasuryChests extends TreasuryChestsComponentAutogen {
   private loader = '<img class="loading-spinner" width="32" />';
-  private error = '<span class="cicon cicon-size-medium cicon-cry"></span>';
 
   setValue(el: TokenDisplayElement, currency: string, value: bigint) {
-    if (value < 0n) {
-      el.denom = "";
-      el.amount = "";
-      el.innerHTML = this.error;
-      return;
-    }
     el.denom = currency;
     el.amount = value;
   }
