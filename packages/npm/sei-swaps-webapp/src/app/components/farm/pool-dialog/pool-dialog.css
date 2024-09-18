@@ -1,3 +1,7 @@
+dialog[is="pool-dialog-component"] {
+  overflow: hidden;
+}
+
 dialog[is="pool-dialog-component"] > *:not(:first-child) {
   margin-top: var(--spacing-2);
 }
@@ -19,7 +23,7 @@ dialog[is="pool-dialog-component"] .container {
 
 dialog[is="pool-dialog-component"] .grid-container {
   display: grid;
-  grid-template-columns: max-content auto;
+  grid-template-columns: max-content 100%;
   gap: var(--spacing-1);
 }
 
@@ -83,5 +87,12 @@ dialog[is="pool-dialog-component"] .fantasy-input-group {
 
   dialog[is="pool-dialog-component"] .grid-container > *:not(:first-child):nth-child(odd) {
     margin-top: var(--spacing-1);
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  dialog[is="pool-dialog-component"] {
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }

@@ -8,6 +8,10 @@
   flex-direction: column;
 }
 
+.wrap {
+  flex-wrap: wrap;
+}
+
 .align-items-center {
   align-items: center;
 }
