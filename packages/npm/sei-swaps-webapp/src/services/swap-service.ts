@@ -105,7 +105,7 @@ export class SwapService {
     to: UnifiedDenom,
     amount: bigint,
     amountExpected: string,
-    slippageTolerance: number = env.SLIPPAGE_TOLERANCE_PERCENTAGE,
+    slippageTolerance: number = env.SLIPPAGE_TOLERANCE_FRACTION,
   ) {
     const client = await useGetClient();
     const sender = client.account;
@@ -118,7 +118,7 @@ export class SwapService {
       to, 
       slippageTolerance, 
       {
-        slippage_tolerance: `${env.SLIPPAGE_TOLERANCE_PERCENTAGE}`,
+        slippage_tolerance: `${env.SLIPPAGE_TOLERANCE_FRACTION}`,
         expected_amount: amountExpected
       }
     );
@@ -128,7 +128,7 @@ export class SwapService {
     return receipt;
   }
 
-  async executeDeposit(from: BigIntCoin, to: BigIntCoin, slippageTolerance: number = env.SLIPPAGE_TOLERANCE_PERCENTAGE) {
+  async executeDeposit(from: BigIntCoin, to: BigIntCoin, slippageTolerance: number = env.SLIPPAGE_TOLERANCE_FRACTION) {
     const pair = await this.getPair([from.denom, to.denom]);
     if (!pair)
       throw new Error("Invalid pair");
