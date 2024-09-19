@@ -2,12 +2,9 @@ import "@crownfi/sei-webui-utils";
 import "dropdown-menu-element";
 import { q } from "@aritz-cracker/browser-utils";
 
-import "./components/exports.js";
-
 import { SwapService } from "../services/swap-service.js";
 
 import { env } from "../env/index.js";
-import { AppContainer, CurrencySelector } from "./components/exports.js";
 import { useGetClient } from "../hooks/use-get-client.js";
 import { setDefaultNetwork } from "@crownfi/sei-utils";
 
@@ -26,6 +23,8 @@ const SEI_NETWORK_CONNECTED: Promise<void> = new Promise(resolve => {
 
 export async function main() {
 	setDefaultNetwork(env.CHAIN_ID);
+	// We need to import our components after we set the default network, as the components do stuff ASAP
+	const { AppContainer, CurrencySelector } = await import("./components/exports.js");
 
 	await DOM_CONTENT_LOADED;
 	await SEI_NETWORK_CONNECTED;
