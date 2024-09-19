@@ -1,0 +1,32 @@
+<template cewt-name="confirm-swap-dialog-component" cewt-extends="div" cewt-attributes="fromDenom, fromAmount, toDenom, toAmount">
+  <div class="container">
+    <div class="row space-between">
+      <div class="col">
+        <span class="label">From</span>
+        <div class="badge">
+          <span is="token-display" cewt-ref="from"></span>
+        </div>
+      </div>
+
+      <span class="cicon cicon-gradient primary cicon-size-large cicon-fantasy-arrow-right"></span>
+
+      <div class="col">
+        <span class="label">To</span>
+        <div class="badge">
+          <span is="token-display" cewt-ref="to"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="row gap-1">
+      <span class="label">Slippage tolerance</span>
+      <span class="badge" cewt-ref="slippage-amount">0.50%</span>
+    </div>
+  </div>
+
+  <p class="important-note warning">
+    These values aren't guaranteed as other trades may be processed before yours.
+  </p>
+</template>

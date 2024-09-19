@@ -1,3 +1,7 @@
+@import url("~@crownfi/css-gothic-fantasy");
+@import url("~@crownfi/sei-webui-utils");
+
 @import url("./common.css");
-@import url("./desktop.css");
-/* TODO: MOBILE */
+@import url("./fonts.css");
+@import url("./components.css");
+@import url("./utils.css");

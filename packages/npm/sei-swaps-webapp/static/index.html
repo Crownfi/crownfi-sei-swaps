@@ -3,72 +3,24 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<link href="/bundles/main.css" rel="stylesheet" />
-		<script async src="/bundles/main.js"></script>
+
 		<title>CrownFi Swaps</title>
+
+		<link href="/bundles/main.css" rel="stylesheet" />
+
+		<script async src="/bundles/main.js"></script>
 	</head>
 	<body>
-		<div class="header">
-			<div class="header-logo">
-				<img class="crown" src="/assets/crown-logo.svg" />
-				<img class="text-crown" src="/assets/logo-text/crown.svg" />
-				<img class="text-fi" src="/assets/logo-text/fi.svg" />
-				<img class="text-finance" src="/assets/logo-text/finance.svg" />
-			</div>
-			<div class="header-links">
-				<a id="swap-link" href="#">
-					<svg
-						width="78"
-						height="78"
-						viewBox="0 0 78 78"
-						xmlns="http://www.w3.org/2000/svg"
-						xmlns:svg="http://www.w3.org/2000/svg"
-					>
-						<path
-							style="fill: none; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round"
-							d="m 15,17 v 40 c 0,4.287187 2.287187,8.24871 6,10.392304 3.712813,2.143594 8.287188,2.143595 12,0 C 36.712813,65.248711 39,61.287187 39,57 V 21 c 0,-4.287187 2.287187,-8.250517 6,-10.394111 3.712813,-2.1435936 8.287188,-2.1435932 12,0 C 60.712813,12.749484 63,16.712813 63,21 v 40"
-						/>
-						<path
-							style="stroke-width: 6; stroke-linecap: round; stroke-linejoin: round"
-							d="M 6,18 H 24 L 15,8 Z"
-						/>
-						<path
-							style="stroke-width: 6; stroke-linecap: round; stroke-linejoin: round"
-							d="m 54,60 h 18 l -9,10 z"
-						/>
-					</svg>
-					<span>Swap</span>
-				</a>
-				<a id="farm-link" href="#">
-					<svg
-						width="78"
-						height="78"
-						viewBox="0 0 78 78"
-						xmlns="http://www.w3.org/2000/svg"
-						xmlns:svg="http://www.w3.org/2000/svg"
-					>
-						<path
-							style="stroke: none"
-							;
-							d="m 3.99686,1.24258 c -4.84934,22.56018 -4.87218,34.52701 6.94727,43.66211 2.75874,2.13218 6.24891,3.28774 9.70703,3.375 -1.11201,-4.81165 -1.14404,-10.10252 0.40039,-15.08399 -2.30514,-3.41178 -4.42485,-7.06617 -7.31836,-11.85547 -0.85661,-1.41845 -0.401,-3.26275 1.01758,-4.11914 0.68103,-0.41091 1.49736,-0.53456 2.26953,-0.34375 0.77197,0.19095 1.43655,0.6806 1.84766,1.36133 2.0662,3.41995 3.67272,6.16621 5.19336,8.61133 0.91203,-1.36366 1.98305,-2.66911 3.23437,-3.89258 2.97961,-2.91327 5.79854,-5.30755 8.55664,-7.24414 C 29.74787,6.33333 14.18734,3.61293 3.99686,1.24258 Z"
-						/>
-						<path
-							style="stroke: none"
-							;
-							d="m 61.70976,14.68984 c -12.29326,-0.0713 -18.83565,1.42508 -30.22071,12.55664 -9.27981,9.07321 -5.96997,23.66219 1.06446,31.40821 -2.05906,4.24746 -4.0058,8.84862 -5.89454,14.08398 -0.56205,1.5587 0.24595,3.2779 1.80469,3.83984 1.55814,0.56225 3.2771,-0.24477 3.83985,-1.80273 1.64121,-4.54927 3.30534,-8.56678 5.78117,-13.61001 7.73388,-15.75375 16.76259,-26.51684 22.90437,-32.72788 1.16504,-1.17777 3.06421,-1.18826 4.24219,-0.0234 1.17907,1.16526 1.18957,3.06593 0.0234,4.24414 C 56.50804,41.50388 50.10855,50.51595 43.28589,64.18207 78.99911,69.87572 78.27213,30.8881 76.31128,14.9848 70.54287,14.9112 65.80746,14.71364 61.70972,14.68988 Z"
-						/>
-					</svg>
-					<span>Farm</span>
-				</a>
-			</div>
-			<div class="user-options">
-				<button class="primary" is="wallet-button"></button>
-			</div>
-		</div>
+		<div is="navbar-component"></div>
+
 		<div id="main-content"></div>
-		<div id="loading-cover">
-			<img src="/assets/lazy-load.svg" />
-			<span id="loading-text"></span>
-		</div>
+
+		<dialog open id="main_loading_cover" aria-labelledby="main_loading_text">
+			<div class="main_loading_spinner" aria-label="Loading spinner">
+				<div class="main_loading_brand"></div>
+			</div>
+			<div id="main_loading_text"><noscript>This web application cannot function with JavaScript disabled</noscript></div>
+			<script>main_loading_text.innerHTML = "";</script>
+		</dialog>
 	</body>
 </html>

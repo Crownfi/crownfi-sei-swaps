@@ -1,0 +1,32 @@
+<template cewt-name="swap-from-component" cewt-extends="div" cewt-attributes="token,tokens">
+  <div class="labels-row">
+    <span>From:</span>
+    <div>
+      Balance: <span cewt-ref="balance-amount">0</span>
+    </div>
+  </div>
+
+  <div class="fantasy-input-group">
+    <button is="token-dropdown-component" id="from-token-dropdown" cewt-ref="dropdown"></button>
+
+    <div class="slider-container">
+      <div class="slider-amounts">
+        <input cewt-ref="selected-amount" type="number" value="0" min="0" step="0.01" />
+        <!-- <span cewt-ref="selected-converted-amount" class="text-fantasy converted-amount">~ $0</span> -->
+      </div>
+
+      <div class="slider">
+        <input type="range" list="token_range_tickmarks" min="0" max="100" value="0" cewt-ref="amount-slider">
+        <span cewt-ref="current-percentage" class="text-fantasy">0%</span>
+      </div>
+
+      <datalist id="token_range_tickmarks">
+        <option value="25"></option>
+        <option value="50"></option>
+        <option value="75"></option>
+        <option value="90"></option>
+        <option value="100"></option>
+      </datalist>
+    </div>
+  </div>
+</template>

@@ -1,0 +1,17 @@
+<template cewt-name="app-container-component" cewt-extends="main">
+  <div-transitionful class="container framed-box-small-smooth" id="transition-container">
+    <menu is="fantasy-tabs" cewt-ref="app-tabs">
+      <li data-value="farm">
+        <span class="cicon cicon-size-large cicon-fantasy-farm cicon-gradient primary"></span>
+        <span class="text-large">FARM</span>
+      </li>
+  
+      <li data-value="swap">
+        <span class="cicon cicon-size-large cicon-fantasy-arrows-clockwise cicon-gradient primary"></span>
+        <span class="text-large">SWAP</span>
+      </li>
+    </menu>
+
+    <div cewt-ref="app-content" id="app-content"></div>
+  </div-transitionful>
+</template>

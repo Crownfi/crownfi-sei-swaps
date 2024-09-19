@@ -54,7 +54,7 @@ function normalizePayloadCoin(amount: string | bigint | Coin | IBigIntCoin, fall
 	return (typeof amount == "object" ? new BigIntCoin(amount) : new BigIntCoin(amount, fallbackDenom)).intoCosmCoin();
 }
 function assertValidDenom(amount: string | bigint | Coin | IBigIntCoin, ...validDenoms: string[]) {
-	if (typeof amount == "object" && validDenoms.indexOf(amount.denom) != -1) {
+	if (typeof amount == "object" && validDenoms.indexOf(amount.denom) === -1) {
 		throw new InvalidDenomError(amount.denom, validDenoms);
 	}
 }
@@ -771,6 +771,10 @@ export class SwapMarketPair<Q extends QueryClient & WasmExtension = QueryClient 
 			to: new Date(result.to_timestamp_ms)
 		}
 	}
+
+	async getEstimatedAPYPastDays(past_days: number) {
+		return this.contract.queryEstimateApy({ past_days });
+	}
 }
 
 export type SwapMarketSwapSimResult = SwapRouterSimulateSwapsResponse & {
@@ -1035,7 +1039,7 @@ export class SwapMarket<Q extends QueryClient & WasmExtension = QueryClient & Wa
 		}
 
 		const swappers = route.map(pair => {
-			const pairAddress = this.getPair(pair, true)?.contract?.address;
+		const pairAddress = this.getPair(pair, true)?.contract?.address;
 			
 			if (!pairAddress)
 				throw new Error("Invalid pair");
@@ -1140,7 +1144,7 @@ export class SwapMarket<Q extends QueryClient & WasmExtension = QueryClient & Wa
 	async simulateSwap(
 		offer: Coin | IBigIntCoin,
 		askDenom: UnifiedDenom
-	): Promise<SwapMarketSwapSimResult | void> {	
+	): Promise<SwapMarketSwapSimResult> {	
 		if (offer.denom == askDenom) {
 			throw new Error("Trading input denom must differ from trading output denom");
 		}
@@ -1155,7 +1159,7 @@ export class SwapMarket<Q extends QueryClient & WasmExtension = QueryClient & Wa
 		let naive_result_amount = BigInt(offer.amount);
 
 		for (const [from, to] of route) {
-			const poolPair = this.getPair([from, to]);
+			const poolPair = this.getPair([from, to], true);
 
 			if (!poolPair)
 				throw new Error("Pair not found");
@@ -1169,7 +1173,7 @@ export class SwapMarket<Q extends QueryClient & WasmExtension = QueryClient & Wa
 			naive_result_amount = BigInt(naiveSwap.result_amount);
 		}
 
-		const slip_amount = result_amount - naive_result_amount;
+		const slip_amount = naive_result_amount - result_amount;
 
 		return {
 			result_amount: result_amount.toString(),

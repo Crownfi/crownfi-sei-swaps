@@ -1,0 +1,66 @@
+<template cewt-name="empty-separator" cewt-extends="tr">
+  <td style="padding: 4px; background: transparent;" colspan="7"></td>
+</template>
+
+<template cewt-name="filter-separator" cewt-extends="tr">
+  <td style="padding: 4px; background: transparent;" colspan="7">
+    <hr class="pattern-stretch-auto" />
+  </td>
+</template>
+
+<template cewt-name="farm-component" cewt-extends="div">
+  <div class="mb-4">
+    <div is="treasury-chests-component"></div>
+  </div>
+
+  <div class="filters-container mb-4">
+    <div class="fantasy-input-group search">
+      <span></span>
+      <input type="text" placeholder="Search..." cewt-ref="search-input" />
+      <span class="cicon cicon-fantasy-search cicon-size-small primary cicon-gradient"></span>
+    </div>
+
+    <button class="filter" is="farm-filters-component" cewt-ref="filter-button"></button>
+
+    <button class="sort" is="sort-by-component" cewt-ref="sort-by"></button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>
+          <div class="overlapping-icons">
+            <i class="cicon cicon-size-xsmall cicon-fantasy-crown primary"></i>
+            <i class="cicon cicon-size-xsmall cicon-fantasy-crown primary"></i>
+          </div>
+        </th>
+
+        <th class="pools-col">
+          Pools
+        </th>
+
+        <th>
+          Exchange Rate
+        </th>
+
+        <th class="deposits-col">
+          Total Deposits
+        </th>
+
+        <th class="fee-col">
+          Fee Rate
+        </th>
+
+        <th class="apy-col">
+          APY
+        </th>
+
+        <th></th>
+      </tr>
+    </thead>
+
+    <tbody cewt-ref="pools-list">
+      
+    </tbody>
+  </table>
+</template>

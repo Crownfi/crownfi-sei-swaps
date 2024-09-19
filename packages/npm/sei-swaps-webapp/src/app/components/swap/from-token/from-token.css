@@ -1,0 +1,75 @@
+div[is="swap-from-component"] .fantasy-input-group {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--spacing-2);
+  min-height: 70px;
+}
+
+div[is="swap-from-component"] .labels-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0px 10px;
+  color: var(--colour-neutral-secondary);
+  font-weight: 400;
+  font-size: var(--font-size-small);
+}
+
+div[is="swap-from-component"] .labels-row > div {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+div[is="swap-from-component"] .slider-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+div[is="swap-from-component"] .slider-amounts > input {
+  width: 100%;
+}
+
+div[is="swap-from-component"] .slider-container .slider-amounts {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin-bottom: var(--spacing-1);
+  width: 100%;
+  padding: 0 calc(var(--spacing-1) / 2);
+}
+
+div[is="swap-from-component"] .slider-container .slider {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--spacing-1);
+  width: 100%;
+}
+
+div[is="swap-from-component"] .slider-container .slider-amounts .amount {
+  font-size: var(--font-size-xlarge);
+  color: var(--colour-secondary-500);
+}
+
+div[is="swap-from-component"] .slider-container .slider-amounts .converted-amount {
+  font-size: var(--font-size-normal);
+  color: var(--colour-secondary-500);
+}
+
+div[is="swap-from-component"] .slider-container .slider-amounts input[type=number]::-webkit-inner-spin-button, 
+.swap-coin-inputs input[type=number]::-webkit-outer-spin-button { 
+	-webkit-appearance: none;
+  margin: 0;
+}
+div[is="swap-from-component"] .slider-container .slider-amounts input[type=number] {
+	-moz-appearance: textfield;
+}
+
+@media screen and (max-width: 768px) {
+  div[is="swap-from-component"] .labels-row {
+    color: var(--colour-secondary-500);
+  }
+}

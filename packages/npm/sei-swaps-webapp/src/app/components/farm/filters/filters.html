@@ -1,0 +1,18 @@
+<template cewt-name="farm-filters-component" cewt-extends="button">
+  Filters
+  <span class="cicon cicon-fantasy-controls cicon-size-small primary cicon-gradient"></span>
+  <dropdown-menu 
+    click-trigger="primary"
+    linked-elements="button:has(#this)" 
+    open-position="element-bottom-rightward"
+  >
+    <dropdown-menu-item>
+      <span>My Pools</span>
+      <input type="checkbox" name="filters" cewt-ref="my-pools" />
+    </dropdown-menu-item>
+
+    <dropdown-menu-item disabled>
+      <span>Crownfi Endorsed</span>
+      <input type="checkbox" name="filters" cewt-ref="crownfi-endorsed" />
+    </dropdown-menu-item>
+</template>

@@ -1,0 +1,98 @@
+dialog[is="pool-dialog-component"] {
+  overflow: hidden;
+}
+
+dialog[is="pool-dialog-component"] > *:not(:first-child) {
+  margin-top: var(--spacing-2);
+}
+
+dialog[is="pool-dialog-component"] .close-button, .close-button:focus, .close-button:focus-visible, .close-button:active {
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
+
+dialog[is="pool-dialog-component"] .container {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-2);
+  border: 1px dashed var(--colour-primary-500);
+  border-radius: 8px;
+}
+
+dialog[is="pool-dialog-component"] .grid-container {
+  display: grid;
+  grid-template-columns: max-content 100%;
+  gap: var(--spacing-1);
+}
+
+dialog[is="pool-dialog-component"] .badge {
+  border: 1px solid var(--colour-primary-500);
+  border-radius: 4px;
+  padding: 4px 8px 4px 8px;
+  background-color: var(--colour-primary-800);
+  width: max-content;
+}
+
+dialog[is="pool-dialog-component"] .math-symbol {
+  font-weight: bolder;
+  color: var(--colour-secondary-900);
+  font-size: var(--font-size-medium);
+}
+
+dialog[is="pool-dialog-component"] .container .row {
+  display: flex;
+  align-items: center;
+}
+
+dialog[is="pool-dialog-component"] .container .space-between {
+  justify-content: space-between;
+}
+
+dialog[is="pool-dialog-component"] .container .gap-1 {
+  gap: var(--spacing-1);
+}
+
+dialog[is="pool-dialog-component"] .container .col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+dialog[is="pool-dialog-component"] .label {
+  font-weight: 500;
+  color: var(--colour-neutral-secondary);
+}
+
+dialog[is="pool-dialog-component"] .submit-button {
+  font-size: var(--font-size-medium);
+}
+
+dialog[is="pool-dialog-component"] .fantasy-input-group {
+  min-height: 54px;
+  border-image-outset: 4px;
+}
+
+@media screen and (max-width: 425px) {
+  dialog[is="pool-dialog-component"] {
+    overflow-x: hidden;
+    min-width: 100vw;
+  }
+
+  dialog[is="pool-dialog-component"] .grid-container {
+    grid-template-columns: auto;
+    gap: 0;
+  }
+
+  dialog[is="pool-dialog-component"] .grid-container > *:not(:first-child):nth-child(odd) {
+    margin-top: var(--spacing-1);
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  dialog[is="pool-dialog-component"] {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}

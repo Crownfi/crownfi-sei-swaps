@@ -1,0 +1,58 @@
+main[is="app-container-component"] {
+  min-width: max-content;
+  margin-bottom: 64px;
+}
+
+main[is="app-container-component"] > .container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-6);
+  width: 100%;
+  padding: var(--spacing-7);
+  box-sizing: border-box;
+}
+
+main[is="app-container-component"] > .container >  menu[is="fantasy-tabs"] {
+  gap: var(--spacing-7);
+}
+
+main[is="app-container-component"] menu[is="fantasy-tabs"] li {
+  padding: var(--spacing-3);
+  cursor: pointer;
+}
+
+main[is="app-container-component"] menu[is="fantasy-tabs"] li span + span{
+  margin-top: var(--spacing-1);
+}
+
+main[is="app-container-component"] #app-content {
+  width: 100%;
+}
+
+main[is="app-container-component"] #transition-container {
+  height: min-content !important;
+}
+
+@media screen and (max-width: 425px) {
+  main[is="app-container-component"] {
+    margin-bottom: 100px;
+  }
+
+  main[is="app-container-component"] > .container {
+    padding: var(--spacing-1);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  main[is="app-container-component"] > .container {
+    background: none;
+    border: none;
+  }
+}
+
+@media screen and (min-width: 426px) and (max-width: 1260px) {
+  main[is="app-container-component"] > .container {
+    padding: var(--spacing-3);
+  }
+}
