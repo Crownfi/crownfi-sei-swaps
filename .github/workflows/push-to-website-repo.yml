@@ -23,7 +23,6 @@ jobs:
           echo "registry=https://npm.crownfi.io/" >> ~/.npmrc
       - name: "Build site"
         run: |
-          source "$GITHUB_WORKSPACE"/scripts/chain_configs/"$GITHUB_REF_NAME".env
           cd "$GITHUB_WORKSPACE"/packages/npm/token-wrapper-sdk
           npm install
           npm run build
@@ -32,7 +31,7 @@ jobs:
           npm run build
           cd "$GITHUB_WORKSPACE"/packages/npm/sei-swaps-webapp
           npm install
-          npm run build:final
+          source "$GITHUB_WORKSPACE"/scripts/chain_configs/"$GITHUB_REF_NAME".env && npm run build:final
       - name: "Commit and push to website output repo"
         run: |
           cd /tmp
