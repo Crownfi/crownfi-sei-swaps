@@ -9,6 +9,7 @@ import { SwapService } from "../services/swap-service.js";
 import { env } from "../env/index.js";
 import { AppContainer, CurrencySelector } from "./components/exports.js";
 import { useGetClient } from "../hooks/use-get-client.js";
+import { setDefaultNetwork } from "@crownfi/sei-utils";
 
 export let swapService: SwapService;
 
@@ -24,7 +25,7 @@ const SEI_NETWORK_CONNECTED: Promise<void> = new Promise(resolve => {
 });
 
 export async function main() {
-	// setDefaultNetwork(env.CHAIN_ID);
+	setDefaultNetwork(env.CHAIN_ID);
 
 	await DOM_CONTENT_LOADED;
 	await SEI_NETWORK_CONNECTED;
