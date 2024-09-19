@@ -41,5 +41,5 @@ jobs:
           rm -rf *
           cp -R "$GITHUB_WORKSPACE"/packages/npm/sei-swaps-webapp/dist/* .
           git add .
-          git commit -m "Rebuild court-coordinator from $GITHUB_REF_NAME branch"
+          git commit -m "Rebuild crownfi-sei-swaps from $GITHUB_REF_NAME branch"
           git push origin "$GITHUB_REF_NAME"
