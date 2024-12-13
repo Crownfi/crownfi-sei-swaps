@@ -1,0 +1,25 @@
+[package]
+name = "crownfi-cw20-wrapper"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+library = []
+
+[dependencies]
+crownfi-swaps-common = { path = "../../packages/cargo/crownfi-swaps-common" }
+cw2 = { workspace = true }
+cw20 = { workspace = true }
+cw-utils = { workspace = true }
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+thiserror = { workspace = true }
+sei-cosmwasm = { workspace = true }
+crownfi-cw-common = { workspace = true }
+base32 = "0.5.0"
+
+[dev-dependencies]
+cw-multi-test = "0.20.0"

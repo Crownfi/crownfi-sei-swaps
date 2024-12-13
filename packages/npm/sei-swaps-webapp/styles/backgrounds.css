@@ -1,9 +1,0 @@
-body {
-	margin: 0;
-	background-position: bottom left;
-	background-size: cover;
-	background-image: url("/assets/backgrounds/map-background-cropped.png");
-	background-blend-mode: screen;
-	background-color: #333;
-	min-height: 100vh;
-}

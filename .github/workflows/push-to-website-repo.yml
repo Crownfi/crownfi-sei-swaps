@@ -1,0 +1,45 @@
+name: Push to website repo
+on: push
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: "contains('refs/heads/testnet refs/heads/main', github.ref)"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: "Set git user name config"
+        run: |
+          git config --global user.name "CrownFi Automata"
+          git config --global user.email "179398286+CrownFi-Automata@users.noreply.github.com"
+      - name: Write SSH keys
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY_AUTOMATA }}" > ~/.ssh/id_rsa
+      - name: Set .npmrc
+        run: |
+          echo "${{ secrets.NPMRC_CROWNFI_AUTHTOKEN_AUTOMATA }}" > ~/.npmrc
+          echo "registry=https://npm.crownfi.io/" >> ~/.npmrc
+      - name: "Build site"
+        run: |
+          source "$GITHUB_WORKSPACE"/scripts/chain_configs/"$GITHUB_REF_NAME".env
+          cd "$GITHUB_WORKSPACE"/packages/npm/token-wrapper-sdk
+          npm install
+          npm run build
+          cd "$GITHUB_WORKSPACE"/packages/npm/sei-swaps-sdk
+          npm install
+          npm run build
+          cd "$GITHUB_WORKSPACE"/packages/npm/sei-swaps-webapp
+          npm install
+          npm run build:final
+      - name: "Commit and push to website output repo"
+        run: |
+          cd /tmp
+          git clone -b "$GITHUB_REF_NAME" git@github.com:Crownfi/www.crownfi.io.git
+          cd www.crownfi.io/swap-pools
+          rm -rf *
+          cp -R "$GITHUB_WORKSPACE"/packages/npm/sei-swaps-webapp/dist/* .
+          git add .
+          git commit -m "Rebuild court-coordinator from $GITHUB_REF_NAME branch"
+          git push origin "$GITHUB_REF_NAME"

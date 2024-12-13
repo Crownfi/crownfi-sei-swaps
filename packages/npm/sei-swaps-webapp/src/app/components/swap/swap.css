@@ -1,0 +1,48 @@
+div[is="swap-component"] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  width: 100%;
+}
+
+div[is="swap-component"] > div {
+  width: 100%;
+}
+
+div[is="swap-component"] .arrow {
+  margin-top: -6px;
+  margin-bottom: -23px;
+  padding: var(--spacing-1);
+}
+
+div[is="swap-component"] .swap-button-container {
+  margin-top: var(--spacing-4);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-1);
+  color: var(--colour-neutral-secondary);
+}
+
+div[is="swap-component"] .swap-button {
+  color: var(--colour-neutral-primary);
+}
+
+div[is="swap-component"] .warning-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: calc(var(--spacing-1) / 2);
+  padding: 0 var(--spacing-1);
+}
+
+div[is="swap-component"] .warning-container .important-note {
+  width: 100%;
+  padding: var(--spacing-1) var(--spacing-2);
+}
+
+@media screen and (max-width: 768px) {
+  div[is="swap-component"] .fantasy-input-group {
+    background-color: var(--colour-primary-800);
+  }
+}

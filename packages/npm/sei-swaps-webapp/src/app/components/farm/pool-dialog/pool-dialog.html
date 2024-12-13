@@ -1,0 +1,111 @@
+<template cewt-name="pool-dialog-component" cewt-extends="dialog">
+  <h1>
+    <div class="row align-items-center justify-content-between">
+      Pool Details
+
+      <button class="button close-button" cewt-ref="close-button">
+        <span class="cicon cicon-close primary cicon-size-small cicon-gradient"></span>
+      </button>
+    </div>
+  </h1>
+
+  <div class="container">
+    <div class="grid-container">
+      <div class="row align-items-center">
+        <span class="label">Pools</span>
+      </div>
+
+      <div class="row align-items-center gap-1">
+        <div class="row gap-1 align-items-center badge">
+          <span cewt-ref="fromSymbol">-</span>
+          <img is="token-icon" height="16" cewt-ref="fromIcon" />
+          <span cewt-ref="fromName">-</span>
+        </div>
+
+        <div class="row gap-1 align-items-center badge">
+          <span cewt-ref="toSymbol">-</span>
+          <img is="token-icon" height="16" cewt-ref="toIcon" />
+          <span cewt-ref="toName">-</span>
+        </div>
+      </div>
+
+      <div class="row align-items-center">
+        <span class="label">Total Deposits</span>
+      </div>
+
+      <div class="row align-items-center gap-1 wrap">
+        <div class="badge row align-items-center gap-1">
+          <span cewt-ref="totalDepositsFromAmount">0</span>
+          <img is="token-icon" height="16" cewt-ref="totalDepositsFromIcon" />
+        </div>
+        <span class="math-symbol">&#43;</span>
+        <div class="badge row align-items-center gap-1">
+          <span cewt-ref="totalDepositsToAmount">0</span>
+          <img is="token-icon" height="16" cewt-ref="totalDepositsToIcon" />
+        </div>
+        <span class="math-symbol">&#8773;</span>
+        <span class="badge" is="token-display" cewt-ref="totalDepositsNormalized"></span>
+      </div>
+
+      <div class="row align-items-center">
+        <span class="label">Share Values</span>
+      </div>
+
+      <div class="row align-items-center gap-1 wrap">
+        <div class="badge row align-items-center gap-1">
+          <span cewt-ref="shareValueFromAmount">0</span>
+          <img is="token-icon" height="16" cewt-ref="shareValueFromIcon" />
+        </div>
+        <span class="math-symbol">&#43;</span>
+        <div class="badge row align-items-center gap-1">
+          <span cewt-ref="shareValueToAmount">0</span>
+          <img is="token-icon" height="16" cewt-ref="shareValueToIcon" />
+        </div>
+        <span class="math-symbol">&#8773;</span>
+        <span class="badge" is="token-display" cewt-ref="shareValuesNormalized"></span>
+      </div>
+
+      <div class="row align-items-center">
+        <span class="label">Exchange Rate</span>
+      </div>
+
+      <div class="row align-items-center gap-2 badge">
+        <div class="row align-items-center gap-1">
+          <span cewt-ref="exchangeRateFromAmount">0</span>
+          <img is="token-icon" height="16" cewt-ref="exchangeRateFromIcon" />
+        </div>
+        <span class="math-symbol">&#61;</span>
+        <div class="row align-items-center gap-1">
+          <span cewt-ref="exchangeRateToAmount">0</span>
+          <img is="token-icon" height="16" cewt-ref="exchangeRateToIcon" />
+        </div>
+      </div>
+
+      <div class="row align-items-center">
+        <span class="label">Pool Shares</span>
+      </div>
+
+      <div class="row align-items-center gap-1">
+        <span class="badge" cewt-ref="poolSharesValue">0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="row align-items-center justify-content-center gap-2 mb-1">
+      <label class="button fantasy primary">
+        <span>Deposit</span>
+        <input type="radio" name="operation" value="deposit" checked cewt-ref="operationDeposit" />
+      </label>
+
+      <label class="button fantasy primary">
+        <span>Withdraw</span>
+        <input type="radio" name="operation" value="withdraw" cewt-ref="operationWithdraw" />
+      </label>
+    </div>
+
+    <div cewt-ref="form-container">
+
+    </div>
+  </div>
+</template>

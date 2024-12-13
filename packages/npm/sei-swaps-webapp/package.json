@@ -6,6 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"start": "http-server -p 8080 -c-1 ./dist",
+		"dev": "npm run start & webpack --mode=development --watch",
 		"build": "rm -rf dist/* && mkdir -p dist && npm run build:webpack && npm run build:copy-assets && npm run build:copy-static",
 		"build:webpack": "webpack --mode=development",
 		"build:webpack:final": "webpack --mode=production",
@@ -13,21 +14,26 @@
 		"build:copy-static": "cp -R ./static/* ./dist/",
 		"build:final": "rm -rf dist/* && mkdir -p dist && npm run build:webpack:final && npm run build:copy-assets && npm run build:copy-static",
 		"bloat-finder": "webpack --json > stats.json",
-		"codegen": "cewt codegen --inline-html ./src/app"
+		"codegen": "cewt codegen --inline-html --extended-form-controls --external-custom-element \"<span is=\\\"token-display\\\"> TokenDisplayElement from @crownfi/sei-webui-utils\" ./src"
 	},
 	"dependencies": {
+		"@aritz-cracker/browser-utils": "^1.3.2",
 		"@cosmjs/cosmwasm-stargate": "^0.32.2",
 		"@cosmjs/proto-signing": "^0.32.2",
 		"@cosmjs/stargate": "^0.32.2",
-		"@crownfi/sei-js-core": "^4.0.0-beta.1",
-		"@crownfi/sei-utils": "^0.2.12",
-		"@crownfi/sei-swaps-sdk": "^0.8.0"
+		"@crownfi/css-gothic-fantasy": "^1.8.2",
+		"@crownfi/sei-js-core": "^5.2.5",
+		"@crownfi/sei-swaps-sdk": "^0.9.0",
+		"@crownfi/sei-utils": "^0.3.21",
+		"@crownfi/sei-webui-utils": "^0.3.19",
+		"dropdown-menu-element": "^1.3.0"
 	},
 	"devDependencies": {
 		"@ungap/custom-elements": "^1.3.0",
 		"buffer-lite": "^2.0.1",
 		"css-loader": "^6.8.1",
 		"css-minimizer-webpack-plugin": "^5.0.1",
+		"dotenv-webpack": "^8.1.0",
 		"http-server": "^14.1.1",
 		"mini-css-extract-plugin": "^2.7.6",
 		"ts-loader": "^9.4.4",

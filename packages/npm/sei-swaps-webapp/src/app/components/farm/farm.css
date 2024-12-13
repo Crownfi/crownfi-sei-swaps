@@ -1,0 +1,259 @@
+div[is="farm-component"] {
+  width: 100%;
+}
+
+div[is="farm-component"] table {
+  width: 100%;
+}
+
+
+div[is="farm-component"] table thead {
+  margin-bottom: var(--spacing-1);
+}
+
+div[is="farm-component"] table thead tr {
+  font-synthesis: weight small-caps position;
+	font-family: var(--font-family-fantasy);
+  background: none;
+}
+
+div[is="farm-component"] table th, td {
+  border: none;
+}
+
+div[is="farm-component"] table thead tr th {
+  font-size: var(--font-size-xlarge);
+  color: var(--colour-neutral-primary);
+  font-weight: 400;
+  padding: 0 var(--spacing-3);
+  padding-bottom: var(--spacing-1);
+}
+
+div[is="farm-component"] table thead tr th:first-child {
+  padding-left: var(--spacing-2);
+}
+
+div[is="farm-component"] table thead tr th:last-child {
+  padding-right: var(--spacing-2);
+}
+
+div[is="farm-component"] .fantasy-menu-item-block {
+  background: linear-gradient(180deg, var(--colour-primary-900) 0%, #1F1A24 100%);
+}
+
+div[is="farm-component"] .fantasy-menu-item-block td {
+  padding: var(--spacing-1) var(--spacing-3);
+}
+
+div[is="farm-component"] .fantasy-menu-item-block td:first-child {
+  padding-left: var(--spacing-2);
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+div[is="farm-component"] .fantasy-menu-item-block td:last-child {
+  padding-right: var(--spacing-2);
+}
+
+div[is="farm-component"] .fantasy-menu-item-block:hover {
+  border: 1px solid transparent;
+}
+
+div[is="farm-component"] .fantasy-menu-item-block .badge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  border: 1px solid var(--colour-primary-500);
+  border-radius: 4px;
+  padding: 4px 8px 4px 8px;
+  background-color: var(--colour-primary-800);
+  width: max-content;
+}
+
+div[is="farm-component"] .fantasy-menu-item-block .equals {
+  font-weight: bolder;
+  color: var(--colour-secondary-900);
+  font-size: var(--font-size-medium);
+}
+
+div[is="farm-component"] .fantasy-menu-item-block .pools {
+  display: flex;
+  gap: var(--spacing-1);
+}
+
+div[is="farm-component"] .fantasy-menu-item-block .total-deposits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+div[is="farm-component"] .overlapping-icons {
+  display: flex;
+}
+
+div[is="farm-component"] .overlapping-icons > i {
+  background-color: var(--colour-primary-500);
+  border-radius: 50%;
+  padding: 4px;
+}
+
+div[is="farm-component"] .overlapping-icons > i + i {
+  margin-left: -15px;
+}
+
+div[is="farm-component"] .overlapping-icons > img + img {
+  transform: translateX(-70%);
+}
+
+div[is="farm-component"] .button {
+  font-size: var(--font-size-normal);
+  font-weight: 400;
+  color: var(--colour-secondary-500);
+  background-color: var(--colour-primary-800);
+}
+
+div[is="farm-component"] .search {
+  min-height: 36px;
+  border-image-outset: 4px;
+  margin: 0;
+}
+
+div[is="farm-component"] .search input {
+  flex-grow: 1;
+}
+
+div[is="farm-component"] .fantasy-input-group input {
+  color: var(--colour-secondary-500);
+  font-size: var(--font-size-normal);
+  font-family: --font-family-default;
+  border: none;
+}
+
+div[is="farm-component"] .fantasy-input-group input:hover {
+  border: none;
+}
+
+div[is="farm-component"] .fantasy-input-group input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-size: var(--font-size-normal);
+  font-family: --font-family-default;
+}
+
+div[is="farm-component"] .fantasy-input-group input::-moz-placeholder { /* Firefox 19+ */
+  font-size: var(--font-size-normal);
+  font-family: --font-family-default;
+}
+
+div[is="farm-component"] .fantasy-input-group input:-ms-input-placeholder { /* IE 10+ */
+  font-size: var(--font-size-normal);
+  font-family: --font-family-default;
+}
+
+div[is="farm-component"] .fantasy-input-group input:-moz-placeholder { /* Firefox 18- */
+  font-size: var(--font-size-normal);
+  font-family: --font-family-default;
+}
+
+div[is="farm-component"] tr[is="empty-separator"] {
+  background-color: transparent;
+}
+
+div[is="farm-component"] .filters-container {
+  display: grid;
+  grid-template-columns: 50% 1fr auto;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+div[is="farm-component"] .filters-container button {
+  width: max-content;
+}
+
+@media screen and (max-width: 425px) {
+  div[is="farm-component"] .search input {
+    width: 110px;
+  }
+
+  div[is="farm-component"] .fantasy-menu-item-block td {
+    padding: var(--spacing-1) 0;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  div[is="farm-component"] .filters-container {
+    grid-template-columns: 50% 50%;
+    grid-template-rows: 50% 50%;
+    grid-template-areas: "search search" "filter sort";
+  }
+
+  div[is="farm-component"] .filters-container .search { grid-area: search; }
+  div[is="farm-component"] .filters-container .filter { grid-area: filter; }
+  div[is="farm-component"] .filters-container .order { grid-area: order; }
+  
+  div[is="farm-component"] .filters-container button {
+    width: auto;
+  }
+}
+
+@media screen and (max-width: 658px) {
+  .pools-col {
+    display: none;
+  }
+}
+
+@media screen and (min-width: 426px) and (max-width: 768px) {
+  div[is="farm-component"] .fantasy-menu-item-block {
+    border-right-width: 2px;
+  }
+
+  div[is="farm-component"] .filters-container .fantasy-input-group {
+    background-color: var(--colour-primary-800);
+  }
+
+  .deposits-col {
+    display: none;
+  }
+}
+
+
+@media screen and (max-width: 768px) {
+  div[is="farm-component"] .filters-container .fantasy-input-group {
+    background-color: var(--colour-primary-800);
+  }
+
+  .deposits-col {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 920px) {
+  div[is="farm-component"] .fee-col {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  div[is="farm-component"] table {
+    margin-bottom: var(--spacing-4);
+  }
+
+  div[is="farm-component"] .apy-col {
+    display: none;
+  }
+}
+
+@media  screen and (min-width: 426px) and (max-width: 1260px) {
+  div[is="farm-component"] table thead tr th {
+    padding: 0 var(--spacing-1);
+    padding-bottom: var(--spacing-1);
+  }
+
+  div[is="farm-component"] .fantasy-menu-item-block td {
+    padding: var(--spacing-1) var(--spacing-1);
+  }
+
+  div[is="farm-component"] table {
+    margin-bottom: var(--spacing-4);
+  }
+}

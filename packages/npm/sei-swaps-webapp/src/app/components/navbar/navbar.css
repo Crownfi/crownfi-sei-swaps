@@ -1,0 +1,58 @@
+div[is="navbar-component"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 64px 80px;
+}
+
+div[is="navbar-component"] .actions, .actions-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@media screen and (max-width: 1024px) {
+  div[is="navbar-component"] {
+    padding: var(--spacing-3);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  div[is="navbar-component"] {
+    padding: var(--spacing-2);
+  }
+
+  div[is="navbar-component"] .main-navbar-logo {
+    width: 108px;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  div[is="navbar-component"] {
+    margin-bottom: 1rem;
+  }
+
+  div[is="navbar-component"] .actions {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    align-items: center;
+    justify-content: space-around;
+    background: var(--background-container);
+    z-index: 10;
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  div[is="navbar-component"] .actions button:only-child {
+    margin: 0 auto;
+  }
+
+  div[is="navbar-component"] div[is="currency-selector"] {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+  }
+}

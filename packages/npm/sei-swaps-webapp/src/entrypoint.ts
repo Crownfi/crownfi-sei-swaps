@@ -1,13 +1,11 @@
-
-
 function supportsExtendingBuiltinElements() {
 	try {
 		const newElemName = "test-button-" + Date.now().toString(36);
-		class HTMLTestButton extends HTMLButtonElement {};
+		class HTMLTestButton extends HTMLButtonElement {}
 		customElements.define(newElemName, HTMLTestButton, { extends: "button" });
 		const newBtn = document.createElement("button", { is: newElemName });
 		return newBtn instanceof HTMLButtonElement && newBtn instanceof HTMLTestButton;
-	}catch(ex: any) {
+	} catch (ex: any) {
 		return false;
 	}
 }
@@ -27,19 +25,21 @@ async function entrypoint() {
 		}
 	}
 	// Wait until the DOM fully exists, custom elements depend on templates which are only guaranteed at to exist then.
-	await new Promise<void>(resolve => {
+	await new Promise<void>((resolve) => {
 		if (document.readyState == "loading") {
-			document.addEventListener("DOMContentLoaded", () => {resolve()});
+			document.addEventListener("DOMContentLoaded", () => {
+				resolve();
+			});
 		} else {
 			resolve();
 		}
 	});
-	
-	const {main} = await import("./app/index.js");
+
+	const { main } = await import("./app/index.js");
 	await main();
 }
 
-entrypoint().catch(ex => {
+entrypoint().catch((ex) => {
 	alert("Main function threw an error:\n" + ex.name + ": " + ex.message + "\nMore details in console");
 	console.error(ex);
 });

@@ -1,0 +1,25 @@
+<template cewt-name="treasury-chests-component" cewt-extends="div">
+  <div class="col align-items-center">
+    <span class="label">CrownFI TVL</span>
+    <span class="amount" cewt-ref="tvl-amount" is="token-display" no-logo>
+      <img class="loading-spinner" width="32" />
+    </span>
+    <img class="chest" src="/images/chest-obsidian.png" alt="Chest Obsidian">
+  </div>
+
+  <div class="col align-items-center">
+    <span class="label">Total Volume Traded</span>
+    <span class="amount" cewt-ref="tvt-amount" is="token-display" no-logo>
+      <img class="loading-spinner" width="32" />
+    </span>
+    <img class="chest" src="/images/chest-gold.png" alt="Chest Gold">
+  </div>
+
+  <div class="col align-items-center">
+    <span class="label">Volume Traded (24h)</span>
+    <span class="amount" cewt-ref="tvl-last-day-amount" is="token-display" no-logo>
+      <img class="loading-spinner" width="32" />
+    </span>
+    <img class="chest" src="/images/chest-silver.png" alt="Chest Silver">
+  </div>
+</template>

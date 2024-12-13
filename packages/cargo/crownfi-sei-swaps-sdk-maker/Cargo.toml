@@ -14,7 +14,15 @@ private = true
 [features]
 
 [dependencies]
-crownfi-astro-common = {path = "../crownfi-astro-common"}
+crownfi-erc20-wrapper = { path = "../../../contracts/crownfi-erc20-wrapper", features = ["library"] }
+crownfi-cw20-wrapper = { path = "../../../contracts/crownfi-cw20-wrapper", features = ["library"] }
+crownfi-pool-pair-contract = { path = "../../../contracts/crownfi-pool-pair", features = ["library"] }
+crownfi-pool-factory-contract = { path = "../../../contracts/crownfi-pool-factory", features = ["library"] }
+crownfi-swap-router-contract = { path = "../../../contracts/crownfi-swap-router", features = ["library"] }
 crownfi-sei-sdk-autogen = {workspace = true}
 bpaf = {workspace = true}
 color-eyre = {workspace = true}
+cosmwasm-schema = { workspace = true }
+cosmwasm-std = { workspace = true }
+
+# crownfi-astro-common = {path = "../crownfi-astro-common"}

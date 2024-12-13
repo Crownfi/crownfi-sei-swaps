@@ -21,3 +21,6 @@ ts-build/
 /scripts/.env
 node_modules/
 /contracts/**/schema/
+
+# Environment files
+.env

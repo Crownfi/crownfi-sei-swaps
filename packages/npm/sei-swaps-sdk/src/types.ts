@@ -1,27 +1,39 @@
 import { Addr } from "@crownfi/sei-utils";
 
+export interface AddrWithPayload {
+	address: Addr,
+	payload?: Buffer
+}
+
 /**
- * This represents either a native token denom, or a CW20 token.
- * CW20 tokens are represented with "cw20/{contractAddress}"
+ * This represents either a native token denom, a CW20 token, or an ERC20 token.
  * 
- * Stable for "1.0"
+ * - Native tokens are represented as-is, this includes factory and IBC tokens.
+ * - CW20 tokens are represented with "cw20/{contractAddress}".
+ * - ERC20 tokens are represented with "erc20/{contractAddress}"
+ *
  */
 export type UnifiedDenom = string;
 /**
  * Represents a pair of assets.
- * 
- * Stable for "1.0"
  */
 export type UnifiedDenomPair = [UnifiedDenom, UnifiedDenom];
 
-export function matchIfCW20Token<T>(
+export function matchTokenKind<T>(
 	unifiedDenom: UnifiedDenom,
 	ifCW20Callback: (contractAddress: Addr) => T,
-	ifNotCW20Callback: (denom: string) => T
+	ifERC20Callback: (contractAddress: Addr) => T,
+	ifNativeCallback: (denom: string) => T
 ): T {
-	if (unifiedDenom.startsWith("cw20/")) {
-		return ifCW20Callback(unifiedDenom.substring(5)); // "cw20/".length
-	} else {
-		return ifNotCW20Callback(unifiedDenom);
+	const splitedDenom = unifiedDenom.split("/");
+	switch (splitedDenom[0]) {
+		case "cw20":
+			return ifCW20Callback(splitedDenom[1]); // "cw20/".length
+		case "erc20":
+			return ifERC20Callback(splitedDenom[1]);
+		case "factory":
+			return ifNativeCallback(unifiedDenom);
+		default:
+			throw new Error(`Unknown token: ${unifiedDenom}`);
 	}
 }

@@ -5,6 +5,6 @@
  * The Rust definition of the associated structs is the source of truth!!
  */
 export * from "./types.js";
-export * from "./astro_factory.js";
-export * from "./astro_pair.js";
-export * from "./astro_router.js";
+export * from "./pool_factory.js";
+export * from "./pool_pair.js";
+export * from "./swap_router.js";

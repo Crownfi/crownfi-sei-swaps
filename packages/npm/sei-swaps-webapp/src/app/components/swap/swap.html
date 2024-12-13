@@ -1,0 +1,27 @@
+<template cewt-name="swap-component" cewt-extends="div">
+  <div class="warning-container">
+    <span class="important-note" cewt-ref="connect-wallet-warning">
+      Connect your wallet to enable swapping
+    </span>
+
+    <span class="important-note danger" cewt-ref="exceeds-balance-warning" style="display: none;">
+      Selected amount exceeds your balance
+    </span>
+  </div>
+
+  <div cewt-ref="from-token"></div>
+
+  <button class="fantasy-circular arrow">
+    <span class="cicon cicon-size-medium cicon-gradient cicon-fantasy-arrow-down primary"></span>
+  </button>
+
+  <div cewt-ref="to-token"></div>
+
+  <div class="swap-button-container">
+    <button class="fantasy-ornamental primary swap-button" cewt-ref="swap-button" disabled>
+      SWAP
+    </button>
+
+    <span class="loading-spinner-inline text-xlarge" cewt-ref="swap-button-spinner" style="display: none;"></span>
+  </div>
+</template>

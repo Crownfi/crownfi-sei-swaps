@@ -1,0 +1,47 @@
+div[is="treasury-chests-component"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow: auto;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  -webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  div[is="treasury-chests-component"] {
+    gap: 1rem;
+    padding: 0 20vw;
+  }
+}
+
+div[is="treasury-chests-component"] .chest {
+  /* width: 279px; */
+  height: 200px;
+  margin-top: var(--spacing-2);
+}
+
+div[is="treasury-chests-component"] .loading-spinner {
+  width: 32px;
+  height: 32px;
+}
+
+div[is="treasury-chests-component"] .label, .amount {
+  background: var(--colour-secondary-500);
+  background-clip: text;
+	color: #00000000;
+}
+
+div[is="treasury-chests-component"] .label {
+  font-family: var(--font-family-default);
+  font-weight: 600;
+  font-size: var(--font-size-xlarge);
+}
+
+div[is="treasury-chests-component"] .amount {
+  font-family: var(--font-family-fantasy);
+  font-weight: 400;
+  font-size: var(--font-size-h4);
+}
